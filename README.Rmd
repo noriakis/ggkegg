@@ -1,17 +1,35 @@
+---
+output: github_document
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  fig.dev = "grDevices::png",
+  dpi = 300L,
+  dev.args = list(),
+  fig.ext = "png",
+  fig.height=8,
+  fig.width=8,
+  fig.retina = 2L,
+  fig.align = "center"
+)
+```
 
 # ggkegg
 
 ## Installation
 
-``` r
+```{r, eval=FALSE}
 devtools::install_github("noriakis/ggkegg")
 ```
-
 ## Example
 
-``` r
+```{r, message=FALSE, warning=FALSE}
 library(ggkegg)
 library(ggfx)
 ggkegg("hsa04130",
@@ -29,5 +47,3 @@ ggkegg("hsa04130",
                  end_cap = circle(5, 'mm'),
                  start_cap = circle(5, "mm"))
 ```
-
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="2400" style="display: block; margin: auto;" />
