@@ -1,0 +1,12 @@
+Package: ggkegg
+Type: Package
+Title: KEGG pathway visualization by ggplot2
+Version: 0.99.0
+Authors@R: person("Noriaki", "Sato", email = "nori@hgc.jp", role = c("cre", "aut"))
+Description: This package aims to import, parse, and analyze KEGG pathway data using ggplot2 and ggraph.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends:
+    R (>= 4.2.0), ggplot2, ggraph, XML
+RoxygenNote: 7.2.3
+VignetteBuilder: knitr
