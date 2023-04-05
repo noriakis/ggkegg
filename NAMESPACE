@@ -2,6 +2,7 @@
 
 S3method(ggplot_add,geom_node_rect)
 export(geom_node_rect)
+export(geom_node_rect_kegg)
 export(ggkegg)
 export(ggplot_add.geom_node_rect)
 export(parse_kgml)
