@@ -1,5 +1,6 @@
 #' @param rect_width manual specification of rectangle
 #' @param rect_height manual specification of rectangle
+#' @export
 parse_kgml <- function(file_name,
                        pid=NULL,
                        rect_width=25,
@@ -7,7 +8,8 @@ parse_kgml <- function(file_name,
                        convert_org=NULL,
                        convert_collapse=NULL,
                        convert_first=TRUE,
-                       group_rect_nudge=2) {
+                       group_rect_nudge=2,
+                       node_rect_nudge=0) {
   xml <- xmlParse(file_name)
   node_sets <- getNodeSet(xml, "//entry")
   all_nodes <- NULL
@@ -45,10 +47,10 @@ parse_kgml <- function(file_name,
   kegg_nodes$width <- as.numeric(kegg_nodes$width)
   kegg_nodes$height <- as.numeric(kegg_nodes$height)
 
-  kegg_nodes$xmin <- kegg_nodes$x-kegg_nodes$width/2
-  kegg_nodes$xmax <- kegg_nodes$x+kegg_nodes$width/2
-  kegg_nodes$ymin <- kegg_nodes$y-kegg_nodes$height/2
-  kegg_nodes$ymax <- kegg_nodes$y+kegg_nodes$height/2
+  kegg_nodes$xmin <- kegg_nodes$x-kegg_nodes$width/2-node_rect_nudge
+  kegg_nodes$xmax <- kegg_nodes$x+kegg_nodes$width/2+node_rect_nudge
+  kegg_nodes$ymin <- kegg_nodes$y-kegg_nodes$height/2-node_rect_nudge
+  kegg_nodes$ymax <- kegg_nodes$y+kegg_nodes$height/2+node_rect_nudge
   
   kegg_nodes[kegg_nodes$type=="group",]$xmin <- kegg_nodes[kegg_nodes$type=="group",]$xmin-group_rect_nudge
   kegg_nodes[kegg_nodes$type=="group",]$ymin <- kegg_nodes[kegg_nodes$type=="group",]$ymin-group_rect_nudge
