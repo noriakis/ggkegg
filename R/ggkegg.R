@@ -31,14 +31,21 @@ ggkegg <- function(pid,
                    convert_collapse=NULL,
                    convert_reaction=FALSE,
                    delete_undefined=FALSE,
-                   delete_zero_degree=FALSE) {
+                   delete_zero_degree=FALSE,
+                   numeric_attribute=NULL,
+                   node_rect_nudge=0,
+                   group_rect_nudge=2) {
   file_name <- paste0(pid,".xml")
   if (!file.exists(file_name)) {
     download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
                   destfile=file_name)
   }
   g <- parse_kgml(file_name, pid=pid, convert_org=convert_org,
-                  convert_first=convert_first, convert_collapse=convert_collapse)
+                  convert_first=convert_first, convert_collapse=convert_collapse,
+                  node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge)
+  if (!is.null(numeric_attribute)){
+    V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
+  }
   if (delete_undefined) {
     g <- induced.subgraph(g, !V(g)$name %in% "undefined")
   } else {

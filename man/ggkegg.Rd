@@ -13,7 +13,10 @@ ggkegg(
   convert_collapse = NULL,
   convert_reaction = FALSE,
   delete_undefined = FALSE,
-  delete_zero_degree = FALSE
+  delete_zero_degree = FALSE,
+  numeric_attribute = NULL,
+  node_rect_nudge = 0,
+  group_rect_nudge = 2
 )
 }
 \arguments{

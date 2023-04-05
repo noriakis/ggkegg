@@ -4,12 +4,12 @@
 \alias{geom_node_rect}
 \title{geom_node_rect}
 \usage{
-geom_node_rect(with_group = TRUE)
+geom_node_rect(type = NULL, rect_fill = "grey")
 }
 \arguments{
-\item{with_group}{grouping rectangle will be drawn}
-
 \item{g}{ggraph object}
+
+\item{with_group}{grouping rectangle will be drawn}
 }
 \description{
 geom_node_rect
