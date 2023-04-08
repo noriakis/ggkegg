@@ -1,3 +1,35 @@
+#' plot_module_steps
+#' wrapper function for plotting module definition steps
+#' @export
+plot_module_steps <- function(all_steps, layout="kk") {
+  allnodes <- unique(all_steps[,1], all_steps[,2])
+  if (sum(startsWith(allnodes, "K"))==length(allnodes)) {
+    stop("all nodes are KO.")
+  }
+  ggraph(all_steps, layout=layout) + 
+    geom_node_point(size=4, aes(filter=!startsWith(name,"STEP") &
+                                  !startsWith(name,"G") &
+                                !startsWith(name,"CS"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"STEP"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"CS") |
+                                            startsWith(name,"G"))) + 
+    geom_edge_link(aes(filter=type %in% c("step_transition","rel")),
+                       arrow = arrow(length = unit(3, 'mm')),
+                       end_cap=circle(5, 'mm'),start_cap=circle(5,"mm"))+
+    geom_edge_link(aes(filter=!type %in% c("step_transition","rel","instep"))) + 
+    geom_edge_link(aes(label=type,
+                           filter=!startsWith(type,"in") & 
+                             !type %in% c("step_transition","rel")),
+                       angle_calc="along",
+                       label_dodge = unit(2, 'mm')) + 
+    geom_node_text(aes(label=name,
+                       filter=startsWith(name,"K")),
+                   repel=TRUE, size=4, bg.colour="white")+
+    theme_void()
+}
+
+
+
 #' @export
 #'
 geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',

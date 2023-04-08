@@ -1,3 +1,283 @@
+#' obtain_sequential_module_definition
+#' 
+#' Given module ID and step number,
+#' Recursively obtain graphical represencation of step and 
+#' connect them by pseudo-nodes representing steps.
+obtain_sequential_module_definition <- function(mid, step=NULL) {
+  mod <- obtain_module(mid)
+  module_name <- mod$name
+  def <- parse_module(mod, "definition")
+  if (is.null(step)) {cand_step <- def$step}
+
+  all_steps <- NULL
+  orders <- NULL
+
+  for (i in seq_along(cand_step)) {
+    if (def$num_in_step[i]!=1) {
+      for (ko in def$ko_in_step[[i]]) {
+        all_steps <- rbind(all_steps, c(ko, paste0("STEP",i),"instep"))
+        all_steps <- all_steps |> data.frame() |> `colnames<-`(c("from","to","type"))
+      }
+      plotg <- as_data_frame(get_module_graph(def$step[i]))
+      ## Need to change naming
+      frm <- plotg$from
+      frm[!startsWith(frm,"K")] <- paste0(frm[!startsWith(frm,"K")],"_",i)
+      to <- plotg$to
+      to[!startsWith(to,"K")] <- paste0(to[!startsWith(to,"K")],"_",i)
+      plotg$from <- frm
+      plotg$to <- to
+      ##
+      all_steps <- rbind(all_steps, plotg)
+      orders <- c(orders, paste0("STEP",i))
+    } else {
+      ## Some steps have only "-K*****"
+      orders <- c(orders, def$step[i])
+    }
+  } ## For each step, obtain the plot
+  
+  ords <- NULL
+  for (i in seq_along(orders)) {
+    if (i!=length(orders)) {
+      ords <- rbind(ords, c(orders[i], orders[i+1],"step_transition"))
+    }
+  }
+  if (!is.null(ords)) {
+    all_steps <- rbind(all_steps, 
+                     data.frame(ords)|>
+                       `colnames<-`(c("from","to","type")))
+  } else {
+    ## Only one step
+    all_steps <- subset(all_steps, all_steps$type!="instep")
+
+  }
+  return(list(all_steps=all_steps, module_name=module_name, definition=def))
+}
+
+
+#' get_module_graph
+#' obtain graphical representation of module definition
+#' @return igraph object
+#' @noRd
+get_module_graph <- function(input_string) {
+  ppos <- NULL
+  for (i in find_parenthesis_pairs(input_string)) {
+    ppos <- rbind(ppos, c(i[[1]], i[[2]], i[[2]]-i[[1]]))
+  }
+  if (!is.null(ppos)) {
+    posmat <- ppos[order(ppos[,3]),]
+    if (is.vector(posmat)) {dfs <- data.frame(t(posmat))} else {
+      dfs <- data.frame(posmat)
+    }
+    posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
+    posmat$name <- paste0("G",str_pad(1:nrow(posmat),5,pad="0"))
+    ul <- sort(unique(posmat$length))
+    he <- (1:length(ul))+1
+    names(he) <- ul
+    posmat$height <- he[as.character(posmat$length)]/2
+    posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
+    posmat$rawtext <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
+
+    converted_string <- input_string
+    for (i in seq_along(posmat$text)) {
+      if (i < nrow(posmat)) {
+        converted_string <- gsub(posmat$text[i], posmat$name[i], converted_string, fixed = TRUE)
+        posmat$text[(i+1):nrow(posmat)] <- gsub(posmat$text[i], posmat$name[i], posmat$text[(i+1):nrow(posmat)], fixed=TRUE)
+      }
+    }
+  } else {
+    converted_string <- input_string
+  }
+  
+  # Process "+" or "-" or " " between comma
+  cssnum <- 1
+  retcss <- function(converted_string, cssnum) {
+    css <- NULL
+    for (i in gsub("\\)","",gsub("\\(","",unlist(strsplit(converted_string, ","))))){
+      if (nchar(i)!=6) {
+        css <- rbind(css, c(i,paste0("CS",str_pad(cssnum,4,pad="0"))))
+        cssnum <- cssnum + 1
+      }
+    }
+    if (!is.null(css)) {
+      css <- data.frame(css) |> `colnames<-`(c("text","name"))
+    }
+    list(css=css, num=cssnum)
+  }
+  
+  retcss1 <- retcss(converted_string, cssnum)
+  
+  css <- retcss1$css
+  cssnum <- retcss1$num
+  
+  for (i in seq_along(css$text)) {
+    converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+  }
+  
+  converted_string
+  
+  altnodes <- gsub("\\)","",gsub("\\(","",unlist(strsplit(converted_string,","))))
+  rels <- NULL
+  for (i in altnodes) {
+    for (j in altnodes) {
+      if (i!=j) {
+        rels <- rbind(rels, c(i,j, "alt"))
+      }
+    }
+  }
+  
+  if (!is.null(rels)) {
+    rels <- rels |> data.frame() |> `colnames<-`(c("from","to","type"))
+    
+    relg <- graph_from_data_frame(rels,directed = FALSE)
+    g <- simplify(relg,edge.attr.comb = "first")
+    
+    noparen <- function(x) gsub("\\)","",gsub("\\(","",x))
+    
+    gs <- list()
+    for (k in seq_along(posmat$name)) {
+      if (k==nrow(posmat)) {next}
+      i <- posmat$name[k]
+      tmpg <- NULL
+      tmp <- subset(posmat, posmat$name==i)$text
+      checkcss <- retcss(tmp, cssnum) # check plus spacee
+      if (is.null(checkcss$css)) {## No space or plus in text
+        commas <- unlist(strsplit(noparen(tmp), ","))
+        for (co in commas) {
+          for (co2 in commas) {
+            if (co!=co2) {
+              tmpg <- rbind(tmpg, c(co,co2,"alt"))
+              tmpg <- rbind(tmpg, c(i, co,"ingroup"))
+            }
+          }
+        }
+      } else {
+        noparentmp <- noparen(tmp)
+        tmpcss <- retcss(noparentmp, cssnum)
+        css2 <- tmpcss$css
+        css <- rbind(css, css2)
+        cssnum <- tmpcss$num
+        for (j in seq_along(css2$text)) {
+          noparentmp <- gsub(css2$text[j], css2$name[j], noparentmp, fixed=TRUE)
+        }
+        commas <- unlist(strsplit(noparentmp, ","))
+        if (length(commas)!=1) {
+          for (co in commas) {
+            for (co2 in commas) {
+              if (co!=co2) {
+                tmpg <- rbind(tmpg, c(co,co2,"alt"))
+                tmpg <- rbind(tmpg, c(i, co,"ingroup"))
+              }
+            }
+          }
+        } else {## No comma
+          tmpg <- rbind(tmpg, c(commas, i, "ingroup"))
+        }##CSS
+      }
+      tmp_g <- data.frame(tmpg) |> `colnames<-`(c("from","to","type"))
+      
+      el <- simplify(graph_from_data_frame(tmpg, directed=FALSE), edge.attr.comb = "first")
+      tmp_g <- data.frame(as_data_frame(el)) |> `colnames<-`(c("from","to","type"))
+      gs[[i]] <- tmp_g
+    }
+    
+    all_g <- as_data_frame(g) |> `colnames<-`(c("from","to","type"))
+    
+    for (i in names(gs)) {
+      all_g <- rbind(all_g, gs[[i]])
+    }
+  }
+  
+  ## Plus, space, minus
+  ## There are no comma left
+  return_certain_sep <- function(text, sep) {
+    plls <- NULL
+    for (tex in text) {
+      pl <- unlist(strsplit(tex, sep))
+      for (p in pl) {
+        for (q in pl) {
+          if (p!=q)
+            plls <- rbind(plls, c(p,q,gsub("\\\\","",sep)))
+        }
+      }
+    }
+    plls
+  }
+  
+  
+  parse_css <- function (row) {
+    text <- row$text
+    csname <- row$name
+    gra <- NULL
+    space_sep <- unlist(strsplit(text, " ")) ## NEED TO BE DIRECTED!
+    if (length(space_sep)>1) {
+      for (i in seq_along(space_sep)) {
+        if (i==length(space_sep)) {next}
+        gra <- rbind(gra, c(space_sep[i], space_sep[i+1], "rel"))
+      }
+    } else {
+      gra <- return_certain_sep(space_sep, "\\+")
+    }
+    for (i in unique(c(gra[,1], gra[,2]))) {
+      gra<-rbind(gra, c(as.character(csname), i, "incss"))
+    }
+    return(gra)
+  }
+  
+  ## Plus signs are used to represent a complex and 
+  ## a minus sign denotes a non-essential component in the complex.
+  if (!is.null(css)) {
+    cssparsed <- NULL
+    for (i in seq_len(nrow(css))) {
+      cssparsed <- rbind(cssparsed, parse_css(css[i,]))
+    }
+    
+    cssparsed <- data.frame(cssparsed) |>
+      `colnames<-`(c("from","to","type"))
+  } else {
+    cssparsed<-NULL
+  }
+  
+  ## Minus
+  if (!is.null(cssparsed)) {
+    for (i in seq_len(nrow(cssparsed))) {
+      row <- cssparsed[i,]
+      if (grepl("-", row$from)) {
+        mi <- unlist(strsplit(row$from,"-"))
+        for (j in seq_along(mi)) {
+          if (j==length(mi)) {next}
+          ## Append the relationship recursively
+          cssparsed <- rbind(cssparsed, c(mi[j],mi[j+1],"-"))
+        }
+        ## Leave the original row the first occurrence
+        cssparsed[i, "from"] <- mi[1]
+      }
+      if (grepl("-", row$to)) {
+        mi <- unlist(strsplit(row$to,"-"))
+        for (j in seq_along(mi)) {
+          if (j==length(mi)) {next}
+          ## Append the relationship recursively
+          cssparsed <- rbind(cssparsed, c(mi[j],mi[j+1],"-"))
+        }
+        ## Leave the original row the first occurrence
+        cssparsed[i, "to"] <- mi[1]
+      }
+    }
+  }
+  
+  norel <- subset(cssparsed, cssparsed$type!="rel")
+  reledges <- subset(cssparsed, cssparsed$type=="rel") ## Need to preserve order
+  if (!is.null(rels)) {
+    plotg <- simplify(graph_from_data_frame(rbind(all_g, norel), directed = FALSE),edge.attr.comb = "first")
+    plotg <- graph_from_data_frame(rbind(as_data_frame(plotg), reledges), directed=TRUE)
+  } else {
+    plotg <- simplify(graph_from_data_frame(norel, directed = FALSE),edge.attr.comb = "first")
+    plotg <- graph_from_data_frame(rbind(as_data_frame(plotg), reledges), directed=TRUE)
+  }
+  return(plotg)
+}
+
+
+
 #' obtain_module
 #' @noRd
 obtain_module <- function(mid) {
