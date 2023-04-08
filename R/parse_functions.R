@@ -171,7 +171,7 @@ get_reaction <- function(xml) {
 #' @import BiocFileCache
 #' @importFrom stringr str_extract
 #' @noRd
-obtain_map_and_cache <- function(org, pid, colon=TRUE) {
+obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
   url <- paste0("https://rest.kegg.jp/list/",org)
   bfc <- BiocFileCache()
   path <- bfcrpath(bfc, url)
