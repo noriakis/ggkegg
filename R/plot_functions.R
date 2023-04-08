@@ -1,3 +1,21 @@
+#' plot_module_text
+#' plot the text representation of KEGG modules
+plot_module_text <- function(plot_list, show_name="name") {
+  panel_list <- list()
+  for (concat in seq_along(plot_list)) {
+    plot_list[[concat]]$name <- plot_list[[concat]][[show_name]]
+    g <- tbl_graph(nodes=plot_list[[concat]])
+    panel_list[[concat]] <- ggraph(g, x=x, y=1) +
+     geom_node_rect(aes(filter=.data$koflag), fill=plot_list[[concat]][plot_list[[concat]]$koflag,]$color,
+      alpha=0.5, color="black")+
+     geom_node_rect(aes(filter=!.data$koflag & !.data$conflag), fill="transparent", color="black")+
+     geom_node_text(aes(label=name,filter=.data$koflag | .data$conflag))+
+     theme_void()
+  }
+  wrap_plots(panel_list, ncol=1)
+}
+
+
 #' plot_module_steps
 #' wrapper function for plotting module definition steps
 #' @export

@@ -1,0 +1,23 @@
+---
+title: "ggkegg"
+author: "Noriaki Sato"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{ggkegg}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,
+                      fig.width=8,
+                      fig.height=8,
+                      warning=FALSE,
+                      message=FALSE)
+```
+
+# ggkegg
+
+```{r}
+sessionInfo()
+```

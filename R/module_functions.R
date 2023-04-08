@@ -1,3 +1,105 @@
+#' module_text
+#' Obtain textual representation of modules for all the steps
+module_text <- function(def, candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
+  plot_list <- list()
+  for (step in seq_along(def$step)) {
+    input_string <- def$step[step]
+    ppos <- NULL
+    for (i in find_parenthesis_pairs(input_string)) {
+      ppos <- rbind(ppos, c(i[[1]], i[[2]], i[[2]]-i[[1]]))
+    }
+    if (!is.null(ppos)) {
+      posmat <- ppos[order(ppos[,3]),]
+      if (is.vector(posmat)) {dfs <- data.frame(t(posmat))} else {
+        dfs <- data.frame(posmat)
+      }
+      posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
+      posmat$name <- paste0("G",str_pad(1:nrow(posmat),5,pad="0"))
+      ul <- sort(unique(posmat$length))
+      he <- (1:length(ul))+1
+      names(he) <- ul
+      posmat$height <- he[as.character(posmat$length)]/2
+      posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
+      posmat$rawtext <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
+      posmat$size <- posmat$length
+      posmat$x <- (as.numeric(posmat$xmin)+as.numeric(posmat$xmax))/2
+      # posmat$length <- NULL
+    }
+    
+    ## All-KO
+    kopos <- NULL
+    for (i in unlist(def$ko_in_step[step])) {
+      findko <- str_locate_all(input_string, i)
+      for (ff in findko) {
+        for (rn in seq_len(nrow(ff))) {
+          kopos <- rbind(kopos,
+                         c(i, ff[rn, 1], ff[rn, 2]))
+        }
+      }
+    }
+    kopos <- data.frame(kopos) |> `colnames<-`(c("name","xmin","xmax"))
+    kopos$x <- (as.numeric(kopos$xmin)+as.numeric(kopos$xmax))/2
+    kopos$height <- 0.5
+    kopos$size <- 6
+    
+    locate_and_append <- function(concat, loc) {
+      if (grepl(loc, input_string)) {
+        put <- gsub("\\\\", "", loc)
+        if (put==" ") {put <- "->"}
+        if (put==",") {put <- "alt"}
+        findx <- str_locate_all(input_string, loc)
+        for (pos in findx) {
+          for (rn in seq_len(nrow(pos))) {
+            concat <- rbind(concat, c(put, pos[rn, 1], pos[rn, 1], pos[rn, 1], 0.5, 1))
+          }
+        }
+      }
+      concat
+    }
+  
+  
+  
+    if (!is.null(ppos)) {
+      concat <- rbind(posmat[,c("name","xmin","xmax","x","height","size")], kopos)
+    } else {
+      concat <- kopos
+    }
+    
+    concat <- locate_and_append(concat, "\\+")
+    concat <- locate_and_append(concat, "\\-")
+    concat <- locate_and_append(concat, " ")
+    concat <- locate_and_append(concat, ",")
+    
+    concat$xmin <- as.numeric(concat$xmin)
+    concat$xmax <- as.numeric(concat$xmax)
+    concat$x <- as.numeric(concat$x)
+    concat$height <- as.numeric(concat$height)
+    
+    concat$ymin <- 1 - concat$height
+    concat$ymax <- 1 + concat$height
+    
+    bgcol <- NULL
+    for (nm in concat$name) {
+      if (nm %in% candidate_ko) {
+        bgcol <- c(bgcol, paint_colour)
+      } else {
+        bgcol <- c(bgcol, "transparent")
+      }
+    }
+    concat$color <- bgcol
+
+    if (!is.null(convert)) {
+      conv <- convert[concat$name]
+      conv[is.na(conv)] <- concat$name[is.na(conv)]
+      concat$converted_name <- conv
+    }
+    concat$koflag <- startsWith(concat$name, "K")
+    concat$conflag <- concat$name %in% c("->","+","-","alt")
+    plot_list[[step]] <- concat
+  }
+  plot_list
+}
+
 #' obtain_sequential_module_definition
 #' 
 #' Given module ID and step number,
