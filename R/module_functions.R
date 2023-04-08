@@ -96,8 +96,14 @@ parse_module <- function(mod, type="reaction") {
     result <- divide_string(mod$definition)
     pattern <- "K\\d{5}"
     matches <- str_extract_all(mod$definition, pattern)
+    num_step <- NULL
+    ko_in_step <- list()
+    for (i in seq_along(result)) {
+      ko_in_step[[i]] <- unlist(str_extract_all(result[i], pattern))
+      num_step <- c(num_step, length(unlist(str_extract_all(result[i], pattern))))
+    }
     message("Currently returning list of the KO and steps")
-    node_list <- list(step=result, KO=unlist(matches))
+    node_list <- list(step=result, KO=unlist(matches), num_in_step=num_step, ko_in_step=ko_in_step)
     return(node_list)
   }
 }
