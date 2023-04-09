@@ -128,7 +128,7 @@ obtain_sequential_module_definition <- function(mid, step=NULL) {
       to[!startsWith(to,"K")] <- paste0(to[!startsWith(to,"K")],"_",i)
       plotg$from <- frm
       plotg$to <- to
-      ##
+
       all_steps <- rbind(all_steps, plotg)
       orders <- c(orders, paste0("STEP",i))
     } else {
