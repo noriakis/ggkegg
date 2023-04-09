@@ -73,16 +73,16 @@ geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
 geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
   ## [TODO] implement ggproto
   structure(list(type=type, rect_fill=rect_fill),
-            class = "geom_node_rect")
+            class = "geom_node_rect_kegg")
 }
 
-#' ggplot_add.geom_node_rect
+#' ggplot_add.geom_node_rect_kegg
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
 #' @param object_name The name of the object to add
-#' @export ggplot_add.geom_node_rect
+#' @export ggplot_add.geom_node_rect_kegg
 #' @export
-ggplot_add.geom_node_rect <- function(object, plot, object_name) {
+ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
   if (is.null(object$type)){
     type <- unique(plot$data$type)
     type <- type[type!="group"]

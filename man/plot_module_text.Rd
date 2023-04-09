@@ -5,7 +5,7 @@
 \title{plot_module_text
 plot the text representation of KEGG modules}
 \usage{
-plot_module_text(plot_list)
+plot_module_text(plot_list, show_name = "name")
 }
 \description{
 plot_module_text
