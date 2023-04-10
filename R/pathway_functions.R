@@ -25,6 +25,8 @@ parse_kgml <- function(file_name,
     reac <- xmlAttrs(node)["reaction"]
     gl <- node[["graphics"]]
     glname <- xmlAttrs(gl)["name"]
+    gltype <- xmlAttrs(gl)["type"]
+    glcoords <- xmlAttrs(gl)["coords"]
     x <- as.numeric(xmlAttrs(gl)["x"])
     if (invert_y) {
       y <- -1*as.numeric(xmlAttrs(gl)["y"])
@@ -43,12 +45,12 @@ parse_kgml <- function(file_name,
       }
     }
     all_nodes <- rbind(all_nodes, c(id, name, type, reac,
-                                    glname, x, y, w, h, bg))
+                                    glname, x, y, w, h, bg, gltype, glcoords))
   }
   kegg_nodes <- all_nodes |> data.frame() |>
     `colnames<-`(c("id","name","type","reaction",
                    "graphics_name",
-                   "x","y","width","height","bgcolor"))
+                   "x","y","width","height","bgcolor","graphics_type","coords"))
 
   kegg_nodes$x <- as.numeric(kegg_nodes$x)
   kegg_nodes$y <- as.numeric(kegg_nodes$y)
@@ -80,8 +82,12 @@ parse_kgml <- function(file_name,
     rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
     all_rels <- rbind(all_rels, c(entry1, entry2, rel_type, rel_subtype))
   }
-  kegg_edges <- all_rels |> data.frame() |>
-    `colnames<-`(c("entry1","entry2","type","subtype"))
+  if (!is.null(all_rels)) {
+    kegg_edges <- all_rels |> data.frame() |>
+      `colnames<-`(c("entry1","entry2","type","subtype"))
+  } else {
+    kegg_edges <- NULL
+  }
   ## Include grouping
   # for (i in seq_len(nrow(kegg_edges))) {
   #   if (kegg_edges[i,"entry1"] %in% names(grs)) {
