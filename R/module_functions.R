@@ -103,16 +103,13 @@ module_text <- function(def, candidate_ko=NULL, paint_colour="tomato", convert=N
 
 #' obtain_sequential_module_definition
 #' 
-#' Given module ID and step number,
+#' Given module definition and step number,
 #' Recursively obtain graphical represencation of step and 
 #' connect them by pseudo-nodes representing steps.
 #' @export
-obtain_sequential_module_definition <- function(mid, step=NULL) {
-  mod <- obtain_module(mid)
-  module_name <- mod$name
-  def <- parse_module(mod, "definition")
+obtain_sequential_module_definition <- function(def, step=NULL) {
+  
   if (is.null(step)) {cand_step <- def$step}
-
   all_steps <- NULL
   orders <- NULL
 
@@ -154,7 +151,7 @@ obtain_sequential_module_definition <- function(mid, step=NULL) {
     all_steps <- subset(all_steps, all_steps$type!="instep")
 
   }
-  return(list(all_steps=all_steps, module_name=module_name, definition=def))
+  return(list(all_steps=all_steps, definition=def))
 }
 
 
@@ -427,6 +424,36 @@ obtain_module <- function(mid) {
 #' @noRd
 parse_module <- function(mod, type="reaction") {
   if (type=="reaction") {
+
+    ## Try to represent reaction as nodes
+    ## This fails because some steps use the same reaction
+    # reac <- NULL
+    # for (rea in mod$reaction) {
+    #   left <- unlist(strsplit(rea, "->"))[1]
+    #   right <- unlist(strsplit(rea, "->"))[2]
+    #   if (grepl("\\+",right)) {
+    #     right <- unlist(strsplit(right, "\\+"))
+    #   }
+    #   right <- gsub(" ","", right)
+      
+    #   # left
+    #   left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
+    #   left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
+    #   for (l2 in unlist(strsplit(left2, ","))) {
+    #     for (ll2 in unlist(strsplit(l2, "\\+"))) {
+    #       for (l1 in unlist(strsplit(left1, ","))) {
+    #         reac <- rbind(reac, c(ll2, l1))
+    #       }
+    #     }
+    #   }
+    #   for (l1 in unlist(strsplit(left1, ","))) {
+    #     for (r in right) {
+    #       reac <- rbind(reac, c(l1, r))
+    #     }       
+    #   }
+    # }
+
+    ## Try to represent reaction as edge label
     reac <- NULL
     for (rea in mod$reaction) {
       left <- unlist(strsplit(rea, "->"))[1]
@@ -437,21 +464,21 @@ parse_module <- function(mod, type="reaction") {
       right <- gsub(" ","", right)
       
       # left
+      ## Reaction
       left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
       left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
       for (l2 in unlist(strsplit(left2, ","))) {
-        for (ll2 in unlist(strsplit(l2, "\\+"))) {
-          for (l1 in unlist(strsplit(left1, ","))) {
-            reac <- rbind(reac, c(ll2, l1))
+        l2sp <- unlist(strsplit(l2, "\\+"))
+        for (ll2 in seq_along(l2sp)) {
+          for (r1 in seq_along(right)) {
+            reac <- rbind(reac, c(l2sp[r1], right[r1], left1))
           }
         }
       }
-      for (l1 in unlist(strsplit(left1, ","))) {
-        for (r in right) {
-          reac <- rbind(reac, c(l1, r))
-        }       
-      }
+      reac
     }
+
+    return(reac)
   } else if (type=="definition") {
     divide_string <- function(input_string) {
       steps <- c()

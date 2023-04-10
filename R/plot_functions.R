@@ -1,5 +1,7 @@
 #' plot_module_text
 #' plot the text representation of KEGG modules
+#' @import tidygraph
+#' @import patchwork
 plot_module_text <- function(plot_list, show_name="name") {
   panel_list <- list()
   for (concat in seq_along(plot_list)) {

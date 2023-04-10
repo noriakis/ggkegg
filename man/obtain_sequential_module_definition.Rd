@@ -4,10 +4,10 @@
 \alias{obtain_sequential_module_definition}
 \title{obtain_sequential_module_definition}
 \usage{
-obtain_sequential_module_definition(mid, step = NULL)
+obtain_sequential_module_definition(def, step = NULL)
 }
 \description{
-Given module ID and step number,
+Given module definition and step number,
 Recursively obtain graphical represencation of step and 
 connect them by pseudo-nodes representing steps.
 }
