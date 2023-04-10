@@ -8,6 +8,7 @@ ggkegg(
   pid,
   layout = "native",
   return_igraph = FALSE,
+  pathway_number = 1,
   convert_org = NULL,
   convert_first = TRUE,
   convert_collapse = NULL,

@@ -1,5 +1,6 @@
 #' module_text
 #' Obtain textual representation of modules for all the steps
+#' @export
 module_text <- function(def, candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
   plot_list <- list()
   for (step in seq_along(def$step)) {
@@ -105,6 +106,7 @@ module_text <- function(def, candidate_ko=NULL, paint_colour="tomato", convert=N
 #' Given module ID and step number,
 #' Recursively obtain graphical represencation of step and 
 #' connect them by pseudo-nodes representing steps.
+#' @export
 obtain_sequential_module_definition <- function(mid, step=NULL) {
   mod <- obtain_module(mid)
   module_name <- mod$name
@@ -381,7 +383,7 @@ get_module_graph <- function(input_string) {
 
 
 #' obtain_module
-#' @noRd
+#' @export
 obtain_module <- function(mid) {
   module <- list()
   if (!file.exists(mid)) {
@@ -421,6 +423,7 @@ obtain_module <- function(mid) {
 }
 
 #' parse_module
+#' @export
 #' @noRd
 parse_module <- function(mod, type="reaction") {
   if (type=="reaction") {

@@ -9,7 +9,8 @@ parse_kgml <- function(file_name,
                        convert_collapse=NULL,
                        convert_first=TRUE,
                        group_rect_nudge=2,
-                       node_rect_nudge=0) {
+                       node_rect_nudge=0,
+                       invert_y=TRUE) {
   xml <- xmlParse(file_name)
   node_sets <- getNodeSet(xml, "//entry")
   all_nodes <- NULL
@@ -23,7 +24,11 @@ parse_kgml <- function(file_name,
     gl <- node[["graphics"]]
     glname <- xmlAttrs(gl)["name"]
     x <- as.numeric(xmlAttrs(gl)["x"])
-    y <- as.numeric(xmlAttrs(gl)["y"])
+    if (invert_y) {
+      y <- -1*as.numeric(xmlAttrs(gl)["y"])
+    } else {
+      y <- as.numeric(xmlAttrs(gl)["y"])
+    }
     w <- as.numeric(xmlAttrs(gl)["width"])
     h <- as.numeric(xmlAttrs(gl)["height"])
     if (type=="group") {

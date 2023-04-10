@@ -26,6 +26,7 @@
 ggkegg <- function(pid,
                    layout="native",
                    return_igraph=FALSE,
+                   pathway_number=1,
                    convert_org=NULL,
                    convert_first=TRUE,
                    convert_collapse=NULL,
@@ -35,6 +36,22 @@ ggkegg <- function(pid,
                    numeric_attribute=NULL,
                    node_rect_nudge=0,
                    group_rect_nudge=2) {
+  enrich_attribute <- NULL
+  if (is.character(pid)) {
+    if (startsWith("M", pid)) {
+      return(obtain_module(pid))
+    }
+  }
+  if (!is.character(pid)) {
+    if (attributes(pid)$class=="enrichResult") {
+      org <- attributes(pid)$organism
+      res <- attributes(pid)$result
+      enrich_attribute <- paste0(org, ":", unlist(strsplit(
+        res[pathway_number,]$geneID, "/")))
+      pid <- res[pathway_number,]$ID
+    }
+  }
+
   file_name <- paste0(pid,".xml")
   if (!file.exists(file_name)) {
     download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
@@ -46,6 +63,11 @@ ggkegg <- function(pid,
   if (!is.null(numeric_attribute)){
     V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
   }
+
+  if (!is.null(enrich_attribute)) {
+    V(g)$enrich_attribute <- V(g)$name %in% enrich_attribute
+  }
+
   if (delete_undefined) {
     g <- induced.subgraph(g, !V(g)$name %in% "undefined")
   } else {
@@ -54,9 +76,9 @@ ggkegg <- function(pid,
   if (delete_zero_degree) {
     g <- induced.subgraph(g, degree(g)!=0)
   }
+
   if (convert_reaction) {
     convert_vec <- obtain_map_and_cache("reaction",NULL)
-    print(convert_vec)
     V(g)$converted_reaction <- unlist(lapply(V(g)$reaction,
                                          function(x) {
                                            inc_genes <- unlist(strsplit(x, " "))
