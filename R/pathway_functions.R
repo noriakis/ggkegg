@@ -11,6 +11,8 @@ parse_kgml <- function(file_name,
                        group_rect_nudge=2,
                        node_rect_nudge=0,
                        invert_y=TRUE) {
+  ## Specification of KGML format
+  ## https://www.genome.jp/kegg/xml/docs/
   xml <- xmlParse(file_name)
   node_sets <- getNodeSet(xml, "//entry")
   all_nodes <- NULL
@@ -31,6 +33,7 @@ parse_kgml <- function(file_name,
     }
     w <- as.numeric(xmlAttrs(gl)["width"])
     h <- as.numeric(xmlAttrs(gl)["height"])
+    bg <- xmlAttrs(gl)["bgcolor"]
     if (type=="group") {
       for (comp in xmlElementsByTagName(node,"component")) {
         grs[[as.character(id)]] <- 
@@ -40,12 +43,12 @@ parse_kgml <- function(file_name,
       }
     }
     all_nodes <- rbind(all_nodes, c(id, name, type, reac,
-                                    glname, x, y, w, h))
+                                    glname, x, y, w, h, bg))
   }
   kegg_nodes <- all_nodes |> data.frame() |>
     `colnames<-`(c("id","name","type","reaction",
                    "graphics_name",
-                   "x","y","width","height"))
+                   "x","y","width","height","bgcolor"))
 
   kegg_nodes$x <- as.numeric(kegg_nodes$x)
   kegg_nodes$y <- as.numeric(kegg_nodes$y)
@@ -153,6 +156,7 @@ get_reaction <- function(xml) {
     type <- xmlAttrs(rea)["type"]
     subs <- xmlAttrs(xmlElementsByTagName(rea,"substrate")[[1]],"substrate")
     prod <- xmlAttrs(xmlElementsByTagName(rea,"product")[[1]],"product")
+    ## Looking for `alt` tag
     all_reas <- rbind(all_reas, c(id, name, type,
                                   subs["id"], subs["name"],
                                   prod["id"], prod["name"]))
@@ -171,54 +175,4 @@ get_reaction <- function(xml) {
   rsp_rels <- data.frame(rsp_rels) |> 
     `colnames<-`(c("entry1","entry2","type","subtype"))
   rsp_rels
-}
-
-#' @import BiocFileCache
-#' @importFrom stringr str_extract str_extract_all str_pad str_locate_all
-#' @noRd
-obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
-  url <- paste0("https://rest.kegg.jp/list/",org)
-  bfc <- BiocFileCache()
-  path <- bfcrpath(bfc, url)
-  convert <- data.table::fread(path,
-                               header = FALSE,
-                               sep="\t")
-  if (org %in% c("ko","compound")) {## KO and compound
-    if (org=="compound") {pref <- "cpd"} 
-    else {pref <- "ko"}
-    convert_vec <- vapply(convert$V2, function(x) {
-      vapply(unlist(strsplit(x, ";"))[1],
-             function(x) unlist(strsplit(x,","))[1],
-             FUN.VALUE="character")
-      
-    }, FUN.VALUE="character")
-    names(convert_vec) <- paste0(pref,":",convert$V1)
-  } else if (org=="reaction") {## Reaction
-    pref <- "rn:"
-    convert_vec <- convert$V2
-    names(convert_vec) <- 
-      paste0(pref,convert$V1)
-  } else if (org=="pathway") {## Pathway
-    pref <- paste0("path:",gsub("[[:digit:]]","",pid))
-    convert_vec <- vapply(convert$V2, function(x) {
-      vapply(unlist(strsplit(x, ";"))[1],
-             function(x) unlist(strsplit(x,","))[1],
-             FUN.VALUE="character")
-      
-    }, FUN.VALUE="character")
-    names(convert_vec) <- 
-      paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
-  } else {## Ordinary organisms
-    convert_vec <- vapply(convert$V4, function(x) {
-      vapply(unlist(strsplit(x, ";"))[1],
-             function(x) unlist(strsplit(x,","))[1],
-             FUN.VALUE="character")
-      
-    }, FUN.VALUE="character")
-    names(convert_vec) <- convert$V1
-  }
-  if (!colon) {
-    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"), "[", 2))
-  }
-  convert_vec
 }
