@@ -35,22 +35,33 @@ ggkegg <- function(pid,
                    delete_zero_degree=FALSE,
                    numeric_attribute=NULL,
                    node_rect_nudge=0,
-                   group_rect_nudge=2) {
+                   group_rect_nudge=2,
+                   module_type="definition") {
   enrich_attribute <- NULL
-  if (is.character(pid)) {
-    if (startsWith("M", pid)) {
-      return(obtain_module(pid))
-    }
-  }
   if (!is.character(pid)) {
     if (attributes(pid)$class=="enrichResult") {
       org <- attributes(pid)$organism
       res <- attributes(pid)$result
-      enrich_attribute <- paste0(org, ":", unlist(strsplit(
-        res[pathway_number,]$geneID, "/")))
+      if (org!="UNKNOWN") {
+        enrich_attribute <- paste0(org, ":", unlist(strsplit(
+          res[pathway_number,]$geneID, "/")))
+      } else {
+        enrich_attribute <- unlist(strsplit(
+          res[pathway_number,]$geneID, "/"))     
+      }
       pid <- res[pathway_number,]$ID
     }
   }
+
+  if (is.character(pid)) {
+    if (startsWith(pid, "M")) {
+      mod <- obtain_module(pid)
+      def <- parse_module(mod, module_type)
+      plot_list <- module_text(def, candidate_ko = enrich_attribute)
+      return(plot_module_text(plot_list))
+    }
+  }
+
 
   file_name <- paste0(pid,".xml")
   if (!file.exists(file_name)) {

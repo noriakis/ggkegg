@@ -174,7 +174,7 @@ get_reaction <- function(xml) {
 }
 
 #' @import BiocFileCache
-#' @importFrom stringr str_extract
+#' @importFrom stringr str_extract str_extract_all str_pad str_locate_all
 #' @noRd
 obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
   url <- paste0("https://rest.kegg.jp/list/",org)

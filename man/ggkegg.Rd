@@ -17,7 +17,8 @@ ggkegg(
   delete_zero_degree = FALSE,
   numeric_attribute = NULL,
   node_rect_nudge = 0,
-  group_rect_nudge = 2
+  group_rect_nudge = 2,
+  module_type = "definition"
 )
 }
 \arguments{
