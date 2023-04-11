@@ -22,7 +22,7 @@ plot_module_text <- function(plot_list, show_name="name") {
 #' wrapper function for plotting module definition steps
 #' @export
 plot_module_steps <- function(all_steps, layout="kk") {
-  allnodes <- unique(all_steps[,1], all_steps[,2])
+  allnodes <- unique(V(all_steps)$name)
   if (sum(startsWith(allnodes, "K"))==length(allnodes)) {
     stop("all nodes are KO.")
   }
