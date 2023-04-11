@@ -3,6 +3,8 @@
 
 # ggkegg
 
+[Documentation](https://noriakis.github.io/software/ggkegg)
+
 ## Installation
 
 ``` r
@@ -15,7 +17,7 @@ devtools::install_github("noriakis/ggkegg")
 library(ggkegg)
 library(ggfx)
 library(igraph)
-g <- parse_kgml("hsa04110.xml")
+g <- parse_kgml("hsa04110")
 pseudo_lfc <- sample(seq(0,3,0.1), length(V(g)), replace=TRUE)
 names(pseudo_lfc) <- V(g)$name
 ggkegg("hsa04110",

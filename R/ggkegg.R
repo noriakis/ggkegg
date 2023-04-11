@@ -6,7 +6,7 @@
 #' @param pid KEGG Pathway id e.g. hsa04110
 #' @param layout default to "native", using KGML positions
 #' @param return_igraph return the resulting igraph object
-#' @param return_tidy_graph return the resulting tidygraph object
+#' @param return_tbl_graph return the resulting tbl_graph object
 #' (override `return_igraph` argument)
 #' @param delete_undefined delete the undefined nodes from graph
 #' default to FALSE, which preserves nodes but 
@@ -84,7 +84,8 @@ ggkegg <- function(pid,
 
   g <- parse_kgml(pid=pid, convert_org=convert_org,
                   convert_first=convert_first, convert_collapse=convert_collapse,
-                  node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge)
+                  node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge,
+                  return_tbl_graph=FALSE)
 
   if (!is.null(numeric_attribute)){
     V(g)$numeric_attribute <- numeric_attribute[V(g)$name]

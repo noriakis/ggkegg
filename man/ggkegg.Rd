@@ -30,6 +30,9 @@ ggkegg(
 
 \item{return_igraph}{return the resulting igraph object}
 
+\item{return_tbl_graph}{return the resulting tbl_graph object
+(override `return_igraph` argument)}
+
 \item{convert_org}{these organism names are fetched from REST API
 and cached, and used to convert the KEGG identifiers.
 e.g. c("hsa", "compound")}
@@ -53,9 +56,6 @@ should be set to `TRUE` when the layout is not from native KGML.}
 
 \item{module_definition_type}{`text` or `network` when parsing module definition.
 If `text`, return ggplot object. If `network`, return `tbl_graph`.}
-
-\item{return_tidy_graph}{return the resulting tidygraph object
-(override `return_igraph` argument)}
 }
 \description{
 main function parsing KEGG pathway data,
