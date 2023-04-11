@@ -416,6 +416,13 @@ obtain_module <- function(mid) {
   }
   module[["reaction"]] <- reacs
   close(con)
+  pattern <- "K\\d{5}"
+  kos <- paste0("ko:",unlist(str_extract_all(module[["definition"]], pattern)))
+  pattern <- "C\\d{5}"
+  cos <- paste0("cpd:",unlist(str_extract_all(module[["reaction"]], pattern)))
+  pattern <- "R\\d{5}"
+  rns <- paste0("rn:",unlist(str_extract_all(module[["reaction"]], pattern)))
+  module[["components"]] <- c(kos, cos, rns)
   module
 }
 

@@ -1,5 +1,7 @@
 #' @param rect_width manual specification of rectangle
 #' @param rect_height manual specification of rectangle
+#' @param add_pathway_id add pathway id to graph
+#' @param return_tbl_graph return tbl_graph object
 #' @export
 parse_kgml <- function(pid,
                        rect_width=25,
@@ -9,7 +11,9 @@ parse_kgml <- function(pid,
                        convert_first=TRUE,
                        group_rect_nudge=2,
                        node_rect_nudge=0,
-                       invert_y=TRUE) {
+                       invert_y=TRUE,
+                       add_pathway_id=TRUE,
+                       return_tbl_graph=TRUE) {
   ## Specification of KGML format
   ## https://www.genome.jp/kegg/xml/docs/
 
@@ -160,14 +164,21 @@ parse_kgml <- function(pid,
                                            }
                                          }))
   }
-  return(g)
+  if (add_pathway_id) {
+    V(g)$pathway_id <- pid
+  }
+  if (return_tbl_graph) {
+    as_tbl_graph(g)
+  } else {
+    return(g)
+  }
 }
 
 
 #' process_line
 #' process the kgml containing graphics type of `line`
 #' e.g. in ko01100
-#' @noRd
+#' @export
 process_line <- function(g, invert_y=TRUE) {
   df <- as_tbl_graph(g)
 
@@ -182,21 +193,24 @@ process_line <- function(g, invert_y=TRUE) {
         cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j), co[q], co[q+1], "line",V(g)$name[i]))
         cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j+1), co[q+2], co[q+3], "line",V(g)$name[i]))
         eds <- rbind(eds, c(paste0(V(g)$name[i],"_",j), paste0(V(g)$name[i],"_",j+1),
-                            "line"))
+                            "line",V(g)$name[i]))
         j <- j +2
       }
     }
   }
-  cos <- cos |> data.frame() |> `colnames<-`(c("name","x","y","type","graphics_name"))
+  cos <- cos |> data.frame() |> `colnames<-`(c("name","x","y","type","original_name"))
   cos$x <- as.numeric(cos$x);
   if (invert_y) {
     cos$y <- -1 * as.numeric(cos$y)
   } else {
     cos$y <- as.numeric(cos$y)
   }
-  eds <- eds |> data.frame() |> `colnames<-`(c("from","to","type"))
+  eds <- eds |> data.frame() |> `colnames<-`(c("from","to","type","name"))
   df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
-  df_add
+  df_add |> activate(nodes) |>
+  mutate(original_name=vapply(1:length(original_name),
+   function(x){ if(is.na(original_name[x])) name[x] else original_name[x]},
+   FUN.VALUE="character"))
 }
 
 
