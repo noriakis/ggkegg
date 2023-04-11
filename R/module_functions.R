@@ -151,7 +151,7 @@ obtain_sequential_module_definition <- function(def, step=NULL) {
     all_steps <- subset(all_steps, all_steps$type!="instep")
 
   }
-  return(list(all_steps=all_steps, definition=def))
+  return(as_tbl_graph(all_steps))
 }
 
 
@@ -452,7 +452,6 @@ parse_module <- function(mod, type="reaction") {
     #     }       
     #   }
     # }
-
     ## Try to represent reaction as edge label
     reac <- NULL
     for (rea in mod$reaction) {
@@ -477,8 +476,8 @@ parse_module <- function(mod, type="reaction") {
       }
       reac
     }
-
-    return(reac)
+    reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
+    return(as_tbl_graph(reac))
   } else if (type=="definition") {
     divide_string <- function(input_string) {
       steps <- c()
@@ -514,7 +513,7 @@ parse_module <- function(mod, type="reaction") {
       ko_in_step[[i]] <- unlist(str_extract_all(result[i], pattern))
       num_step <- c(num_step, length(unlist(str_extract_all(result[i], pattern))))
     }
-    message("Currently returning list of the KO and steps")
+    # message("Currently returning list of the KO and steps")
     node_list <- list(step=result, KO=unlist(matches), num_in_step=num_step, ko_in_step=ko_in_step)
     return(node_list)
   }

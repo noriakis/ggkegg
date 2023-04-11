@@ -8,6 +8,7 @@ ggkegg(
   pid,
   layout = "native",
   return_igraph = FALSE,
+  return_tbl_graph = FALSE,
   pathway_number = 1,
   convert_org = NULL,
   convert_first = TRUE,
@@ -18,7 +19,8 @@ ggkegg(
   numeric_attribute = NULL,
   node_rect_nudge = 0,
   group_rect_nudge = 2,
-  module_type = "definition"
+  module_type = "definition",
+  module_definition_type = "text"
 )
 }
 \arguments{
@@ -45,6 +47,15 @@ will be converted to reaction formula}
 should be set to `TRUE` when the layout is not from native KGML.}
 
 \item{delete_zero_degree}{delete nodes with zero degree, default to FALSE}
+
+\item{module_type}{specify which module attributes to obtain
+(definition or reaction)}
+
+\item{module_definition_type}{`text` or `network` when parsing module definition.
+If `text`, return ggplot object. If `network`, return `tbl_graph`.}
+
+\item{return_tidy_graph}{return the resulting tidygraph object
+(override `return_igraph` argument)}
 }
 \description{
 main function parsing KEGG pathway data,

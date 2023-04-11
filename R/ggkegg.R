@@ -6,6 +6,8 @@
 #' @param pid KEGG Pathway id e.g. hsa04110
 #' @param layout default to "native", using KGML positions
 #' @param return_igraph return the resulting igraph object
+#' @param return_tidy_graph return the resulting tidygraph object
+#' (override `return_igraph` argument)
 #' @param delete_undefined delete the undefined nodes from graph
 #' default to FALSE, which preserves nodes but 
 #' add `undefined` attribute to graph
@@ -21,11 +23,16 @@
 #' @param delete_undefined delete `undefined` node specifying group,
 #' should be set to `TRUE` when the layout is not from native KGML.
 #' @param delete_zero_degree delete nodes with zero degree, default to FALSE
-#' @import igraph ggraph ggplot2
+#' @param module_type specify which module attributes to obtain
+#' (definition or reaction)
+#' @param module_definition_type `text` or `network` when parsing module definition.
+#' If `text`, return ggplot object. If `network`, return `tbl_graph`.
+#' @import igraph ggraph ggplot2 tidygraph
 #' @export
 ggkegg <- function(pid,
                    layout="native",
                    return_igraph=FALSE,
+                   return_tbl_graph=FALSE,
                    pathway_number=1,
                    convert_org=NULL,
                    convert_first=TRUE,
@@ -36,7 +43,8 @@ ggkegg <- function(pid,
                    numeric_attribute=NULL,
                    node_rect_nudge=0,
                    group_rect_nudge=2,
-                   module_type="definition") {
+                   module_type="definition",
+                   module_definition_type="text") {
   enrich_attribute <- NULL
   if (!is.character(pid)) {
     if (attributes(pid)$class=="enrichResult") {
@@ -57,20 +65,27 @@ ggkegg <- function(pid,
     if (startsWith(pid, "M")) {
       mod <- obtain_module(pid)
       def <- parse_module(mod, module_type)
-      plot_list <- module_text(def, candidate_ko = enrich_attribute)
-      return(plot_module_text(plot_list))
+      if (module_type=="definition") {
+        if (module_definition_type=="text") {
+          plot_list <- module_text(def, candidate_ko = enrich_attribute)
+          return(plot_module_text(plot_list))
+        } else if (module_definition_type=="network") {
+          return(obtain_sequential_module_definition(def))
+        } else {
+          stop("Please specify `network` or `text` to module_definition_type")
+        }
+      } else if (module_type=="reaction") {
+        return(def)
+      } else {
+        stop("Please specify `reaction` or `definition` to module_type")
+      }
     }
   }
 
-
-  file_name <- paste0(pid,".xml")
-  if (!file.exists(file_name)) {
-    download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
-                  destfile=file_name)
-  }
-  g <- parse_kgml(file_name, pid=pid, convert_org=convert_org,
+  g <- parse_kgml(pid=pid, convert_org=convert_org,
                   convert_first=convert_first, convert_collapse=convert_collapse,
                   node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge)
+
   if (!is.null(numeric_attribute)){
     V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
   }
@@ -109,6 +124,9 @@ ggkegg <- function(pid,
                                            }
                                          }))
     
+  }
+  if (return_tbl_graph) {
+    return(as_tbl_graph(g))
   }
   if (return_igraph) {
     return(g)

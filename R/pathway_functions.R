@@ -1,8 +1,7 @@
 #' @param rect_width manual specification of rectangle
 #' @param rect_height manual specification of rectangle
 #' @export
-parse_kgml <- function(file_name,
-                       pid=NULL,
+parse_kgml <- function(pid,
                        rect_width=25,
                        rect_height=10,
                        convert_org=NULL,
@@ -13,6 +12,13 @@ parse_kgml <- function(file_name,
                        invert_y=TRUE) {
   ## Specification of KGML format
   ## https://www.genome.jp/kegg/xml/docs/
+
+  file_name <- paste0(pid,".xml")
+  if (!file.exists(file_name)) {
+    download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
+                  destfile=file_name)
+  }
+
   xml <- xmlParse(file_name)
   node_sets <- getNodeSet(xml, "//entry")
   all_nodes <- NULL
@@ -111,7 +117,12 @@ parse_kgml <- function(file_name,
     kegg_reac <- get_reaction(xml)
     kegg_edges <- rbind(kegg_edges, kegg_reac)
   }
-  g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
+  if (!is.null(kegg_edges)) {
+    g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
+  } else {
+    message("No edges in the map, returning node data")
+    return(kegg_nodes)
+  }
 
   ## Assign grouping
   group <- NULL
@@ -151,6 +162,43 @@ parse_kgml <- function(file_name,
   }
   return(g)
 }
+
+
+#' process_line
+#' process the kgml containing graphics type of `line`
+#' e.g. in ko01100
+#' @noRd
+process_line <- function(g, invert_y=TRUE) {
+  df <- as_tbl_graph(g)
+
+  cos <- NULL
+  eds <- NULL
+
+  for (i in seq_along(V(g)$name)) {
+    j <- 0
+    if (V(g)$graphics_type[i]=="line") {
+      co <- unlist(strsplit(V(g)$coords[i], ","))
+      for (q in seq(1,length(co),4)) {
+        cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j), co[q], co[q+1], "line",V(g)$name[i]))
+        cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j+1), co[q+2], co[q+3], "line",V(g)$name[i]))
+        eds <- rbind(eds, c(paste0(V(g)$name[i],"_",j), paste0(V(g)$name[i],"_",j+1),
+                            "line"))
+        j <- j +2
+      }
+    }
+  }
+  cos <- cos |> data.frame() |> `colnames<-`(c("name","x","y","type","graphics_name"))
+  cos$x <- as.numeric(cos$x);
+  if (invert_y) {
+    cos$y <- -1 * as.numeric(cos$y)
+  } else {
+    cos$y <- as.numeric(cos$y)
+  }
+  eds <- eds |> data.frame() |> `colnames<-`(c("from","to","type"))
+  df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
+  df_add
+}
+
 
 #' @noRd
 get_reaction <- function(xml) {
