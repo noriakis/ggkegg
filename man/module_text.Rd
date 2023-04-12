@@ -5,7 +5,7 @@
 \title{module_text
 Obtain textual representation of modules for all the steps}
 \usage{
-module_text(def, candidate_ko = NULL, paint_colour = "tomato", convert = NULL)
+module_text(kmo, candidate_ko = NULL, paint_colour = "tomato", convert = NULL)
 }
 \description{
 module_text

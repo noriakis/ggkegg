@@ -4,10 +4,10 @@
 \alias{obtain_sequential_module_definition}
 \title{obtain_sequential_module_definition}
 \usage{
-obtain_sequential_module_definition(def, step = NULL)
+obtain_sequential_module_definition(kmo, block = NULL)
 }
 \description{
-Given module definition and step number,
-Recursively obtain graphical represencation of step and 
-connect them by pseudo-nodes representing steps.
+Given module definition and block number,
+Recursively obtain graphical represencation of block and 
+connect them by pseudo-nodes representing blocks.
 }

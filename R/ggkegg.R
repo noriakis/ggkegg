@@ -63,29 +63,28 @@ ggkegg <- function(pid,
 
   if (is.character(pid)) {
     if (startsWith(pid, "M")) {
-      mod <- obtain_module(pid)
-      def <- parse_module(mod, module_type)
+      mod <- module(pid)
       if (module_type=="definition") {
         if (module_definition_type=="text") {
-          plot_list <- module_text(def, candidate_ko = enrich_attribute)
+          plot_list <- module_text(mod, candidate_ko = enrich_attribute)
           return(plot_module_text(plot_list))
         } else if (module_definition_type=="network") {
-          return(obtain_sequential_module_definition(def))
+          return(obtain_sequential_module_definition(mod))
         } else {
           stop("Please specify `network` or `text` to module_definition_type")
         }
       } else if (module_type=="reaction") {
-        return(def)
+        return(mod@reaction_graph)
       } else {
         stop("Please specify `reaction` or `definition` to module_type")
       }
     }
   }
 
-  g <- parse_kgml(pid=pid, convert_org=convert_org,
-                  convert_first=convert_first, convert_collapse=convert_collapse,
-                  node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge,
-                  return_tbl_graph=FALSE)
+  g <- pathway(pid=pid, convert_org=convert_org,
+                convert_first=convert_first, convert_collapse=convert_collapse,
+                node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge,
+                return_tbl_graph=FALSE)
 
   if (!is.null(numeric_attribute)){
     V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
