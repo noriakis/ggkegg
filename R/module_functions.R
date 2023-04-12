@@ -13,6 +13,7 @@ setClass("kegg_module",
 
         reaction="character",
         reaction_each="tbl_df",
+        reaction_each_raw="tbl_df",
         reaction_graph="tbl_graph",
         reaction_components="character"
         ))
@@ -518,6 +519,7 @@ parse_module <- function(kmo) {
     ## Try to represent reaction as edge label
     reac <- NULL
     each_reacs <- NULL
+    each_reacs_raw <- NULL
     for (rea in kmo@reaction) {
       left <- unlist(strsplit(rea, "->"))[1]
       right <- unlist(strsplit(rea, "->"))[2]
@@ -536,6 +538,8 @@ parse_module <- function(kmo) {
       ## Reaction
       left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
       left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
+      each_reacs_raw <- rbind(each_reacs_raw,
+        c(left2, left1, right))
       for (l2 in unlist(strsplit(left2, ","))) {
         l2sp <- unlist(strsplit(l2, "\\+"))
         for (ll2 in seq_along(l2sp)) {
@@ -550,10 +554,13 @@ parse_module <- function(kmo) {
 
     each <- as_tibble(each_reacs)
     names(each) <- c("left","reaction","right")
+    eachraw <- as_tibble(each_reacs_raw)
+    names(eachraw) <- c("left","reaction","right")
 
     reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
     kmo@reaction_graph <- as_tbl_graph(reac)
     kmo@reaction_each <- each
+    kmo@reaction_each_raw <- eachraw
     divide_string <- function(input_string) {
       steps <- c()
       current_step <- ""
