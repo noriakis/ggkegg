@@ -17,7 +17,34 @@ devtools::install_github("noriakis/ggkegg")
 library(ggkegg)
 library(ggfx)
 library(igraph)
-g <- parse_kgml("hsa04110")
+
+pathway("ko01100") |> 
+  process_line() |>
+  highlight_module(module("M00021")) |>
+  ggraph(x=x, y=y) +
+  geom_node_point(size=1, aes(color=I(fgcolor),
+    filter=fgcolor!="none" & type!="line"))+
+  geom_edge_link(width=0.1, aes(color=I(fgcolor),
+                                filter=type=="line"& fgcolor!="none"))+
+  with_outer_glow(
+    geom_edge_link(width=1,
+                   aes(color=I(fgcolor),
+                       filter=fgcolor!="none" & M00021)),
+    colour="red", expand=3
+  )+
+  with_outer_glow(
+    geom_node_point(size=2,
+                   aes(color=I(fgcolor),
+                       filter=fgcolor!="none" & M00021)),
+    colour="red", expand=3
+  )+
+  theme_void()
+```
+
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="3600" style="display: block; margin: auto;" />
+
+``` r
+g <- pathway("hsa04110")
 pseudo_lfc <- sample(seq(0,3,0.1), length(V(g)), replace=TRUE)
 names(pseudo_lfc) <- V(g)$name
 ggkegg("hsa04110",
@@ -47,4 +74,4 @@ ggkegg("hsa04110",
   theme_void()
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="3600" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-3-1.png" width="3600" style="display: block; margin: auto;" />

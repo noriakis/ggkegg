@@ -14,6 +14,5 @@ highlight_set_nodes(set, name = "name", sep = " ")
 \item{sep}{separater for node names}
 }
 \description{
-identify if nodes are involved in module or 
-the other definition
+identify if nodes are involved in specific queries
 }

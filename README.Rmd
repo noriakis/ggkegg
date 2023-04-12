@@ -32,11 +32,37 @@ devtools::install_github("noriakis/ggkegg")
 
 ## Example
 
-```{r, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(ggkegg)
 library(ggfx)
 library(igraph)
-g <- parse_kgml("hsa04110")
+
+pathway("ko01100") |> 
+  process_line() |>
+  highlight_module(module("M00021")) |>
+  ggraph(x=x, y=y) +
+  geom_node_point(size=1, aes(color=I(fgcolor),
+    filter=fgcolor!="none" & type!="line"))+
+  geom_edge_link(width=0.1, aes(color=I(fgcolor),
+                                filter=type=="line"& fgcolor!="none"))+
+  with_outer_glow(
+    geom_edge_link(width=1,
+                   aes(color=I(fgcolor),
+                       filter=fgcolor!="none" & M00021)),
+    colour="red", expand=3
+  )+
+  with_outer_glow(
+    geom_node_point(size=2,
+                   aes(color=I(fgcolor),
+                       filter=fgcolor!="none" & M00021)),
+    colour="red", expand=3
+  )+
+  theme_void()
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+g <- pathway("hsa04110")
 pseudo_lfc <- sample(seq(0,3,0.1), length(V(g)), replace=TRUE)
 names(pseudo_lfc) <- V(g)$name
 ggkegg("hsa04110",

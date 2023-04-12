@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{highlight_set_edges}
 \alias{highlight_set_edges}
-\title{highlight_set_nodes}
+\title{highlight_set_edges}
 \usage{
 highlight_set_edges(set, name = "name", sep = " ")
 }
@@ -14,6 +14,5 @@ highlight_set_edges(set, name = "name", sep = " ")
 \item{sep}{separater for node names}
 }
 \description{
-identify if nodes are involved in module or 
-the other definition
+identify if edges are involved in specific queries.
 }
