@@ -3,6 +3,10 @@
 
 # ggkegg
 
+A set of functions to analyse and plot the KEGG information using
+`tidygraph`, `ggraph` and `ggplot2`. Will split to `tidykegg` and
+`ggkegg`.
+
 [Documentation](https://noriakis.github.io/software/ggkegg)
 
 ## Installation
@@ -18,30 +22,36 @@ library(ggkegg)
 library(ggfx)
 library(igraph)
 
-pathway("ko01100") |> 
+pathway("ko01100") |>
   process_line() |>
   highlight_module(module("M00021")) |>
+  highlight_module(module("M00338")) |>
   ggraph(x=x, y=y) +
   geom_node_point(size=1, aes(color=I(fgcolor),
-    filter=fgcolor!="none" & type!="line"))+
+                              filter=fgcolor!="none" & type!="line"))+
   geom_edge_link(width=0.1, aes(color=I(fgcolor),
                                 filter=type=="line"& fgcolor!="none"))+
   with_outer_glow(
     geom_edge_link(width=1,
                    aes(color=I(fgcolor),
-                       filter=fgcolor!="none" & M00021)),
-    colour="red", expand=3
+                       filter=(M00021 | M00338))),
+    colour="red", expand=5
   )+
   with_outer_glow(
-    geom_node_point(size=2,
-                   aes(color=I(fgcolor),
-                       filter=fgcolor!="none" & M00021)),
-    colour="red", expand=3
+    geom_node_point(size=1.5,
+                    aes(color=I(fgcolor),
+                        filter=(M00021 | M00338))),
+    colour="red", expand=5
   )+
+  geom_node_text(size=2,
+                 aes(x=x, y=y,
+                     label=graphics_name,
+                     filter=name=="path:ko00270"),
+                 repel=TRUE, bg.colour="white")+
   theme_void()
 ```
 
-<img src="man/figures/README-unnamed-chunk-2-1.png" width="3600" style="display: block; margin: auto;" />
+<img src="man/figures/README-unnamed-chunk-2-1.png" width="2400" style="display: block; margin: auto;" />
 
 ``` r
 g <- pathway("hsa04110")

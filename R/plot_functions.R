@@ -26,28 +26,27 @@ plot_module_steps <- function(all_steps, layout="kk") {
   if (sum(startsWith(allnodes, "K"))==length(allnodes)) {
     stop("all nodes are KO.")
   }
-  ggraph(all_steps, layout=layout) + 
-    geom_node_point(size=4, aes(filter=!startsWith(name,"STEP") &
-                                  !startsWith(name,"G") &
-                                !startsWith(name,"CS"))) + 
-    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"STEP"))) + 
-    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"CS") |
-                                            startsWith(name,"G"))) + 
-    geom_edge_link(aes(filter=type %in% c("step_transition","rel")),
-                       arrow = arrow(length = unit(3, 'mm')),
-                       end_cap=circle(5, 'mm'),start_cap=circle(5,"mm"))+
-    geom_edge_link(aes(filter=!type %in% c("step_transition","rel","instep"))) + 
+  ggraph(all_steps, layout=layout) +
+    geom_edge_link(aes(filter=type %in% c("block_transition","rel")),
+                       end_cap=circle(5, 'mm'),start_cap=circle(5,"mm"),
+                       color="red")+
+    geom_edge_link(aes(filter=!type %in% c("block_transition","rel","in_block"))) + 
     geom_edge_link(aes(label=type,
                            filter=!startsWith(type,"in") & 
-                             !type %in% c("step_transition","rel")),
+                             !type %in% c("block_transition","rel")),
                        angle_calc="along",
                        label_dodge = unit(2, 'mm')) + 
+    geom_node_point(size=4, aes(filter=!startsWith(name,"BLOCK") &
+                                  !startsWith(name,"G") &
+                                !startsWith(name,"CS"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"BLOCK"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"CS") |
+                                            startsWith(name,"G"))) + 
     geom_node_text(aes(label=name,
                        filter=startsWith(name,"K")),
                    repel=TRUE, size=4, bg.colour="white")+
     theme_void()
 }
-
 
 
 #' @export
