@@ -33,6 +33,9 @@ pathway <- function(pid,
   all_nodes <- NULL
   grs <- list()
   rev_grs <- list()
+
+
+
   for (node in node_sets) {
     id <- xmlAttrs(node)["id"]
     name <- xmlAttrs(node)["name"]
@@ -234,6 +237,7 @@ process_line <- function(g, invert_y=TRUE) {
 }
 
 
+#' parse the reaction in KGML
 #' @noRd
 get_reaction <- function(xml) {
   rea_sets <- getNodeSet(xml, "//reaction")
@@ -242,12 +246,17 @@ get_reaction <- function(xml) {
     id <- xmlAttrs(rea)["id"]
     name <- xmlAttrs(rea)["name"]
     type <- xmlAttrs(rea)["type"]
-    subs <- xmlAttrs(xmlElementsByTagName(rea,"substrate")[[1]],"substrate")
-    prod <- xmlAttrs(xmlElementsByTagName(rea,"product")[[1]],"product")
+    subs <- xmlElementsByTagName(rea,"substrate")
+    prod <- xmlElementsByTagName(rea,"product")
     ## Looking for `alt` tag
-    all_reas <- rbind(all_reas, c(id, name, type,
-                                  subs["id"], subs["name"],
-                                  prod["id"], prod["name"]))
+    ## Multiple products or substrates are to be expected
+    for (ss in subs) {
+      for (pp in prod) {
+        all_reas <- rbind(all_reas, c(id, name, type,
+                                      xmlAttrs(ss)["id"], xmlAttrs(ss)["name"],
+                                      xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))
+      }
+    }
   }
   all_reas <- all_reas |> data.frame() |> `colnames<-`(c("id","reac_name",
                                              "type","substrate_id","substrate_name",
@@ -260,6 +269,8 @@ get_reaction <- function(xml) {
       c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", all_reas[i, "reac_name"]))
     }
   }
+
+
   rsp_rels <- data.frame(rsp_rels) |> 
     `colnames<-`(c("entry1","entry2","type","subtype","reaction"))
   rsp_rels

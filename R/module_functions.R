@@ -220,12 +220,12 @@ obtain_sequential_module_definition <- function(kmo, block=NULL) {
   orders <- NULL
 
   for (i in seq_along(cand_step)) {
-    if (def$num_in_step[i]!=1) {
+    if (kmo@definition_num_in_block[i]!=1) {
       for (ko in kmo@definition_ko_in_block[[i]]) {
         all_steps <- rbind(all_steps, c(ko, paste0("BLOCK",i),"in_block"))
         all_steps <- all_steps |> data.frame() |> `colnames<-`(c("from","to","type"))
       }
-      plotg <- as_data_frame(get_module_graph(def$step[i]))
+      plotg <- as_data_frame(get_module_graph(kmo@definition_block[i]))
       ## Need to change naming
       frm <- plotg$from
       frm[!startsWith(frm,"K")] <- paste0(frm[!startsWith(frm,"K")],"_",i)
@@ -238,7 +238,7 @@ obtain_sequential_module_definition <- function(kmo, block=NULL) {
       orders <- c(orders, paste0("BLOCK",i))
     } else {
       ## Some steps have only "-K*****"
-      orders <- c(orders, def$step[i])
+      orders <- c(orders, kmo@definition_block[i])
     }
   } ## For each step, obtain the plot
   
@@ -523,6 +523,7 @@ parse_module <- function(kmo) {
     for (rea in kmo@reaction) {
       left <- unlist(strsplit(rea, "->"))[1]
       right <- unlist(strsplit(rea, "->"))[2]
+      right_raw <- right
       if (grepl("\\+",right)) {
         right <- unlist(strsplit(right, "\\+"))
       }
@@ -539,7 +540,7 @@ parse_module <- function(kmo) {
       left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
       left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
       each_reacs_raw <- rbind(each_reacs_raw,
-        c(left2, left1, right))
+        c(left2, left1, right_raw |> gsub(" ","",x=_)))
       for (l2 in unlist(strsplit(left2, ","))) {
         l2sp <- unlist(strsplit(l2, "\\+"))
         for (ll2 in seq_along(l2sp)) {
