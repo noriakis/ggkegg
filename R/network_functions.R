@@ -6,6 +6,7 @@ setClass("kegg_network",
         definition="character",
         expanded="character",
         expanded_graph="tbl_graph",
+        definition_graph="tbl_graph",
         network_class="character",
         gene="character",
         metabolite="character"
@@ -59,6 +60,7 @@ network <- function(nid) {
   }
   close(con)
   kne@expanded_graph <- convert_expanded_to_graph(kne)
+  kne@definition_graph <- convert_definition_to_graph(kne)
   kne
 }
 
@@ -75,6 +77,23 @@ convert_expanded_to_graph <- function(kne) {
     } else {}
   }
   edges <- edges |> data.frame() |>
-    `colnames<-`(c("from","to","edge_type"))
+    `colnames<-`(c("from","to","type"))
+  return(as_tbl_graph(edges))
+}
+
+#' @noRd
+convert_definition_to_graph <- function(kne) {
+  sp <- kne@definition |> strsplit(" ") |> unlist()
+  edges <- NULL
+  for (i in seq(1,length(sp), 2)) {
+    if (i!=length(sp)) {
+      left <- sp[i]
+      edge <- sp[i+1]
+      right <- sp[i+2]
+      edges <- rbind(edges, c(left,right,edge))
+    } else {}
+  }
+  edges <- edges |> data.frame() |>
+    `colnames<-`(c("from","to","type"))
   return(as_tbl_graph(edges))
 }

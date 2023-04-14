@@ -200,7 +200,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 #' module_completeness
 #' 
 #' @export
-module_completeness <- function(kmo, name="1", query) {
+module_completeness <- function(kmo, query, name="1") {
   kmo <- kmo@definitions[[name]]
   complete <- NULL
   pres <- NULL
@@ -279,7 +279,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 #' obtain graphical representation of module definition
 #' @return igraph object
 #' @noRd
-get_module_graph <- function(input_string) {
+get_module_graph <- function(input_string, skip_minus=FALSE) {
   ## [TODO] need verbose to identify what this function does
   ppos <- NULL
   for (i in find_parenthesis_pairs(input_string)) {
@@ -325,15 +325,29 @@ get_module_graph <- function(input_string) {
     list(css=css, num=cssnum)
   }
   css <- NULL
-  if (grepl("\\+",converted_string) | 
-      grepl("-",converted_string) | 
-      grepl(" ",converted_string)) {
-    retcss1 <- retcss(converted_string, cssnum)
-    css <- retcss1$css
-    cssnum <- retcss1$num
-    
-    for (i in seq_along(css$text)) {
-      converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+  
+  if (!skip_minus) {
+    if (grepl("\\+",converted_string) | 
+        grepl("-",converted_string) | 
+        grepl(" ",converted_string)) {
+      retcss1 <- retcss(converted_string, cssnum)
+      css <- retcss1$css
+      cssnum <- retcss1$num
+      
+      for (i in seq_along(css$text)) {
+        converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+      }
+   }
+  } else {
+    if (grepl("\\+",converted_string) |
+        grepl(" ",converted_string)) {
+      retcss1 <- retcss(converted_string, cssnum)
+      css <- retcss1$css
+      cssnum <- retcss1$num
+      
+      for (i in seq_along(css$text)) {
+        converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+      }
     }
   }
   
@@ -461,28 +475,30 @@ get_module_graph <- function(input_string) {
   }
   
   ## Minus
-  if (!is.null(cssparsed)) {
-    for (i in seq_len(nrow(cssparsed))) {
-      row <- cssparsed[i,]
-      if (grepl("-", row$from)) {
-        mi <- unlist(strsplit(row$from,"-"))
-        for (j in seq_along(mi)) {
-          if (j==length(mi)) {next}
-          ## Append the relationship recursively
-          cssparsed <- rbind(cssparsed, c(mi[j],mi[j+1],"-"))
+  if (!skip_minus) {
+    if (!is.null(cssparsed)) {
+      for (i in seq_len(nrow(cssparsed))) {
+        row <- cssparsed[i,]
+        if (grepl("-", row$from)) {
+          mi <- unlist(strsplit(row$from,"-"))
+          for (j in seq_along(mi)) {
+            if (j==length(mi)) {next}
+            ## Append the relationship recursively
+            cssparsed <- rbind(cssparsed, c(mi[j],mi[j+1],"-"))
+          }
+          ## Leave the original row the first occurrence
+          cssparsed[i, "from"] <- mi[1]
         }
-        ## Leave the original row the first occurrence
-        cssparsed[i, "from"] <- mi[1]
-      }
-      if (grepl("-", row$to)) {
-        mi <- unlist(strsplit(row$to,"-"))
-        for (j in seq_along(mi)) {
-          if (j==length(mi)) {next}
-          ## Append the relationship recursively
-          cssparsed <- rbind(cssparsed, c(mi[j],mi[j+1],"-"))
+        if (grepl("-", row$to)) {
+          mi <- unlist(strsplit(row$to,"-"))
+          for (j in seq_along(mi)) {
+            if (j==length(mi)) {next}
+            ## Append the relationship recursively
+            cssparsed <- rbind(cssparsed, c(mi[j],mi[j+1],"-"))
+          }
+          ## Leave the original row the first occurrence
+          cssparsed[i, "to"] <- mi[1]
         }
-        ## Leave the original row the first occurrence
-        cssparsed[i, "to"] <- mi[1]
       }
     }
   }
