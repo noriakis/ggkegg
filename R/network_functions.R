@@ -97,3 +97,83 @@ convert_definition_to_graph <- function(kne) {
     `colnames<-`(c("from","to","type"))
   return(as_tbl_graph(edges))
 }
+
+
+
+#' network_graph
+#' 
+#' obtain tbl_graph of KEGG network
+#' 
+#' @return tbl_graph
+#' @export
+network_graph <- function (kne, type="definition") {
+  if (type=="definition") {
+    raw_nodes <- kne@definition_graph |> activate(nodes) |> data.frame()
+    raw_edges <- kne@definition_graph |> activate(edges) |> data.frame()
+  } else {
+    raw_nodes <- kne@expanded_graph |> activate(nodes) |> data.frame()
+    raw_edges <- kne@expanded_graph |> activate(edges) |> data.frame()
+    
+  }
+  
+  blocks <- NULL
+  edges <- NULL
+  name_change <- NULL
+  nns <- NULL
+  for (nn in seq_along(raw_nodes$name)) {
+    bln <- paste0("BLOCK",nn,"_",kne@ID)
+    ## In NETWORK definition, "-" is included in gene symbol
+    gra <- ggkegg:::get_module_graph(raw_nodes$name[nn], skip_minus=TRUE)
+    if (is.character(gra)) {
+      # blocks <- rbind(blocks, c(gra, bln))
+    } else {
+      es <- as_data_frame(gra)
+      es[,1] <- ifelse(startsWith(es[,1],"CS"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
+      es[,2] <- ifelse(startsWith(es[,2],"CS"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
+      es[,1] <- ifelse(startsWith(es[,1],"G"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
+      es[,2] <- ifelse(startsWith(es[,2],"G"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
+      edges <- rbind(edges, es)
+      
+      vs <- data.frame(V(gra)$name, bln)
+      vs[,1] <- ifelse(startsWith(vs[,1],"CS"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
+      vs[,1] <- ifelse(startsWith(vs[,1],"G"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
+      for (j in vs[,1]) {
+        edges <- rbind(edges, c(j,bln,"in_block"))
+      }
+      
+      # blocks <- rbind(blocks, vs)
+      # blocks <- rbind(blocks, c(bln, bln))
+      name_change <- c(name_change, nn)
+      nns <- c(nns, nn)
+    }
+  }
+  name_change <- paste0("BLOCK",name_change,"_",kne@ID)
+  names(name_change) <- as.character(nns)
+  new_edges_from <- NULL
+  new_edges_to <- NULL
+  for (i in raw_edges$from) {
+    if (i %in% names(name_change)) {
+      new_edges_from <- c(new_edges_from, as.character(name_change[as.character(i)]))
+    } else {
+      new_edges_from <- c(new_edges_from, raw_nodes$name[i])
+    }
+  }
+  for (i in raw_edges$to) {
+    if (i %in% names(name_change)) {
+      new_edges_to <- c(new_edges_to, as.character(name_change[as.character(i)]))
+    } else {
+      new_edges_to <- c(new_edges_to, raw_nodes$name[i])
+    }
+  }
+  
+  raw_edges$from <- new_edges_from
+  raw_edges$to <- new_edges_to
+  raw_edges$subtype <- "reference"
+  if (!is.null(edges)) {
+    edges$subtype <- "manual"
+  }
+  all_edges <- rbind(raw_edges |> `colnames<-`(c("from","to","type","subtype")),
+        edges)
+  g <- as_tbl_graph(all_edges,directed = TRUE)
+  g
+}
