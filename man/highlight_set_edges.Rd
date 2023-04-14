@@ -4,10 +4,15 @@
 \alias{highlight_set_edges}
 \title{highlight_set_edges}
 \usage{
-highlight_set_edges(set, name = "name", sep = " ")
+highlight_set_edges(set, how = "all", name = "name", sep = " ")
 }
 \arguments{
 \item{set}{set of identifiers}
+
+\item{how}{if `all`, if node contains multiple
+IDs separated by `sep`, highlight if all the IDs
+are in query. if `any`, highlight if one of the IDs
+is in query.}
 
 \item{name}{which column to search for}
 
