@@ -5,19 +5,32 @@
 #' only return TRUE if all the IDs are in the query.
 #' 
 #' @param set set of identifiers
+#' @param how if `all`, if node contains multiple
+#' IDs separated by `sep`, highlight if all the IDs
+#' are in query. if `any`, highlight if one of the IDs
+#' is in query.
 #' @param name which column to search for
 #' @param sep separater for node names
 #' @export
-highlight_set_nodes <- function(set, name="name", sep=" ") {
+highlight_set_nodes <- function(set, how="all",
+  name="name", sep=" ") {
   graph <- .G()
   x <- get.vertex.attribute(graph, name)
   vec <- NULL
   for (xn in seq_along(x)) {
     nn <- unlist(strsplit(x[xn], sep))
-    if (length(intersect(nn, set))==length(nn)) {
-      vec <- c(vec, TRUE)
+    if (how=="all") {
+      if (length(intersect(nn, set))==length(nn)) {
+        vec <- c(vec, TRUE)
+      } else {
+        vec <- c(vec, FALSE)
+      }
     } else {
-      vec <- c(vec, FALSE)
+      if (length(intersect(nn, set))==length(set)) {
+        vec <- c(vec, TRUE)
+      } else {
+        vec <- c(vec, FALSE)
+      }      
     }
   }
   vec
@@ -31,19 +44,32 @@ highlight_set_nodes <- function(set, name="name", sep=" ") {
 #' only return TRUE if all the IDs are in the query.
 #' 
 #' @param set set of identifiers
+#' @param how if `all`, if node contains multiple
+#' IDs separated by `sep`, highlight if all the IDs
+#' are in query. if `any`, highlight if one of the IDs
+#' is in query.
 #' @param name which column to search for
 #' @param sep separater for node names
 #' @export
-highlight_set_edges <- function(set, name="name", sep=" ") {
+highlight_set_edges <- function(set, how="all",
+  name="name", sep=" ") {
   graph <- .G()
   x <- get.edge.attribute(graph, name)
   vec <- NULL
   for (xn in seq_along(x)) {
     nn <- unlist(strsplit(x[xn], sep))
-    if (length(intersect(nn, set))==length(nn)) {
-      vec <- c(vec, TRUE)
+    if (how=="all") {
+      if (length(intersect(nn, set))==length(nn)) {
+        vec <- c(vec, TRUE)
+      } else {
+        vec <- c(vec, FALSE)
+      }
     } else {
-      vec <- c(vec, FALSE)
+      if (length(intersect(nn, set))==length(set)) {
+        vec <- c(vec, TRUE)
+      } else {
+        vec <- c(vec, FALSE)
+      }      
     }
   }
   vec
