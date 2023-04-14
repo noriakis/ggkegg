@@ -159,3 +159,71 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
   }
   convert_vec
 }
+
+
+
+#' combine_with_bnlearn
+#' 
+#' combine the reference KEGG pathway graph 
+#' with bnlearn boot.strength output
+#' 
+#' @param pg reference graph (output of `pathway`)
+#' @param str strength data.frame
+#' @param av averaged network to plot
+#' @param prefix add prefix to node name of original averaged network
+#' like, `hsa:` or `ko:`.
+#' 
+#' @return tbl_graph
+#' @export
+#' 
+combine_with_bnlearn <- function(pg, str, av, prefix="ko:") {
+  
+  ## Make igraph with strength from bnlearn
+  el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
+    `colnames<-`(c("from","to"))
+  g <- str |> merge(el) |> mutate(from=paste0(prefix,from),
+                                               to=paste0(prefix,to)) |>
+                              data.frame() |> graph_from_data_frame()
+  
+  ## Merge node names with reference
+  js <- NULL
+  for (i in V(pg)$name) {
+    if (grepl(" ",i)) {
+      ref_node <- strsplit(i, " ") |> unlist()
+      for (j in V(g)$name) {
+        if (length(intersect(ref_node, j))>0) {
+          js <- rbind(js, c(j, i))
+        }
+      }
+    }
+  }
+  js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
+  gdf <- as_data_frame(g)
+  
+  new_df <- NULL
+  for (i in seq_len(nrow(gdf))) {
+    if (gdf[i,"from"] %in% js$raw){
+      new_from <- js[js[,1]==gdf[i,"from"],]$reference
+      new_df <- rbind(new_df,
+                      c(new_from, gdf[i,"to"], 
+                        gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
+    }
+  }
+  gdf <- rbind(gdf, new_df |> `colnames<-`(colnames(gdf)))
+  
+  for (i in seq_len(nrow(gdf))) {
+    if (gdf[i,"to"] %in% js$raw){
+      new_to <- js[js[,1]==gdf[i,"to"],]$reference
+      new_df <- rbind(new_df,
+                      c(gdf[i,"from"], new_to, 
+                        gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
+    }
+  }
+  gdf <- rbind(gdf, new_df |> `colnames<-`(colnames(gdf)))
+  
+  gdf$strength <- as.numeric(gdf$strength)
+  gdf$direction <- as.numeric(gdf$direction)
+  
+  joined <- graph_join(pg, gdf)
+  joined
+}
