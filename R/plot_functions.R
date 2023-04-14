@@ -102,3 +102,28 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
   }
   plot
 }
+
+
+#' plot_kegg_network
+#' 
+#' plot the output of network_graph
+#' 
+#' @export
+plot_kegg_network <- function(g) {
+  ggraph(g, layout="kk") +
+    geom_edge_link(aes(label=type,
+                       filter=!startsWith(type,"in")),
+                   angle_calc="along", force_flip=FALSE,
+                   label_dodge = unit(2, 'mm')) + 
+    geom_node_point(size=4, aes(filter=!startsWith(name,"BLOCK") &
+                                  !startsWith(name,"G") &
+                                  !startsWith(name,"CS"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"BLOCK"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"CS") |
+                                            startsWith(name,"G"))) + 
+    geom_node_text(aes(label=name,
+                       filter=!startsWith(name,"CS") & !startsWith(name,"G") &
+                         !startsWith(name,"BLOCK")),
+                   repel=TRUE, size=4, bg.colour="white")+
+    theme_void()
+}
