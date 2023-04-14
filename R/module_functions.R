@@ -3,12 +3,12 @@ setClass("kegg_module",
   slots=list(
         ID="character",
         name="character",
-
-        definition="character",
-        definition_block="vector",
-        definition_kos="character",
-        definition_num_in_block="vector",
-        definition_ko_in_block="list",
+        definition_raw="list",
+        definitions="list",
+        # definition_block="vector",
+        # definition_kos="character",
+        # definition_num_in_block="vector",
+        # definition_ko_in_block="list",
         definition_components="character",
 
         reaction="character",
@@ -40,7 +40,10 @@ module <- function(mid) {
   }
   con = file(mid, "r")
   reac <- FALSE
+  defflg <- FALSE
+  defnum <- 1
   reacs <- NULL
+  definitions <- list()
   while ( TRUE ) {
     line = readLines(con, n = 1)
     if ( length(line) == 0 ) {
@@ -50,11 +53,16 @@ module <- function(mid) {
       name <- unlist(strsplit(line, "        "))[2]
       kmo@name <- name
     }
-    if (grepl("DEFINITION", line)) {
-      definition <- unlist(strsplit(line, "  "))[2]
-      kmo@definition <- definition
+    if (grepl("ORTHOLOGY", line)) {defflg <- FALSE}
+    if (grepl("DEFINITION", line)) {defflg <- TRUE}
+    if (defflg) {
+      if (grepl("DEFINITION", line)) {
+        definitions[[defnum]] <- unlist(strsplit(line, "  "))[2]
+      } else {
+        definitions[[defnum]] <- unlist(strsplit(line, "            "))[2]
+      }
+      defnum <- defnum + 1
     }
-  
     if (grepl("COMPOUND", line)) {reac <- FALSE}
     if (grepl("REACTION", line)) {reac <- TRUE}
     if (reac) {
@@ -65,10 +73,15 @@ module <- function(mid) {
         }
     }
   }
-  kmo@reaction <- reacs
+  if (!is.null(definitions)) {
+      kmo@definition_raw <- definitions
+  }
+  if (!is.null(reacs)) {
+    kmo@reaction <- reacs
+  }
   close(con)
   pattern <- "K\\d{5}"
-  kos <- paste0("ko:",unlist(str_extract_all(kmo@definition, pattern)))
+  kos <- paste0("ko:",unlist(str_extract_all(kmo@definition_raw |> unlist(), pattern)))
   pattern <- "C\\d{5}"
   cos <- paste0("cpd:",unlist(str_extract_all(kmo@reaction, pattern)))
   pattern <- "R\\d{5}"
@@ -80,13 +93,14 @@ module <- function(mid) {
 }
 
 #' module_text
-#' Obtain textual representation of modules for all the steps
+#' Obtain textual representation of module definition for all the blocks
 #' @export
-module_text <- function(kmo, candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
+module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
+  kmo <- kmo@definitions[[name]]
   plot_list <- list()
-  for (block in seq_along(kmo@definition_block)) {
+  for (block in seq_along(kmo$definition_block)) {
 
-    input_string <- kmo@definition_block[block]
+    input_string <- kmo$definition_block[block]
     ppos <- NULL
     for (i in find_parenthesis_pairs(input_string)) {
       ppos <- rbind(ppos, c(i[[1]], i[[2]], i[[2]]-i[[1]]))
@@ -111,7 +125,7 @@ module_text <- function(kmo, candidate_ko=NULL, paint_colour="tomato", convert=N
     
     ## All-KO
     kopos <- NULL
-    for (i in unlist(kmo@definition_ko_in_block[block])) {
+    for (i in unlist(kmo$definition_ko_in_block[block])) {
       findko <- str_locate_all(input_string, i)
       for (ff in findko) {
         for (rn in seq_len(nrow(ff))) {
@@ -186,22 +200,23 @@ module_text <- function(kmo, candidate_ko=NULL, paint_colour="tomato", convert=N
 #' module_completeness
 #' 
 #' @export
-module_completeness <- function(kmo, query) {
+module_completeness <- function(kmo, name="1", query) {
+  kmo <- kmo@definitions[[name]]
   complete <- NULL
   pres <- NULL
   pres_ratio <- NULL
-  for (i in seq_along(kmo@definition_ko_in_block)) {
-    present <- kmo@definition_ko_in_block[[i]] %in% query
-    names(present) <- kmo@definition_ko_in_block[[i]]
-    bool <- gsub("\\+","&",gsub(" ", "&", gsub(",", "|", kmo@definition_block[i])))
+  for (i in seq_along(kmo$definition_ko_in_block)) {
+    present <- kmo$definition_ko_in_block[[i]] %in% query
+    names(present) <- kmo$definition_ko_in_block[[i]]
+    bool <- gsub("\\+","&",gsub(" ", "&", gsub(",", "|", kmo$definition_block[i])))
     for (j in names(present)) {
       bool <- gsub(j, present[j], bool)
     }
     complete <- c(complete, eval(parse(text=bool)))
     pres <- c(pres, sum(present))
-    pres_ratio <- c(pres_ratio, sum(present) / kmo@definition_num_in_block[i])
+    pres_ratio <- c(pres_ratio, sum(present) / kmo$definition_num_in_block[i])
   }
-  tibble(block=kmo@definition_block,
+  tibble(block=kmo$definition_block,
          present_num=pres,
          ratio=pres_ratio,
          complete=complete)
@@ -213,19 +228,19 @@ module_completeness <- function(kmo, query) {
 #' Recursively obtain graphical represencation of block and 
 #' connect them by pseudo-nodes representing blocks.
 #' @export
-obtain_sequential_module_definition <- function(kmo, block=NULL) {
-  
-  if (is.null(block)) {cand_step <- kmo@definition_block}
+obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
+  kmo <- kmo@definitions[[name]]
+  if (is.null(block)) {cand_step <- kmo$definition_block}
   all_steps <- NULL
   orders <- NULL
 
   for (i in seq_along(cand_step)) {
-    if (kmo@definition_num_in_block[i]!=1) {
-      for (ko in kmo@definition_ko_in_block[[i]]) {
+    if (kmo$definition_num_in_block[i]!=1) {
+      for (ko in kmo$definition_ko_in_block[[i]]) {
         all_steps <- rbind(all_steps, c(ko, paste0("BLOCK",i),"in_block"))
         all_steps <- all_steps |> data.frame() |> `colnames<-`(c("from","to","type"))
       }
-      plotg <- as_data_frame(get_module_graph(kmo@definition_block[i]))
+      plotg <- as_data_frame(get_module_graph(kmo$definition_block[i]))
       ## Need to change naming
       frm <- plotg$from
       frm[!startsWith(frm,"K")] <- paste0(frm[!startsWith(frm,"K")],"_",i)
@@ -238,7 +253,7 @@ obtain_sequential_module_definition <- function(kmo, block=NULL) {
       orders <- c(orders, paste0("BLOCK",i))
     } else {
       ## Some steps have only "-K*****"
-      orders <- c(orders, kmo@definition_block[i])
+      orders <- c(orders, kmo$definition_block[i])
     }
   } ## For each step, obtain the plot
   
@@ -265,6 +280,7 @@ obtain_sequential_module_definition <- function(kmo, block=NULL) {
 #' @return igraph object
 #' @noRd
 get_module_graph <- function(input_string) {
+  ## [TODO] need verbose to identify what this function does
   ppos <- NULL
   for (i in find_parenthesis_pairs(input_string)) {
     ppos <- rbind(ppos, c(i[[1]], i[[2]], i[[2]]-i[[1]]))
@@ -282,7 +298,7 @@ get_module_graph <- function(input_string) {
     posmat$height <- he[as.character(posmat$length)]/2
     posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
     posmat$rawtext <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
-
+    
     converted_string <- input_string
     for (i in seq_along(posmat$text)) {
       if (i < nrow(posmat)) {
@@ -293,7 +309,6 @@ get_module_graph <- function(input_string) {
   } else {
     converted_string <- input_string
   }
-  
   # Process "+" or "-" or " " between comma
   cssnum <- 1
   retcss <- function(converted_string, cssnum) {
@@ -309,18 +324,21 @@ get_module_graph <- function(input_string) {
     }
     list(css=css, num=cssnum)
   }
-  
-  retcss1 <- retcss(converted_string, cssnum)
-  
-  css <- retcss1$css
-  cssnum <- retcss1$num
-  
-  for (i in seq_along(css$text)) {
-    converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+  css <- NULL
+  if (grepl("\\+",converted_string) | 
+      grepl("-",converted_string) | 
+      grepl(" ",converted_string)) {
+    retcss1 <- retcss(converted_string, cssnum)
+    css <- retcss1$css
+    cssnum <- retcss1$num
+    
+    for (i in seq_along(css$text)) {
+      converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+    }
   }
   
-  converted_string
   
+
   altnodes <- gsub("\\)","",gsub("\\(","",unlist(strsplit(converted_string,","))))
   rels <- NULL
   for (i in altnodes) {
@@ -330,7 +348,6 @@ get_module_graph <- function(input_string) {
       }
     }
   }
-  
   if (!is.null(rels)) {
     rels <- rels |> data.frame() |> `colnames<-`(c("from","to","type"))
     
@@ -392,7 +409,7 @@ get_module_graph <- function(input_string) {
       all_g <- rbind(all_g, gs[[i]])
     }
   }
-  
+
   ## Plus, space, minus
   ## There are no comma left
   return_certain_sep <- function(text, sep) {
@@ -470,17 +487,28 @@ get_module_graph <- function(input_string) {
     }
   }
   
-  norel <- subset(cssparsed, cssparsed$type!="rel")
-  reledges <- subset(cssparsed, cssparsed$type=="rel") ## Need to preserve order
+  # norel <- subset(cssparsed, cssparsed$type!="rel")
+  # reledges <- subset(cssparsed, cssparsed$type=="rel") ## Need to preserve order
   if (!is.null(rels)) {
-    plotg <- simplify(graph_from_data_frame(rbind(all_g, norel), directed = FALSE),edge.attr.comb = "first")
-    plotg <- graph_from_data_frame(rbind(as_data_frame(plotg), reledges), directed=TRUE)
+    if (!is.null(cssparsed)) {
+      plotg <- simplify(graph_from_data_frame(rbind(all_g, cssparsed), directed = FALSE),
+                        edge.attr.comb = "first")
+    } else {
+      plotg <- simplify(graph_from_data_frame(rbind(all_g), directed = FALSE),edge.attr.comb = "first")
+    }
   } else {
-    plotg <- simplify(graph_from_data_frame(norel, directed = FALSE),edge.attr.comb = "first")
-    plotg <- graph_from_data_frame(rbind(as_data_frame(plotg), reledges), directed=TRUE)
+    if (!is.null(cssparsed)) {
+      plotg <- simplify(graph_from_data_frame(rbind(cssparsed), directed = FALSE),
+                        edge.attr.comb = "first")
+    } else {
+      plotg <- input_string
+    }
+    # plotg <- simplify(graph_from_data_frame(norel, directed = FALSE),edge.attr.comb = "first")
+    # plotg <- graph_from_data_frame(rbind(as_data_frame(plotg), reledges), directed=TRUE)
   }
   return(plotg)
 }
+
 
 
 #' parse_module
@@ -552,16 +580,18 @@ parse_module <- function(kmo) {
       }
       reac
     }
+    if (!is.null(reac)) {
+      each <- as_tibble(each_reacs)
+      names(each) <- c("left","reaction","right")
+      eachraw <- as_tibble(each_reacs_raw)
+      names(eachraw) <- c("left","reaction","right")
 
-    each <- as_tibble(each_reacs)
-    names(each) <- c("left","reaction","right")
-    eachraw <- as_tibble(each_reacs_raw)
-    names(eachraw) <- c("left","reaction","right")
+      reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
+      kmo@reaction_graph <- as_tbl_graph(reac)
+      kmo@reaction_each <- each
+      kmo@reaction_each_raw <- eachraw
+    }
 
-    reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
-    kmo@reaction_graph <- as_tbl_graph(reac)
-    kmo@reaction_each <- each
-    kmo@reaction_each_raw <- eachraw
     divide_string <- function(input_string) {
       steps <- c()
       current_step <- ""
@@ -587,20 +617,30 @@ parse_module <- function(kmo) {
       return(steps)
     }
     
-    result <- divide_string(kmo@definition)
-    pattern <- "K\\d{5}"
-    matches <- str_extract_all(kmo@definition, pattern)
-    num_step <- NULL
-    ko_in_step <- list()
-    for (i in seq_along(result)) {
-      ko_in_step[[i]] <- unlist(str_extract_all(result[i], pattern))
-      num_step <- c(num_step, length(unlist(str_extract_all(result[i], pattern))))
+    definitions <- list()
+    for (defnum in seq_along(kmo@definition_raw)) {
+      result <- divide_string(kmo@definition_raw[[defnum]])
+      result <- result[result!=""]
+      pattern <- "K\\d{5}"
+      matches <- str_extract_all(kmo@definition_raw[[defnum]], pattern)
+      num_step <- NULL
+      ko_in_step <- list()
+      for (i in seq_along(result)) {
+        ko_in_step[[i]] <- unlist(str_extract_all(result[i], pattern))
+        num_step <- c(num_step, length(unlist(str_extract_all(result[i], pattern))))
+      }
+      ind <- defnum |> as.character()
+      definitions[[ind]][["definition_block"]] <- result
+      definitions[[ind]][["definition_kos"]] <- unlist(matches)
+      definitions[[ind]][["definition_num_in_block"]] <- num_step
+      definitions[[ind]][["definition_ko_in_block"]] <- ko_in_step
     }
+
     
-    kmo@definition_block <- result
-    kmo@definition_kos <- unlist(matches)
-    kmo@definition_num_in_block <- num_step
-    kmo@definition_ko_in_block <- ko_in_step
+    kmo@definitions <- definitions
+    # kmo@definition_kos <- unlist(matches)
+    # kmo@definition_num_in_block <- num_step
+    # kmo@definition_ko_in_block <- ko_in_step
     
     return(kmo)
 }

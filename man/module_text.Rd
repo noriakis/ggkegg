@@ -3,11 +3,17 @@
 \name{module_text}
 \alias{module_text}
 \title{module_text
-Obtain textual representation of modules for all the steps}
+Obtain textual representation of module definition for all the blocks}
 \usage{
-module_text(kmo, candidate_ko = NULL, paint_colour = "tomato", convert = NULL)
+module_text(
+  kmo,
+  name = "1",
+  candidate_ko = NULL,
+  paint_colour = "tomato",
+  convert = NULL
+)
 }
 \description{
 module_text
-Obtain textual representation of modules for all the steps
+Obtain textual representation of module definition for all the blocks
 }

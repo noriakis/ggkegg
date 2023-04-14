@@ -4,7 +4,7 @@
 \alias{module_completeness}
 \title{module_completeness}
 \usage{
-module_completeness(kmo, query)
+module_completeness(kmo, name = "1", query)
 }
 \description{
 module_completeness
