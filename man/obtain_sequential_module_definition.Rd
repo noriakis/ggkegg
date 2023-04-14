@@ -4,7 +4,7 @@
 \alias{obtain_sequential_module_definition}
 \title{obtain_sequential_module_definition}
 \usage{
-obtain_sequential_module_definition(kmo, block = NULL)
+obtain_sequential_module_definition(kmo, name = "1", block = NULL)
 }
 \description{
 Given module definition and block number,
