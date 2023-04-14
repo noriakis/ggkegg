@@ -18,10 +18,10 @@ plot_module_text <- function(plot_list, show_name="name") {
 }
 
 
-#' plot_module_steps
-#' wrapper function for plotting module definition steps
+#' plot_module_blocks
+#' wrapper function for plotting module definition blocks
 #' @export
-plot_module_steps <- function(all_steps, layout="kk") {
+plot_module_blocks <- function(all_steps, layout="kk") {
   allnodes <- unique(V(all_steps)$name)
   if (sum(startsWith(allnodes, "K"))==length(allnodes)) {
     stop("all nodes are KO.")
