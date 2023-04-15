@@ -175,5 +175,6 @@ network_graph <- function (kne, type="definition") {
   all_edges <- rbind(raw_edges |> `colnames<-`(c("from","to","type","subtype")),
         edges)
   g <- as_tbl_graph(all_edges,directed = TRUE)
+  g <- g |> activate(nodes) |>   mutate(network_name=kne@name, network_ID=kne@ID)
   g
 }
