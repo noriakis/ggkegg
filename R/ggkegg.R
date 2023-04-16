@@ -132,7 +132,7 @@ ggkegg <- function(pid,
     return(g)
   }
   if (layout=="native") {
-    ggraph(g, x=x, y=y)
+    ggraph(g, layout="manual", x=x, y=y)
   } else {
     g <- delete_vertex_attr(g, "x")
     g <- delete_vertex_attr(g, "y")
