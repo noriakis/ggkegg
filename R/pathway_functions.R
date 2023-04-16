@@ -144,8 +144,9 @@ pathway <- function(pid,
   if (!is.null(kegg_edges)) {
     g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
   } else {
-    message("No edges in the map, returning node data")
-    return(kegg_nodes)
+    # message("No edges in the map, returning node data")
+    g <- tbl_graph(nodes=kegg_nodes)
+    # return(kegg_nodes)
   }
 
   ## Assign grouping
