@@ -117,7 +117,14 @@ pathway <- function(pid,
     kegg_edges <- NULL
   }
 
-  ## Include grouping
+  gr_rels <- NULL
+  for (gr_name in names(grs)) {
+    for (comp_name in grs[[gr_name]]) {
+      gr_rels <- rbind(gr_rels, 
+        c(gr_name, comp_name, "in_group", "in_group"))
+    }
+  }
+  ## Include grouping edge
   # for (i in seq_len(nrow(kegg_edges))) {
   #   if (kegg_edges[i,"entry1"] %in% names(grs)) {
   #     for (tmp_node in grs[[kegg_edges[i,"entry1"]]]) {
@@ -141,6 +148,15 @@ pathway <- function(pid,
     if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA}
     kegg_edges <- rbind(kegg_edges, kegg_reac)
   }
+
+  ## Append grouping
+  if (!is.null(kegg_edges)) {
+    if (!is.null(gr_rels)) {
+      gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type","subtype"))
+      kegg_edges <- rbind(kegg_edges, gr_rels)
+    }
+  }
+
   if (!is.null(kegg_edges)) {
     g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
   } else {
@@ -150,15 +166,15 @@ pathway <- function(pid,
   }
 
   ## Assign grouping
-  group <- NULL
-  for (i in V(g)$orig.id) {
-    if (i %in% names(rev_grs)) {
-      group <- c(group, paste(as.character(rev_grs[[i]]), collapse=","))
-    } else {
-      group <- c(group, NA)
-    }
-  }
-  V(g)$group <- unlist(group)
+  # group <- NULL
+  # for (i in V(g)$orig.id) {
+  #   if (i %in% names(rev_grs)) {
+  #     group <- c(group, paste(as.character(rev_grs[[i]]), collapse=","))
+  #   } else {
+  #     group <- c(group, NA)
+  #   }
+  # }
+  # V(g)$group <- unlist(group)
 
   ## This part may be redundant, use `convert_id`
   convert_vec <- NULL
