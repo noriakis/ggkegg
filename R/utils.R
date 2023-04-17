@@ -70,6 +70,45 @@ append_cp <- function(res, how="any", name="name") {
 }
 
 
+#' assign_deseq2
+#' 
+#' assign DESeq2 numerical values to nodes
+#' 
+#' @param res The result() of DESeq()
+#' @param column column of the numeric attribute, default to log2FoldChange
+#' @param gene_type default to SYMBOL
+#' @export
+assign_deseq2 <- function(res, column="log2FoldChange",
+                          gene_type="SYMBOL",
+                          org_db=org.Hs.eg.db, org="hsa",
+                          numeric_combine=mean,
+                          name="name") {
+  graph <- .G()
+  if (gene_type!="ENTREZID") {
+    convert_df <- res |> row.names() |> AnnotationDbi::select(x=org.Hs.eg.db,
+                                                keys=_,
+                                                columns="ENTREZID",
+                                                keytype=gene_type)
+    
+    nums <- data.frame(row.names(res), res[[column]]) |> `colnames<-`(c(gene_type, column))
+    merged <- merge(nums, convert_df, by=gene_type)
+  } else {
+    merged <- data.frame(row.names(res), res[[column]]) |> `colnames<-`(c("ENTREZID", column))
+  }
+  merged$converted <- paste0(org, ":", merged[["ENTREZID"]])
+  changer <- merged[[column]] |> `names<-`(merged[["converted"]])
+  x <- get.vertex.attribute(graph, name)
+  final_attribute <- NULL
+  for (xx in x) {
+    in_node <- strsplit(xx, " ") |> unlist() |> unique()
+    final_attribute <- c(final_attribute,
+                         do.call(numeric_combine,
+                                 list(x=changer[intersect(in_node, names(changer))])))
+  }
+  final_attribute
+}
+
+
 
 #' convert_id
 #' 
