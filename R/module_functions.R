@@ -49,6 +49,8 @@ module <- function(mid) {
     if ( length(line) == 0 ) {
       break
     }
+    if (gsub(" ","",line)=="") {next} ## If blank line, skip
+    ## happens in some modules describing parallel reactions
     if (grepl("NAME", line)) {
       name <- unlist(strsplit(line, "        "))[2]
       kmo@name <- name
@@ -201,22 +203,28 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 #' 
 #' @export
 module_completeness <- function(kmo, query, name="1") {
-  kmo <- kmo@definitions[[name]]
+  if (length(kmo@definitions)>1) {message("Multiple definitions found, taking first one")}
+  kmo <- kmo@definitions[[name]] ## Take first definition
   complete <- NULL
   pres <- NULL
   pres_ratio <- NULL
+  alls <- NULL
   for (i in seq_along(kmo$definition_ko_in_block)) {
+    if (sum(identical(kmo$definition_ko_in_block[[i]],
+      character(0)))!=0) {message("No KO found in definition block. Returning NULL");return(NULL)}
     present <- kmo$definition_ko_in_block[[i]] %in% query
     names(present) <- kmo$definition_ko_in_block[[i]]
     bool <- gsub("\\+","&",gsub(" ", "&", gsub(",", "|", kmo$definition_block[i])))
     for (j in names(present)) {
       bool <- gsub(j, present[j], bool)
     }
+    alls <- c(alls, length(kmo$definition_ko_in_block[[i]]))
     complete <- c(complete, eval(parse(text=bool)))
     pres <- c(pres, sum(present))
     pres_ratio <- c(pres_ratio, sum(present) / kmo$definition_num_in_block[i])
   }
   tibble(block=kmo$definition_block,
+         all_num=alls,
          present_num=pres,
          ratio=pres_ratio,
          complete=complete)
@@ -583,6 +591,11 @@ parse_module <- function(kmo) {
       ## Reaction
       left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
       left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
+      if (is.na(left2)) {
+        message("Some modules cannot be parsed properly, changing the split parameter")
+        left2 <- gsub(" ", "", unlist(strsplit(left, " "))[2])
+        left1 <- gsub(" ", "", unlist(strsplit(left, " "))[1])        
+      }
       each_reacs_raw <- rbind(each_reacs_raw,
         c(left2, left1, right_raw |> gsub(" ","",x=_)))
       for (l2 in unlist(strsplit(left2, ","))) {
@@ -637,6 +650,7 @@ parse_module <- function(kmo) {
     for (defnum in seq_along(kmo@definition_raw)) {
       result <- divide_string(kmo@definition_raw[[defnum]])
       result <- result[result!=""]
+      if ("--" %in% result) {message("Found '--' sep, ignoring");result <- result[result!="--"]}
       pattern <- "K\\d{5}"
       matches <- str_extract_all(kmo@definition_raw[[defnum]], pattern)
       num_step <- NULL
