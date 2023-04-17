@@ -32,6 +32,7 @@ find_parenthesis_pairs <- function(s) {
 #' @param how how to determine whether the nodes is in enrichment results
 #' @param name name column to search for query
 #' @return enrich_attribute column in node
+#' @export
 append_cp <- function(res, how="any", name="name") {
   if (attributes(res)$class!="enrichResult") { stop("Please provide enrichResult class object") }
 
