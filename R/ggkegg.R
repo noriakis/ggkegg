@@ -91,7 +91,16 @@ ggkegg <- function(pid,
   }
 
   if (!is.null(enrich_attribute)) {
-    V(g)$enrich_attribute <- V(g)$name %in% enrich_attribute
+    bools <- NULL
+    for (xx in V(g)$name) {
+      in_node <- strsplit(xx, " ") |> unlist() |> unique()
+      if (length(intersect(in_node, enrich_attribute))>=1) { ## Only `any`
+        bools <- c(bools, TRUE)
+      } else {
+        bools <- c(bools, FALSE)
+      }
+    }
+    V(g)$enrich_attribute <- bools
   }
 
   if (delete_undefined) {

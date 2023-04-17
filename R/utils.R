@@ -24,6 +24,52 @@ find_parenthesis_pairs <- function(s) {
 }
 
 
+#' append_cp
+#' 
+#' append clusterProfiler results to graph
+#' 
+#' @param res enrichResult class
+#' @param how how to determine whether the nodes is in enrichment results
+#' @param name name column to search for query
+#' @return enrich_attribute column in node
+append_cp <- function(res, how="any", name="name") {
+  if (attributes(res)$class!="enrichResult") { stop("Please provide enrichResult class object") }
+
+  graph <- .G()
+  pid <- unique(V(graph)$pathway_id)
+  x <- get.vertex.attribute(graph, name)
+
+  org <- attributes(res)$organism
+  res <- attributes(res)$result
+  if (org!="UNKNOWN") {
+    enrich_attribute <- paste0(org, ":", unlist(strsplit(
+      res[pid,]$geneID, "/")))
+  } else {
+    enrich_attribute <- unlist(strsplit(
+      res[pid,]$geneID, "/"))     
+  }
+  bools <- NULL
+  for (xx in x) {
+    in_node <- strsplit(xx, " ") |> unlist() |> unique()
+    if (how=="any") {
+      if (length(intersect(in_node, enrich_attribute))>=1) {
+        bools <- c(bools, TRUE)
+      } else {
+        bools <- c(bools, FALSE)
+      }
+    } else {
+      if (length(intersect(in_node, enrich_attribute))==length(in_node)) {
+        bools <- c(bools, TRUE)
+      } else {
+        bools <- c(bools, FALSE)
+      }      
+    }
+  }
+  bools
+}
+
+
+
 #' convert_id
 #' 
 #' convert the identifier using retrieved information
