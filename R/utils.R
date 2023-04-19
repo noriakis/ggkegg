@@ -23,6 +23,53 @@ find_parenthesis_pairs <- function(s) {
   pairs
 }
 
+
+#' append_node_value
+#' 
+#' given the matrix representing gene as row and sample as column,
+#' append the node value to node matrix and
+#' return tbl_graph object
+#' 
+#' @param graph tbl_graph to append values to
+#' @param mat matrix representing gene as row and sample as column
+#' @export
+#' @return tbl_graph
+append_node_value <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
+                              num_combine=mean) {
+  
+  get_value <- function(x) {
+    val <- list()
+    for (xx in seq_along(x)) {
+      if (x[xx]=="undefined") {val[[xx]] <- NA; next}
+      vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+      subset_conv <- convert_df |> filter(converted %in% vals) |> data.frame()
+      if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
+      if (dim(subset_conv)[1]==1) {val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
+      val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
+    }
+    binded <- do.call(rbind, val)
+    binded
+  }
+  
+  node_df <- graph |> activate(nodes) |> data.frame()
+  node_name <- node_df$name
+  if (gene_type!="ENTREZID") {
+    convert_df <- mat |> row.names() |> AnnotationDbi::select(x=org_db,
+                                                              keys=_,
+                                                              columns="ENTREZID",
+                                                              keytype=gene_type)
+  } else {
+    convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
+  }
+  
+  convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
+  new_edges <- graph |> activate(edges) |> data.frame()
+  summed <- data.frame(get_value(node_df$name))
+  new_nodes <- cbind(node_df, summed)
+  appended <- tbl_graph(nodes=new_nodes, edges=new_edges)
+  appended
+}
+
 #' append_edge_value
 #' 
 #' given the matrix representing gene as row and sample as column,

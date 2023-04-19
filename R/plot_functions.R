@@ -127,3 +127,40 @@ plot_kegg_network <- function(g) {
                    repel=TRUE, size=4, bg.colour="white")+
     theme_void()
 }
+
+
+#' geom_kegg
+#' 
+#' convenient function for plotting KEGG pathway graph
+#' add geom_node_rect, geom_node_text and geom_edge_link
+#' @param edge_color color attribute to edge
+#' @export
+geom_kegg <- function(edge_color=NULL,
+                      node_label=name) {
+  structure(list(edge_color=edge_color,
+                 node_label=enquo(node_label)),
+            class = "geom_kegg")
+}
+
+#' ggplot_add.geom_kegg
+#' @param object An object to add to the plot
+#' @param plot The ggplot object to add object to
+#' @param object_name The name of the object to add
+#' @export ggplot_add.geom_kegg
+#' @export
+ggplot_add.geom_kegg <- function(object, plot, object_name) {
+  plot <- plot + 
+    geom_edge_link(width=0.5,
+                   arrow = arrow(length = unit(1, 'mm')), 
+                   start_cap = square(1, 'cm'),
+                   end_cap = square(1.5, 'cm'))
+  plot <- plot+ geom_node_rect(aes(filter=.data$type=="group"),
+                       fill="transparent", color="red")
+  plot <- plot + geom_node_rect(aes(fill=I(bgcolor),
+                                     filter=bgcolor!="none" & .data$type!="group"))
+  plot <- plot+
+    geom_node_text(aes(label=!!object$node_label,
+                       filter=type!="group"), family="serif", size=2)+
+    theme_void()
+  
+}
