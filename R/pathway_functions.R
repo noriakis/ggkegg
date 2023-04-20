@@ -107,8 +107,11 @@ pathway <- function(pid,
     entry1 <- xmlAttrs(rel)["entry1"]
     entry2 <- xmlAttrs(rel)["entry2"]
     rel_type <- xmlAttrs(rel)["type"]
-    rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
-    all_rels <- rbind(all_rels, c(entry1, entry2, rel_type, rel_subtype))
+    # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
+    rel_subtypes <- xmlElementsByTagName(rel,"subtype")
+    for (rs in rel_subtypes) {
+      all_rels <- rbind(all_rels, c(entry1, entry2, rel_type, xmlAttrs(rs)["name"]))
+    }
   }
   if (!is.null(all_rels)) {
     kegg_edges <- all_rels |> data.frame() |>
