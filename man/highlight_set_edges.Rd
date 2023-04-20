@@ -17,6 +17,8 @@ is in query.}
 \item{name}{which column to search for}
 
 \item{sep}{separater for node names}
+
+\item{no_sep}{not separate node name}
 }
 \description{
 identify if edges are involved in specific query.

@@ -11,14 +11,19 @@
 #' is in query.
 #' @param name which column to search for
 #' @param sep separater for node names
+#' @param no_sep not separate node name
 #' @export
 highlight_set_nodes <- function(set, how="all",
-  name="name", sep=" ") {
+  name="name", sep=" ", no_sep=FALSE) {
   graph <- .G()
   x <- get.vertex.attribute(graph, name)
   vec <- NULL
   for (xn in seq_along(x)) {
-    nn <- unlist(strsplit(x[xn], sep))
+    if (no_sep) {
+      nn <- x[xn]
+    } else {
+      nn <- unlist(strsplit(x[xn], sep))
+    }
     if (how=="all") {
       if (length(intersect(nn, set))==length(nn)) {
         vec <- c(vec, TRUE)
@@ -26,7 +31,7 @@ highlight_set_nodes <- function(set, how="all",
         vec <- c(vec, FALSE)
       }
     } else {
-      if (length(intersect(nn, set))==length(set)) {
+      if (length(intersect(nn, set))>=1) {
         vec <- c(vec, TRUE)
       } else {
         vec <- c(vec, FALSE)
@@ -50,14 +55,19 @@ highlight_set_nodes <- function(set, how="all",
 #' is in query.
 #' @param name which column to search for
 #' @param sep separater for node names
+#' @param no_sep not separate node name
 #' @export
 highlight_set_edges <- function(set, how="all",
-  name="name", sep=" ") {
+  name="name", sep=" ", no_sep=FALSE) {
   graph <- .G()
   x <- get.edge.attribute(graph, name)
   vec <- NULL
   for (xn in seq_along(x)) {
-    nn <- unlist(strsplit(x[xn], sep))
+    if (no_sep) {
+      nn <- x[xn]
+    } else {
+      nn <- unlist(strsplit(x[xn], sep))
+    }
     if (how=="all") {
       if (length(intersect(nn, set))==length(nn)) {
         vec <- c(vec, TRUE)
@@ -65,7 +75,7 @@ highlight_set_edges <- function(set, how="all",
         vec <- c(vec, FALSE)
       }
     } else {
-      if (length(intersect(nn, set))==length(set)) {
+      if (length(intersect(nn, set))>=1) {
         vec <- c(vec, TRUE)
       } else {
         vec <- c(vec, FALSE)
