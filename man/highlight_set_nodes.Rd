@@ -4,7 +4,7 @@
 \alias{highlight_set_nodes}
 \title{highlight_set_nodes}
 \usage{
-highlight_set_nodes(set, how = "all", name = "name", sep = " ")
+highlight_set_nodes(set, how = "all", name = "name", sep = " ", no_sep = FALSE)
 }
 \arguments{
 \item{set}{set of identifiers}
@@ -17,6 +17,8 @@ is in query.}
 \item{name}{which column to search for}
 
 \item{sep}{separater for node names}
+
+\item{no_sep}{not separate node name}
 }
 \description{
 identify if nodes are involved in specific queriy.
