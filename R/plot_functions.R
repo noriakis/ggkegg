@@ -110,19 +110,21 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' 
 #' @export
 plot_kegg_network <- function(g) {
+  ## [TODO] Presuming G***** and CS***** is not in the symbol 
   ggraph(g, layout="kk") +
     geom_edge_link(aes(label=type,
                        filter=!startsWith(type,"in")),
                    angle_calc="along", force_flip=FALSE,
                    label_dodge = unit(2, 'mm')) + 
     geom_node_point(size=4, aes(filter=!startsWith(name,"BLOCK") &
-                                  !startsWith(name,"G") &
-                                  !startsWith(name,"CS"))) + 
+                                  !(startsWith(name,"G")&nchar(name)==6)&
+                                  !(startsWith(name,"CS")&nchar(name)==6))) + 
     geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"BLOCK"))) + 
-    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"CS") |
-                                            startsWith(name,"G"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=(startsWith(name,"CS")&nchar(name)==6) |
+                                            (startsWith(name,"G")&nchar(name)==6))) + 
     geom_node_text(aes(label=name,
-                       filter=!startsWith(name,"CS") & !startsWith(name,"G") &
+                       filter=!(startsWith(name,"CS")&nchar(name)==6) & 
+                       !(startsWith(name,"G")&nchar(name)==6) &
                          !startsWith(name,"BLOCK")),
                    repel=TRUE, size=4, bg.colour="white")+
     theme_void()
