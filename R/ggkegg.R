@@ -27,7 +27,10 @@
 #' (definition or reaction)
 #' @param module_definition_type `text` or `network` when parsing module definition.
 #' If `text`, return ggplot object. If `network`, return `tbl_graph`.
-#' @import igraph ggraph ggplot2 tidygraph
+#' @import ggraph
+#' @import ggplot2
+#' @importFrom tidygraph as_tbl_graph
+#' @importFrom igraph induced.subgraph delete_vertex_attr
 #' @export
 ggkegg <- function(pid,
                    layout="native",
