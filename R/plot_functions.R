@@ -134,11 +134,14 @@ plot_kegg_network <- function(g) {
 #' convenient function for plotting KEGG pathway graph
 #' add geom_node_rect, geom_node_text and geom_edge_link
 #' @param edge_color color attribute to edge
+#' @param group_color border color for group node rectangles
 #' @export
 geom_kegg <- function(edge_color=NULL,
-                      node_label=name) {
+                      node_label=name,
+                      group_color="red") {
   structure(list(edge_color=edge_color,
-                 node_label=enquo(node_label)),
+                 node_label=enquo(node_label),
+                 group_color=group_color),
             class = "geom_kegg")
 }
 
@@ -155,7 +158,7 @@ ggplot_add.geom_kegg <- function(object, plot, object_name) {
                    start_cap = square(1, 'cm'),
                    end_cap = square(1.5, 'cm'))
   plot <- plot+ geom_node_rect(aes(filter=.data$type=="group"),
-                       fill="transparent", color="red")
+                       fill="transparent", color=object$group_color)
   plot <- plot + geom_node_rect(aes(fill=I(bgcolor),
                                      filter=bgcolor!="none" & .data$type!="group"))
   plot <- plot+

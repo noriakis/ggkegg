@@ -4,7 +4,7 @@
 \alias{highlight_set_edges}
 \title{highlight_set_edges}
 \usage{
-highlight_set_edges(set, how = "all", name = "name", sep = " ")
+highlight_set_edges(set, how = "all", name = "name", sep = " ", no_sep = FALSE)
 }
 \arguments{
 \item{set}{set of identifiers}
