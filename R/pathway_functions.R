@@ -7,6 +7,9 @@
 #' @param add_pathway_id add pathway id to graph
 #' @param return_tbl_graph return tbl_graph object
 #' @return tbl_graph by default
+#' @importFrom igraph graph_from_data_frame
+#' @import igraph
+#' @importFrom tidygraph .G
 #' @export
 pathway <- function(pid,
            rect_width=25,

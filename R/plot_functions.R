@@ -1,7 +1,8 @@
 #' plot_module_text
 #' plot the text representation of KEGG modules
-#' @import tidygraph
+#' @importFrom tidygraph tbl_graph
 #' @import patchwork
+#' @export
 plot_module_text <- function(plot_list, show_name="name") {
   panel_list <- list()
   for (concat in seq_along(plot_list)) {
@@ -110,21 +111,26 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' 
 #' @export
 plot_kegg_network <- function(g) {
-  ## [TODO] Presuming G***** and CS***** is not in the symbol 
-  ggraph(g, layout="kk") +
+  ## [TODO] Presuming G***** and CS***** is not in the symbol
+  gg <- g |> as_tbl_graph() |> activate(nodes) |>
+  mutate(splitn=strsplit(name,"_") |> sapply("[",1)) |>
+  mutate(group=startsWith(splitn,"G") & nchar(splitn)==6,
+    and_group=startsWith(splitn,"CS") & nchar(splitn)==6)
+  ggraph(gg, layout="kk") +
     geom_edge_link(aes(label=type,
                        filter=!startsWith(type,"in")),
                    angle_calc="along", force_flip=FALSE,
-                   label_dodge = unit(2, 'mm')) + 
+                   label_dodge = unit(2, 'mm')) +
+    geom_edge_link(aes(filter=startsWith(type,"in_and")))+ 
     geom_node_point(size=4, aes(filter=!startsWith(name,"BLOCK") &
-                                  !(startsWith(name,"G")&nchar(name)==6)&
-                                  !(startsWith(name,"CS")&nchar(name)==6))) + 
+                                  !(group)&
+                                  !(and_group))) + 
     geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"BLOCK"))) + 
-    geom_node_point(size=2, shape=21, aes(filter=(startsWith(name,"CS")&nchar(name)==6) |
-                                            (startsWith(name,"G")&nchar(name)==6))) + 
+    geom_node_point(size=2, shape=21, aes(filter=(group) |
+                                            (and_group))) + 
     geom_node_text(aes(label=name,
-                       filter=!(startsWith(name,"CS")&nchar(name)==6) & 
-                       !(startsWith(name,"G")&nchar(name)==6) &
+                       filter=!(and_group) &
+                        !(group) &
                          !startsWith(name,"BLOCK")),
                    repel=TRUE, size=4, bg.colour="white")+
     theme_void()

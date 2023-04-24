@@ -198,6 +198,8 @@ highlight_module_reaction <- function(kmo,
 #' @param name which column to search for
 #' @param sep separator for node names
 #' @param verbose show messages or not
+#' @importFrom tidygraph activate
+#' @importFrom dplyr mutate
 #' @export
 highlight_module_compound <- function(kmo,
                                       label,
