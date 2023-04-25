@@ -4,10 +4,11 @@
 #' 
 #' @param pid pathway ID
 #' @param transparent_colors make these colors transparent to overlay
+#' Typical colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF"
 #' @import magick
 #' @export
 overlay_raw_map <- function(pid,
-                            transparent_colors=c("#FFFFFF","#BFBFFF")) {
+                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF")) {
   structure(list(pid=pid,
                  transparent_colors=transparent_colors),
             class = "overlay_raw_map")
@@ -20,7 +21,7 @@ overlay_raw_map <- function(pid,
 #' @export ggplot_add.overlay_raw_map
 #' @export
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
-  ## Return the image URL
+  ## Return the image URL, download and cache
   url <- paste0(as.character(pathway(object$pid,
                                      return_image=TRUE)))
   bfc <- BiocFileCache()
