@@ -2,6 +2,8 @@
 #' 
 #' KEGG pathway parsing function
 #'
+#' @param convert_org organism or category for converting the name
+#' e.g. "ko", "hsa", ...
 #' @param rect_width manual specification of rectangle
 #' @param rect_height manual specification of rectangle
 #' @param add_pathway_id add pathway id to graph
@@ -21,7 +23,8 @@ pathway <- function(pid,
            node_rect_nudge=0,
            invert_y=TRUE,
            add_pathway_id=TRUE,
-           return_tbl_graph=TRUE) {
+           return_tbl_graph=TRUE,
+           return_image=FALSE) {
   ## Specification of KGML format
   ## https://www.genome.jp/kegg/xml/docs/
 
@@ -37,7 +40,16 @@ pathway <- function(pid,
   grs <- list()
   rev_grs <- list()
 
+  pwy <- getNodeSet(xml, "//pathway")[[1]]
 
+  pwy_name <- xmlAttrs(pwy)["name"]
+  pwy_org <- xmlAttrs(pwy)["org"]
+  pwy_number <- xmlAttrs(pwy)["number"]
+  pwy_title <- xmlAttrs(pwy)["title"]
+  pwy_image <- xmlAttrs(pwy)["image"]
+  pwy_link <- xmlAttrs(pwy)["link"]
+
+  if (return_image) return(pwy_image)
 
   for (node in node_sets) {
     id <- xmlAttrs(node)["id"]

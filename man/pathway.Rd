@@ -15,13 +15,17 @@ pathway(
   node_rect_nudge = 0,
   invert_y = TRUE,
   add_pathway_id = TRUE,
-  return_tbl_graph = TRUE
+  return_tbl_graph = TRUE,
+  return_image = FALSE
 )
 }
 \arguments{
 \item{rect_width}{manual specification of rectangle}
 
 \item{rect_height}{manual specification of rectangle}
+
+\item{convert_org}{organism or category for converting the name
+e.g. "ko", "hsa", ...}
 
 \item{add_pathway_id}{add pathway id to graph}
 
