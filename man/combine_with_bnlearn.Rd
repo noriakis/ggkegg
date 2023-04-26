@@ -4,7 +4,7 @@
 \alias{combine_with_bnlearn}
 \title{combine_with_bnlearn}
 \usage{
-combine_with_bnlearn(pg, str, av, prefix = "ko:")
+combine_with_bnlearn(pg, str, av, prefix = "ko:", how = "any")
 }
 \arguments{
 \item{pg}{reference graph (output of `pathway`)}
@@ -15,6 +15,8 @@ combine_with_bnlearn(pg, str, av, prefix = "ko:")
 
 \item{prefix}{add prefix to node name of original averaged network
 like, `hsa:` or `ko:`.}
+
+\item{how}{`any` or `all`}
 }
 \value{
 tbl_graph

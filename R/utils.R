@@ -350,11 +350,12 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' @param av averaged network to plot
 #' @param prefix add prefix to node name of original averaged network
 #' like, `hsa:` or `ko:`.
+#' @param how `any` or `all`
 #' 
 #' @return tbl_graph
 #' @export
 #' 
-combine_with_bnlearn <- function(pg, str, av, prefix="ko:") {
+combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
   
   ## Make igraph with strength from bnlearn
   el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
@@ -369,12 +370,21 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:") {
     if (grepl(" ",i)) {
       ref_node <- strsplit(i, " ") |> unlist()
       for (j in V(g)$name) {
-        if (length(intersect(ref_node, j))>0) {
-          js <- rbind(js, c(j, i))
+        if (how=="any") {
+          if (length(intersect(ref_node, j))>0) {
+            js <- rbind(js, c(j, i))
+          }
+        } else {
+          if (length(intersect(ref_node, j))==length(ref_node)) {
+            js <- rbind(js, c(j, i))
+          }          
         }
       }
+    } else {
+      js <- rbind(js, c(i, i))
     }
   }
+  
   js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
   gdf <- as_data_frame(g)
   
@@ -385,23 +395,31 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:") {
       new_df <- rbind(new_df,
                       c(new_from, gdf[i,"to"], 
                         gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
+    } else {
+      stop("no `from` included in raw node name")
     }
   }
-  gdf <- rbind(gdf, new_df |> `colnames<-`(colnames(gdf)))
-  
+  gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
+
+  new_df <- NULL
   for (i in seq_len(nrow(gdf))) {
     if (gdf[i,"to"] %in% js$raw){
       new_to <- js[js[,1]==gdf[i,"to"],]$reference
       new_df <- rbind(new_df,
                       c(gdf[i,"from"], new_to, 
                         gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
+    } else {
+      stop("no `to` included in raw node name")    
     }
   }
-  gdf <- rbind(gdf, new_df |> `colnames<-`(colnames(gdf)))
+  gdf <- new_df |> `colnames<-`(colnames(gdf))
   
   gdf$strength <- as.numeric(gdf$strength)
   gdf$direction <- as.numeric(gdf$direction)
   
-  joined <- graph_join(pg, gdf)
+  ## Drop duplicates
+  gdf <- gdf |> distinct(from, to, strength, direction)
+
+  joined <- graph_join(pg, gdf, by="name")
   joined
 }
