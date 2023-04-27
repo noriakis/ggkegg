@@ -296,14 +296,27 @@ get_reaction <- function(xml) {
   all_reas <- all_reas |> data.frame() |> `colnames<-`(c("id","reac_name",
                                              "type","substrate_id","substrate_name",
                                              "product_id","product_name"))
+
+  ## Maybe this parsing will lead to wrong interpretation
+  ## substrate -> ID (KO) (type: type, reaction: reaction)
+  ## ID (KO) -> product (type: type, reaction: reaction)
   rsp_rels <- NULL
   for (i in seq_len(nrow(all_reas))) {
     for (j in unlist(strsplit(all_reas[i,"id"], " "))) {
       rsp_rels <- rbind(rsp_rels,
-      c(j, all_reas[i,"substrate_id"], all_reas[i,"type"], "substrate", all_reas[i, "reac_name"]),
+      c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", all_reas[i, "reac_name"]),
       c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", all_reas[i, "reac_name"]))
     }
   }
+
+  ## substrate -> product, type: type, subtype: ID (KO), reaction: reaction
+  # rsp_rels <- NULL
+  # for (i in seq_len(nrow(all_reas))) {
+  #   for (j in unlist(strsplit(all_reas[i,"id"], " "))) {
+  #     rsp_rels <- rbind(rsp_rels,
+  #     c(all_reas[i,"substrate_id"], all_reas[i,"product_id"], all_reas[i,"type"], j, all_reas[i, "reac_name"]))
+  #   }
+  # }
 
 
   rsp_rels <- data.frame(rsp_rels) |> 
