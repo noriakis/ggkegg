@@ -123,13 +123,16 @@ append_edge_value <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=
 #' @param res enrichResult class
 #' @param how how to determine whether the nodes is in enrichment results
 #' @param name name column to search for query
+#' @param pid pathway ID, if NULL, try to infer from graph attribute
 #' @return enrich_attribute column in node
 #' @export
-append_cp <- function(res, how="any", name="name") {
+append_cp <- function(res, how="any", name="name", pid=NULL) {
   if (attributes(res)$class!="enrichResult") { stop("Please provide enrichResult class object") }
 
   graph <- .G()
-  pid <- unique(V(graph)$pathway_id)
+  if (is.null(pid)) {
+    pid <- unique(V(graph)$pathway_id)
+  }
   x <- get.vertex.attribute(graph, name)
 
   org <- attributes(res)$organism
