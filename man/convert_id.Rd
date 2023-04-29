@@ -23,7 +23,8 @@ convert_id(
 \item{convert_column}{which column is parsed in 
 obtained data frame from KEGG REST API}
 
-\item{colon}{whether the original ids include colon}
+\item{colon}{whether the original ids include colon
+If `NULL`, automatically set according to `org`}
 
 \item{first_arg_comma}{take first argument of comma-separated
 string, otherwise fetch all strings}
