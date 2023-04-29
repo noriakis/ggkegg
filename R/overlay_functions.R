@@ -4,13 +4,17 @@
 #' 
 #' @param pid pathway ID
 #' @param transparent_colors make these colors transparent to overlay
-#' Typical colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F"
+#' Typical choice of colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
+#' "#ADADAD","#838383"
+#' @param adjust clip the both end of x- and y-axis
 #' @import magick
 #' @export
 overlay_raw_map <- function(pid,
-                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF","#7F7F7F")) {
+                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF","#7F7F7F"),
+                            adjust=FALSE) {
   structure(list(pid=pid,
-                 transparent_colors=transparent_colors),
+                 transparent_colors=transparent_colors,
+                 adjust=adjust),
             class = "overlay_raw_map")
 }
 
@@ -39,8 +43,16 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   }
   
   ras <- as.raster(magick_image)
-  plot + 
-    annotation_raster(ras, xmin=0, ymin=0, xmax=w, ymax=-1*h,
-                    interpolate = TRUE)+
-    coord_fixed(xlim = c(0,w), ylim=c(-1*h,0))
+
+  if (object$adjust) {
+    plot + annotation_raster(ras[1:nrow(ras)-1,1:ncol(ras)-1],
+                  xmin=0, xmax=w-1, ymax=-1*h+1, ymin=0,
+                  interpolate=TRUE)+
+          coord_fixed(xlim = c(0,w), ylim=c((-1*h),0))
+  } else {
+    plot + 
+      annotation_raster(ras, xmin=0, ymin=0, xmax=w, ymax=-1*h,
+                      interpolate = TRUE)+
+      coord_fixed(xlim = c(0,w), ylim=c(-1*h,0))
+  }
 }
