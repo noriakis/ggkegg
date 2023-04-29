@@ -214,6 +214,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' @param convert_column which column is parsed in 
 #' obtained data frame from KEGG REST API
 #' @param colon whether the original ids include colon
+#' If `NULL`, automatically set according to `org`
 #' @param first_arg_comma take first argument of comma-separated
 #' string, otherwise fetch all strings
 #' @param first_arg_sep take first argument if multiple identifiers

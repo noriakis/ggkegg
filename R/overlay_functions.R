@@ -4,11 +4,11 @@
 #' 
 #' @param pid pathway ID
 #' @param transparent_colors make these colors transparent to overlay
-#' Typical colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF"
+#' Typical colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F"
 #' @import magick
 #' @export
 overlay_raw_map <- function(pid,
-                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF")) {
+                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF","#7F7F7F")) {
   structure(list(pid=pid,
                  transparent_colors=transparent_colors),
             class = "overlay_raw_map")
