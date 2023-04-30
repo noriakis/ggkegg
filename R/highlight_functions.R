@@ -89,167 +89,278 @@ highlight_set_edges <- function(set, how="all",
 
 #' highlight_module
 #' 
+#' identify if edges are involved in module reaction, and whether linked compounds 
+#' are involved in the reaction. It would not be exactly the same as KEGG mapper.
 #' 
-#' Using reaction and compound IDs in the module,
-#' highlight the interactions involved.
-#' Please see `highlight_module_reaction` and `highlight_module_compound`.
-#' 
-#' @param graph graph
-#' @param kmo kegg_module class object
+#' @param graph tbl_graph
+#' @param kmo kegg_module class object which stores reaction
 #' @param name which column to search for
-#' @param sep separater for node names
+#' @param sep separator for node names
+#' @param verbose show messages or not
 #' @export
-highlight_module <- function(graph, kmo, name="name", sep=" ") {
+highlight_module <- function(graph, kmo,
+                            name="name",
+                            sep=" ",
+                            verbose=FALSE) {
+    if (attributes(kmo)$class[1]!="kegg_module") {stop("Please provide kegg_module class object")}
 
-  if (attributes(kmo)$class[1]=="kegg_module") {
+    edge_df <- graph |> activate(edges) |> data.frame()
+    node_df <- graph |> activate(nodes) |> data.frame()
+
+    ## First identify edges of reaction
+    einds <- rep(FALSE, E(graph) |> length())
+    ninds <- rep(FALSE, V(graph) |> length())
+
+    all_inds <- NULL
+    nind <- NULL
+
+    ## Obtain each raw reaction
+    rea <- kmo@reaction_each_raw
+    for (i in seq_len(nrow(kmo@reaction_each_raw))) {
+        left <- kmo@reaction_each[i,][1] |> unlist() |> as.character() |> paste0("cpd:", ...=_)
+        raw_reac_string <- rea[i,][2] |> unlist() |> as.character() #|> paste0("rn:", ...=_)       
+        reac_list <- kmo@reaction_each[i,][2] |> unlist() |> as.character()
+        right <- kmo@reaction_each[i,][3] |> unlist() |> as.character() |> paste0("cpd:", ...=_)
+        if (verbose) {qqcat("Checking reaction: @{raw_reac_string}\n")}
+        
+        x <- get.edge.attribute(graph, "reaction")
+        ind <- NULL ## Store edge index that meet reaction
+        for (xn in seq_along(x)) {
+
+            reac <- raw_reac_string
+            
+            rls <- rep(FALSE, length(reac_list))
+            names(rls) <- reac_list
+            
+            ## reactions associated with the edge
+            edge_reac <- x[xn] |> strsplit(" ") |> unlist()
+            
+            if (sum(is.na(edge_reac))!=length(edge_reac)) {
+                ## strip rn::
+                edge_reac <- edge_reac |> gsub("rn:","",x=_)
+                for (ed in edge_reac) {
+                    if (ed %in% names(rls)) {
+                        rls[ed] <- TRUE
+                    }
+                }
+                for (r in names(rls)) {
+                    reac <- gsub(r, rls[r], reac)
+                }
+                reac <- gsub(",","|",gsub("\\+","&",reac))
+                
+                ##[TODO] eval boolean or length interpretation
+                if (eval(parse(text=reac))) {
+                # if (length(intersect(edge_reac,reac_list))==length(edge_reac)) {
+                    cand_node_ids <- edge_df[xn,]$orig.id
+                    cand_node_ids <- cand_node_ids[!is.na(cand_node_ids)] |> unique()
+                    if (length(cand_node_ids)>=1) {
+                      for (ni in cand_node_ids) {
+                        edges_ind <- node_df[node_df$orig.id %in% ni,] |> row.names()
+                        tmp_edge_df <- edge_df[edge_df$from %in% edges_ind,]
+                        tmp_edge_df_2 <- edge_df[edge_df$to %in% edges_ind,]
+
+                        node1 <- tmp_edge_df_2$from
+                        node2 <- tmp_edge_df$to
+
+                        subst <- node_df[tmp_edge_df_2$from,]$name |> strsplit(" ") |> unlist() |> unique()
+                        prod <- node_df[tmp_edge_df$to,]$name |> strsplit(" ") |> unlist() |> unique()
+
+                        # print(edge_reac)
+                        # print(paste("subst",subst, "modleft", left))
+                        # print(paste("prod",prod, "modright",right))
+                        
+                        ## reversible
+                        if ((length(intersect(subst, left))==length(left) &
+                          length(intersect(prod, right))==length(right)) | 
+                        (length(intersect(subst, right))==length(right) &
+                          length(intersect(prod, left))==length(left))) {
+                            ind <- c(ind, xn)
+                            nind <- c(nind, node1, node2)                     
+                        }
+                      }
+                    }
+                    
+                } else {}
+            } else {} ## if edge is reaction
+        } ## each edge
+        all_inds <- c(all_inds, ind)
+    }
+    einds[all_inds] <- TRUE
+    ninds[unique(as.numeric(nind))] <- TRUE
+
     graph |>
       activate(edges) |>
-      mutate(!!kmo@ID := highlight_module_reaction(kmo, name=name, sep=sep)) |>
+      mutate(!!kmo@ID := einds) |>
       activate(nodes) |>
-      mutate(!!kmo@ID := highlight_module_compound(kmo, kmo@ID, name=name, sep=sep))
-  } else {
-    stop("please provide kegg_module class")
-  }
+      mutate(!!kmo@ID := ninds)
 }
 
 
 
+## highlight_module_reaction and highlight_module_compound is deprecated.
+## As we don't use them individually outside global map
+#
+# #' highlight_module
+# #' 
+# #' 
+# #' Using reaction and compound IDs in the module,
+# #' highlight the interactions involved.
+# #' Please see `highlight_module_reaction` and `highlight_module_compound`.
+# #' 
+# #' @param graph graph
+# #' @param kmo kegg_module class object
+# #' @param name which column to search for
+# #' @param sep separater for node names
+# #' @export
+# highlight_module <- function(graph, kmo, name="name", sep=" ") {
 
-#' highlight_module_reaction
-#' 
-#' identify if edges are involved in module reaction.
-#' please note that all the reactions satisfying queried module's reaction
-#' will be highlighted, thus it will not be exactly the same as KEGG mapper.
-#' 
-#' @param kmo kegg_module class object which stores reaction
-#' @param name which column to search for
-#' @param sep separator for node names
-#' @param verbose show messages or not
-#' @export
-highlight_module_reaction <- function(kmo,
-                                      name="name",
-                                      sep=" ",
-                                      verbose=FALSE) {
-    graph <- .G()
-    einds <- rep(FALSE, E(graph) |> length())
-    all_inds <- NULL
+#   if (attributes(kmo)$class[1]=="kegg_module") {
+#     graph |>
+#       activate(edges) |>
+#       mutate(!!kmo@ID := highlight_module_reaction(kmo, name=name, sep=sep)) |>
+#       activate(nodes) |>
+#       mutate(!!kmo@ID := highlight_module_compound(kmo, kmo@ID, name=name, sep=sep))
+#   } else {
+#     stop("please provide kegg_module class")
+#   }
+# }
+# #' highlight_module_reaction
+# #' 
+# #' identify if edges are involved in module reaction.
+# #' please note that all the reactions satisfying queried module's reaction
+# #' will be highlighted, thus it will not be exactly the same as KEGG mapper.
+# #' 
+# #' @param kmo kegg_module class object which stores reaction
+# #' @param name which column to search for
+# #' @param sep separator for node names
+# #' @param verbose show messages or not
+# #' @export
+# highlight_module_reaction <- function(kmo,
+#                                       name="name",
+#                                       sep=" ",
+#                                       verbose=FALSE) {
+#     graph <- .G()
+#     einds <- rep(FALSE, E(graph) |> length())
+#     all_inds <- NULL
     
-    if (attributes(kmo)$class[1]=="kegg_module") {
-        ## Obtain each raw reaction
-        rea <- kmo@reaction_each_raw
-        for (i in seq_len(nrow(kmo@reaction_each_raw))) {
-            left <- rea[i,][1] |> unlist() |> as.character() #|> paste0("cpd:", ...=_)
-            raw_reac_string <- rea[i,][2] |> unlist() |> as.character() #|> paste0("rn:", ...=_)       
-            reac_list <- kmo@reaction_each[i,][2] |> unlist() |> as.character()
-            right <- rea[i,][3] |> unlist() |> as.character()#|> paste0("cpd:", ...=_)
-            if (verbose) {qqcat("Checking reaction: @{raw_reac_string}\n")}
+#     if (attributes(kmo)$class[1]=="kegg_module") {
+#         ## Obtain each raw reaction
+#         rea <- kmo@reaction_each_raw
+#         for (i in seq_len(nrow(kmo@reaction_each_raw))) {
+#             left <- rea[i,][1] |> unlist() |> as.character() #|> paste0("cpd:", ...=_)
+#             raw_reac_string <- rea[i,][2] |> unlist() |> as.character() #|> paste0("rn:", ...=_)       
+#             reac_list <- kmo@reaction_each[i,][2] |> unlist() |> as.character()
+#             right <- rea[i,][3] |> unlist() |> as.character()#|> paste0("cpd:", ...=_)
+#             if (verbose) {qqcat("Checking reaction: @{raw_reac_string}\n")}
             
-            x <- get.edge.attribute(graph, "reaction")
-            ind <- NULL ## Store edge index that meet reaction
-            for (xn in seq_along(x)) {
+#             x <- get.edge.attribute(graph, "reaction")
+#             ind <- NULL ## Store edge index that meet reaction
+#             for (xn in seq_along(x)) {
 
-                reac <- raw_reac_string
+#                 reac <- raw_reac_string
                 
-                rls <- rep(FALSE, length(reac_list))
-                names(rls) <- reac_list
+#                 rls <- rep(FALSE, length(reac_list))
+#                 names(rls) <- reac_list
                 
-                ## reactions associated with the edge
-                edge_reac <- x[xn] |> strsplit(" ") |> unlist()
+#                 ## reactions associated with the edge
+#                 edge_reac <- x[xn] |> strsplit(" ") |> unlist()
                 
-                
-                if (sum(is.na(edge_reac))!=length(edge_reac)) {
-                    ## strip rn::
-                    edge_reac <- edge_reac |> gsub("rn:","",x=_)
+#                 if (sum(is.na(edge_reac))!=length(edge_reac)) {
+#                     ## strip rn::
+#                     edge_reac <- edge_reac |> gsub("rn:","",x=_)
                     
-                    for (ed in edge_reac) {
-                        if (ed %in% names(rls)) {
-                            rls[ed] <- TRUE
-                        }
-                    }
-                    for (r in names(rls)) {
-                        reac <- gsub(r, rls[r], reac)
-                    }
-                    reac <- gsub(",","|",gsub("\\+","&",reac))
+#                     for (ed in edge_reac) {
+#                         if (ed %in% names(rls)) {
+#                             rls[ed] <- TRUE
+#                         }
+#                     }
+#                     for (r in names(rls)) {
+#                         reac <- gsub(r, rls[r], reac)
+#                     }
+#                     reac <- gsub(",","|",gsub("\\+","&",reac))
                     
-                    if (eval(parse(text=reac))) {#(length(intersect(edge_reac,reac))==length(edge_reac)) {
-                        ind <- c(ind, xn)
-                    } else {}
-                } else {} ## if edge is reaction
-            } ## each edge
-            all_inds <- c(all_inds, ind)
-        }
-        einds[all_inds] <- TRUE
-        einds
-    } else {
-        stop("please provide kegg_module class")
-    }
-}
+#                     ##[TODO] eval boolean or length interpretation
+#                     if (eval(parse(text=reac))) {
+#                     # if (length(intersect(edge_reac,reac_list))==length(edge_reac)) {
+#                         ind <- c(ind, xn)
+#                     } else {}
+#                 } else {} ## if edge is reaction
+#             } ## each edge
+#             all_inds <- c(all_inds, ind)
+#         }
+#         einds[all_inds] <- TRUE
+#         einds
+#     } else {
+#         stop("please provide kegg_module class")
+#     }
+# }
 
 
 
-#' highlight_module_compound
-#' 
-#' identify if nodes are involved in compounds in module reaction.
-#' please note that all the compounds satisfying queried module's reaction
-#' will be highlighted, thus it will not be exactly the same as KEGG mapper.
-#' 
-#' @param kmo kegg_module class object which stores reaction
-#' @param label edge label
-#' @param name which column to search for
-#' @param sep separator for node names
-#' @param verbose show messages or not
-#' @importFrom tidygraph activate
-#' @importFrom dplyr mutate
-#' @export
-highlight_module_compound <- function(kmo,
-                                      label,
-                                      name="name",
-                                      sep=" ",
-                                      verbose=FALSE) {
-  graph <- .G()
-  ninds <- rep(FALSE, V(graph) |> length())
+# #' highlight_module_compound
+# #' 
+# #' identify if nodes are involved in compounds in module reaction.
+# #' please note that all the compounds satisfying queried module's reaction
+# #' will be highlighted, thus it will not be exactly the same as KEGG mapper.
+# #' 
+# #' @param kmo kegg_module class object which stores reaction
+# #' @param label edge label
+# #' @param name which column to search for
+# #' @param sep separator for node names
+# #' @param verbose show messages or not
+# #' @importFrom tidygraph activate
+# #' @importFrom dplyr mutate
+# #' @export
+# highlight_module_compound <- function(kmo,
+#                                       label,
+#                                       name="name",
+#                                       sep=" ",
+#                                       verbose=FALSE) {
+#   graph <- .G()
+#   ninds <- rep(FALSE, V(graph) |> length())
   
-  if (attributes(kmo)$class[1]=="kegg_module") {
-    return_nodes <- NULL
-    nodes <- graph |> activate(nodes) |> data.frame()
-    candidate <- graph |> activate(edges) |>
-      filter(.data[[label]] & is.na(name)) |>
-      mutate(node_to=nodes[to,"name"], ) |>
-      data.frame()
-    reacs <- NULL
-    for (i in seq(1,length(candidate$node_to),2)) {
-      reacs <- rbind(reacs, 
-                     c(candidate[i,"node_to"],
-                       candidate[i, "reaction"],
-                       candidate[i+1, "node_to"],
-                       candidate[i,"type"],
-                       candidate[i,"to"],
-                       candidate[i+1,"to"]))
-    }
-    for (i in seq_len(nrow(kmo@reaction_each))){
-      left <- kmo@reaction_each[i,][1] |> unlist() |> as.character() |> paste0("cpd:", ...=_)
-      right <- kmo@reaction_each[i,][3] |> unlist() |> as.character() |> paste0("cpd:", ...=_)
-      for (j in seq_len(nrow(reacs))) {
-        cand_left <- reacs[j,][1]
-        cand_right <- reacs[j,][3]
-        cand_id1 <- reacs[j,][5]
-        cand_id2 <- reacs[j,][6]
-        if (length(intersect(cand_left,left))>0 & 
-            length(intersect(cand_right,right))>0) {
-          return_nodes <- c(return_nodes, cand_id1, cand_id2)
-        }
-        if (length(intersect(cand_left,right))>0 & 
-            length(intersect(cand_right,left))>0) {
-          return_nodes <- c(return_nodes, cand_id1, cand_id2)
-        }
-      }
-    }
-    ninds[unique(as.numeric(return_nodes))] <- TRUE
-    ninds
-  } else {
-    stop("please provide kegg_module class")
-  }
-}
+#   if (attributes(kmo)$class[1]=="kegg_module") {
+#     return_nodes <- NULL
+#     nodes <- graph |> activate(nodes) |> data.frame()
+#     candidate <- graph |> activate(edges) |>
+#       filter(.data[[label]] & is.na(name)) |>
+#       mutate(node_to=nodes[to,"name"]) |>
+#       data.frame()
+#     print(candidate)
+#     reacs <- NULL
+#     for (i in seq(1,length(candidate$node_to),2)) {
+#       reacs <- rbind(reacs, 
+#                      c(candidate[i,"node_to"], ## substrate
+#                        candidate[i, "reaction"],
+#                        candidate[i+1, "node_to"], ## product
+#                        candidate[i,"type"],
+#                        candidate[i,"to"],
+#                        candidate[i+1,"to"]))
+#     }
+#     for (i in seq_len(nrow(kmo@reaction_each))){
+#       left <- kmo@reaction_each[i,][1] |> unlist() |> as.character() |> paste0("cpd:", ...=_)
+#       right <- kmo@reaction_each[i,][3] |> unlist() |> as.character() |> paste0("cpd:", ...=_)
+#       for (j in seq_len(nrow(reacs))) {
+#         cand_left <- reacs[j,][1]
+#         cand_right <- reacs[j,][3]
+#         cand_id1 <- reacs[j,][5]
+#         cand_id2 <- reacs[j,][6]
+#         if (length(intersect(cand_left,left))==length(cand_left) & 
+#             length(intersect(cand_right,right))==length(cand_right)) {
+#           return_nodes <- c(return_nodes, cand_id1, cand_id2)
+#         }
+#         # if (length(intersect(cand_left,right))>0 & 
+#         #     length(intersect(cand_right,left))>0) {
+#         #   return_nodes <- c(return_nodes, cand_id1, cand_id2)
+#         # }
+#       }
+#     }
+#     ninds[unique(as.numeric(return_nodes))] <- TRUE
+#     ninds
+#   } else {
+#     stop("please provide kegg_module class")
+#   }
+# }
 
 
 ## purrr versions

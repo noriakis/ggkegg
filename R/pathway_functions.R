@@ -252,7 +252,7 @@ process_line <- function(g, invert_y=TRUE) {
         cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j), co[q], co[q+1], "line",V(g)$name[i]))
         cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j+1), co[q+2], co[q+3], "line",V(g)$name[i]))
         eds <- rbind(eds, c(paste0(V(g)$name[i],"_",j), paste0(V(g)$name[i],"_",j+1),
-                            "line",V(g)$name[i],V(g)$bgcolor[i], V(g)$fgcolor[i], V(g)$reaction[i]))
+                            "line",V(g)$name[i],V(g)$bgcolor[i], V(g)$fgcolor[i], V(g)$reaction[i], V(g)$orig.id[i]))
         j <- j+2
         q <- q+4
       }
@@ -265,7 +265,7 @@ process_line <- function(g, invert_y=TRUE) {
   } else {
     cos$y <- as.numeric(cos$y)
   }
-  eds <- eds |> data.frame() |> `colnames<-`(c("from","to","type","name","bgcolor","fgcolor","reaction"))
+  eds <- eds |> data.frame() |> `colnames<-`(c("from","to","type","name","bgcolor","fgcolor","reaction","orig.id"))
   df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
   df_add |> activate(nodes) |>
     mutate(original_name=vapply(1:length(original_name),

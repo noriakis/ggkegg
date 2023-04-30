@@ -4,19 +4,20 @@
 \alias{highlight_module}
 \title{highlight_module}
 \usage{
-highlight_module(graph, kmo, name = "name", sep = " ")
+highlight_module(graph, kmo, name = "name", sep = " ", verbose = FALSE)
 }
 \arguments{
-\item{graph}{graph}
+\item{graph}{tbl_graph}
 
-\item{kmo}{kegg_module class object}
+\item{kmo}{kegg_module class object which stores reaction}
 
 \item{name}{which column to search for}
 
-\item{sep}{separater for node names}
+\item{sep}{separator for node names}
+
+\item{verbose}{show messages or not}
 }
 \description{
-Using reaction and compound IDs in the module,
-highlight the interactions involved.
-Please see `highlight_module_reaction` and `highlight_module_compound`.
+identify if edges are involved in module reaction, and whether linked compounds 
+are involved in the reaction. It would not be exactly the same as KEGG mapper.
 }
