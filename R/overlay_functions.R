@@ -28,7 +28,8 @@ overlay_raw_map <- function(pid=NULL,
 #' @export
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   if (is.null(object$pid)) {
-    object$pid <- plot$data$pathway_id |> unique()
+    infer <- plot$data$pathway_id |> unique()
+    object$pid <- infer[!is.na(infer)]
   }
   ## Return the image URL, download and cache
   url <- paste0(as.character(pathway(object$pid,

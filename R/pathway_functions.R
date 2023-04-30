@@ -234,8 +234,10 @@ parse_kgml <- pathway
 #' process_line
 #' process the kgml containing graphics type of `line`
 #' e.g. in ko01100
+#' @importFrom tidygraph bind_nodes bind_edges
 #' @export
 process_line <- function(g, invert_y=TRUE) {
+  ## [TODO] speed up
   df <- as_tbl_graph(g)
 
   cos <- NULL

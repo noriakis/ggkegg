@@ -24,7 +24,88 @@ find_parenthesis_pairs <- function(s) {
 }
 
 
-#' append_node_value
+#' edge_numeric
+#' 
+#' add numeric attribute to edge of tbl_graph
+#' for matrix input, use `append_node_value`
+#' 
+#' @param num named vector or tibble with id and value column
+#' @param num_combine how to combine number when multiple hit in the same node
+#' @param name name of column to match for
+#' @export
+#' @importFrom tibble is_tibble
+#' 
+#' 
+edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
+  graph <- .G()
+  if (!is_tibble(num) & !is.vector(num)) {stop("Please provide tibble or named vector")}
+  if (is_tibble(num)) {
+    if (duplicated(num$id) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    changer <- num$value
+    names(changer) <- num$id
+  } else {
+    if (duplicated(names(num)) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    changer <- num
+  }
+  x <- get.edge.attribute(graph, name)
+
+  final_attribute <- NULL
+  for (xx in x) {
+    in_node <- strsplit(xx, " ") |> unlist() |> unique()
+    thresh <- ifelse(how=="any", 1, length(in_node))
+    if (length(intersect(names(changer), in_node)) >= thresh) {
+      summed <- do.call(num_combine, list(x=changer[intersect(names(changer), in_node)]))
+    } else {
+      summed <- NA
+    }
+    final_attribute <- c(final_attribute,
+                         summed)
+  }
+  final_attribute
+}
+
+#' node_numeric
+#' 
+#' simply add numeric attribute to node of tbl_graph
+#' for matrix input, use `append_node_value`
+#' 
+#' @param num named vector or tibble with id and value column
+#' @param num_combine how to combine number when multiple hit in the same node
+#' @param name name of column to match for
+#' @export
+#' @importFrom tibble is_tibble
+#' 
+#' 
+node_numeric <- function(num, num_combine=mean, name="name", how="any") {
+  graph <- .G()
+  if (!is_tibble(num) & !is.vector(num)) {stop("Please provide tibble or named vector")}
+  if (is_tibble(num)) {
+    if (duplicated(num$id) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    changer <- num$value
+    names(changer) <- num$id
+  } else {
+    if (duplicated(names(num)) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    changer <- num
+  }
+  x <- get.vertex.attribute(graph, name)
+
+  final_attribute <- NULL
+  for (xx in x) {
+    in_node <- strsplit(xx, " ") |> unlist() |> unique()
+    thresh <- ifelse(how=="any", 1, length(in_node))
+    if (length(intersect(names(changer), in_node)) >= thresh) {
+      summed <- do.call(num_combine, list(x=changer[intersect(names(changer), in_node)]))
+    } else {
+      summed <- NA
+    }
+    final_attribute <- c(final_attribute,
+                         summed)
+  }
+  final_attribute
+}
+
+
+#' node_matrix
 #' 
 #' given the matrix representing gene as row and sample as column,
 #' append the node value to node matrix and
@@ -34,7 +115,7 @@ find_parenthesis_pairs <- function(s) {
 #' @param mat matrix representing gene as row and sample as column
 #' @export
 #' @return tbl_graph
-append_node_value <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
+node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
                               num_combine=mean) {
   
   get_value <- function(x) {
@@ -70,7 +151,7 @@ append_node_value <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=
   appended
 }
 
-#' append_edge_value
+#' edge_matrix
 #' 
 #' given the matrix representing gene as row and sample as column,
 #' append the edge value (sum of values of connecting nodes) to edge matrix and
@@ -80,7 +161,7 @@ append_node_value <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=
 #' @param mat matrix representing gene as row and sample as column
 #' @export
 #' @return tbl_graph
-append_edge_value <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
+edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
                               num_combine=mean) {
   
   get_value <- function(x) {
