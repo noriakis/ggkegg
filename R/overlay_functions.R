@@ -6,15 +6,17 @@
 #' @param transparent_colors make these colors transparent to overlay
 #' Typical choice of colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
 #' "#ADADAD","#838383"
-#' @param adjust clip the both end of x- and y-axis
+#' @param clip clip the both end of x- and y-axis by one dot
+#' @param adjust adjust the x-axis location by 0.5 in data coordinates
 #' @import magick
 #' @export
-overlay_raw_map <- function(pid,
-                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF","#7F7F7F"),
-                            adjust=FALSE) {
+overlay_raw_map <- function(pid=NULL,
+                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF","#7F7F7F","#808080"),
+                            adjust=TRUE, clip=FALSE) {
   structure(list(pid=pid,
                  transparent_colors=transparent_colors,
-                 adjust=adjust),
+                 adjust=adjust,
+                 clip=clip),
             class = "overlay_raw_map")
 }
 
@@ -25,6 +27,9 @@ overlay_raw_map <- function(pid,
 #' @export ggplot_add.overlay_raw_map
 #' @export
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
+  if (is.null(object$pid)) {
+    object$pid <- plot$data$pathway_id |> unique()
+  }
   ## Return the image URL, download and cache
   url <- paste0(as.character(pathway(object$pid,
                                      return_image=TRUE)))
@@ -44,15 +49,21 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   
   ras <- as.raster(magick_image)
 
-  if (object$adjust) {
-    plot + annotation_raster(ras[1:nrow(ras)-1,1:ncol(ras)-1],
-                  xmin=0, xmax=w-1, ymax=-1*h+1, ymin=0,
-                  interpolate=TRUE)+
-          coord_fixed(xlim = c(0,w), ylim=c((-1*h),0))
-  } else {
-    plot + 
-      annotation_raster(ras, xmin=0, ymin=0, xmax=w, ymax=-1*h,
-                      interpolate = TRUE)+
-      coord_fixed(xlim = c(0,w), ylim=c(-1*h,0))
+
+  xmin=0
+  xmax=w
+  ymin=-1*h
+  ymax=0
+
+  if (object$clip) {
+    ras <- ras[1:nrow(ras)-1,1:ncol(ras)-1]
   }
+  if (object$adjust) {
+    xmin <- xmin - 0.5
+    xmax <- xmax - 0.5
+  }
+  plot + 
+    annotation_raster(ras, xmin=xmin, ymin=ymin,
+      xmax=xmax, ymax=ymax, interpolate = TRUE)+
+    coord_fixed(xlim = c(xmin,xmax), ylim=c(ymin,ymax))
 }

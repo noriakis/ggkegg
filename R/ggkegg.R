@@ -151,3 +151,30 @@ ggkegg <- function(pid,
     ggraph(g, layout=layout)
   }
 }
+
+
+#' rawMap
+#' 
+#' given enrichResult class object,
+#' return the ggplot object with raw KEGG map overlaid on
+#' enriched pathway
+#' 
+#' @param enrich enrichResult class object
+#' @param pathway_number pathway number sorted by p-values
+#' @param fill_color color for genes
+#' @export
+#' @return ggraph with overlaid KEGG map
+#' 
+#' 
+rawMap <- function(enrich, pathway_number=1, fill_color="red", how="any") {
+  if (attributes(enrich)$class=="enrichResult") {
+    res <- attributes(enrich)$result
+    pid <- res[pathway_number,]$ID
+  } else {
+    stop("Please provide enrichResult")
+  }
+  g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
+  ggraph(g, layout="manual", x=x, y=y)+
+    geom_node_rect(fill=fill_color, aes(filter=cp))+
+    overlay_raw_map()+theme_void()
+}
