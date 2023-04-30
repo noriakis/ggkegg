@@ -34,6 +34,7 @@ find_parenthesis_pairs <- function(s) {
 #' @param name name of column to match for
 #' @export
 #' @importFrom tibble is_tibble
+#' @importFrom tidygraph activate
 #' 
 #' 
 edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
