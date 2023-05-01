@@ -325,3 +325,42 @@ get_reaction <- function(xml) {
     `colnames<-`(c("entry1","entry2","type","subtype","reaction"))
   rsp_rels
 }
+
+
+#' pathway_info
+#' @export
+pathway_info <- function(pid) {
+  if (!file.exists(pid)) {
+    download.file(paste0("https://rest.kegg.jp/get/",pid),
+                  destfile=pid)
+  }
+  pway <- list()
+  con = file(pid, "r")
+  modflg <- FALSE
+  mods <- NULL
+  while ( TRUE ) {
+    line = readLines(con, n = 1)
+    if ( length(line) == 0 ) {
+      break
+    }
+    if (gsub(" ","",line)=="") {next} ## If blank line, skip
+    ## happens in some modules describing parallel reactions
+    if (grepl("NAME", line)) {
+      name <- unlist(strsplit(line, "        "))[2]
+      pway[["name"]] <- name
+    }
+    if (grepl("MODULE", line)) {modflg <- TRUE}
+    if (grepl("DBLINKS", line)) {modflg <- FALSE}
+    if (grepl("REFERENCE", line)) {modflg <- FALSE}
+    if (modflg) {
+      if (grepl("MODULE", line)) {
+        mods <- c(mods, unlist(strsplit(line, "      "))[2])
+      } else {
+        mods <- c(mods, unlist(strsplit(line, "            "))[2])
+      }
+    }
+  }
+  close(con)
+  pway[["modules"]] <- mods
+  pway
+}
