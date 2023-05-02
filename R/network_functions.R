@@ -123,7 +123,7 @@ network_graph <- function (kne, type="definition") {
   for (nn in seq_along(raw_nodes$name)) {
     bln <- paste0("BLOCK",nn,"_",kne@ID)
     ## In NETWORK definition, "-" is included in gene symbol
-    gra <- ggkegg:::get_module_graph(raw_nodes$name[nn], skip_minus=TRUE)
+    gra <- ggkegg:::module_graph(raw_nodes$name[nn], skip_minus=TRUE)
     if (is.character(gra)) {
       # blocks <- rbind(blocks, c(gra, bln))
     } else {

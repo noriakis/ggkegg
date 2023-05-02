@@ -248,7 +248,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
         all_steps <- rbind(all_steps, c(ko, paste0("BLOCK",i),"in_block"))
         all_steps <- all_steps |> data.frame() |> `colnames<-`(c("from","to","type"))
       }
-      plotg <- as_data_frame(get_module_graph(kmo$definition_block[i]))
+      plotg <- as_data_frame(module_graph(kmo$definition_block[i]))
       ## Need to change naming
       frm <- plotg$from
       frm[!startsWith(frm,"K")] <- paste0(frm[!startsWith(frm,"K")],"_",i)
@@ -283,11 +283,11 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 }
 
 
-#' get_module_graph
+#' module_graph
 #' obtain graphical representation of module definition
 #' @return igraph object
 #' @noRd
-get_module_graph <- function(input_string, skip_minus=FALSE) {
+module_graph <- function(input_string, skip_minus=FALSE) {
   ## [TODO] need verbose to identify what this function does
   ppos <- NULL
   for (i in find_parenthesis_pairs(input_string)) {
