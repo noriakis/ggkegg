@@ -337,7 +337,9 @@ pathway_info <- function(pid) {
   pway <- list()
   con = file(pid, "r")
   modflg <- FALSE
+  orthoflg <- FALSE
   mods <- NULL
+  orthos <- NULL
   while ( TRUE ) {
     line = readLines(con, n = 1)
     if ( length(line) == 0 ) {
@@ -349,9 +351,11 @@ pathway_info <- function(pid) {
       name <- unlist(strsplit(line, "        "))[2]
       pway[["name"]] <- name
     }
+    if (grepl("ORTHOLOGY", line)) { orthoflg <- TRUE}
     if (grepl("MODULE", line)) {modflg <- TRUE}
     if (grepl("DBLINKS", line)) {modflg <- FALSE}
-    if (grepl("REFERENCE", line)) {modflg <- FALSE}
+    if (grepl("COMPOUND", line)) {modflg<-FALSE;orthoflg<-FALSE}
+    if (grepl("REFERENCE", line)) {modflg <- FALSE;orthoflg<-FALSE}
     if (modflg) {
       if (grepl("MODULE", line)) {
         mods <- c(mods, unlist(strsplit(line, "      "))[2])
@@ -359,8 +363,16 @@ pathway_info <- function(pid) {
         mods <- c(mods, unlist(strsplit(line, "            "))[2])
       }
     }
+    if (orthoflg) {
+      if (grepl("ORTHOLOGY", line)) {
+        orthos <- c(orthos, unlist(strsplit(line, "   "))[2])
+      } else {
+        orthos <- c(orthos, unlist(strsplit(line, "            "))[2])
+      }
+    }
   }
   close(con)
-  pway[["modules"]] <- mods
+  pway[["orthology"]] <- orthos
+  pway[["module"]] <- mods
   pway
 }

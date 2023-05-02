@@ -24,6 +24,23 @@ find_parenthesis_pairs <- function(s) {
 }
 
 
+#' return_line_compounds
+#' 
+#' In the map, where lines are converted to edges,
+#' identify compounds that are linked by the reaction.
+#' Give the original edge ID of KGML (orig.id in edge table), and 
+#' return the original compound node ID
+#' 
+#' @param orig original edge ID
+#' @export
+return_line_compounds <- function(g, orig) {
+  ndf <- g |> activate(nodes) |> data.frame()
+  edf <- g |> activate(edges) |> data.frame()
+  highl <- ndf[edf[edf$to %in% as.integer(ndf[ndf$orig.id %in% orig,] |> row.names()),]$from,]$orig.id
+  highl2 <- ndf[edf[edf$from %in% as.integer(ndf[ndf$orig.id %in% orig,] |> row.names()),]$to,]$orig.id
+  c(highl, highl2)
+}
+
 #' edge_numeric
 #' 
 #' add numeric attribute to edge of tbl_graph
