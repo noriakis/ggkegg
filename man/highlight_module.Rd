@@ -20,4 +20,5 @@ highlight_module(graph, kmo, name = "name", sep = " ", verbose = FALSE)
 \description{
 identify if edges are involved in module reaction, and whether linked compounds 
 are involved in the reaction. It would not be exactly the same as KEGG mapper.
+For instance, `R04293` involved in `M00912` is not included in KGML of `ko01100`.
 }
