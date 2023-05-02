@@ -1,3 +1,46 @@
+#' multi_pathway_native
+#' 
+#' If you want to combine multiple KEGG pathways with their native coordinates,
+#' supply this function a vector of pathway IDs and row number. This returns the
+#' joined graph or list of graphs in which the coordinates are altered to panel
+#' the pathways.
+#' @param pathways pathway vector
+#' @param row_num row number
+#' @param return_list return list of graphs instead of joined graph
+#' @export
+#' 
+multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
+  plen <- length(pathways)
+  if (plen %% 2) {col_num <- plen / row_num; addit <- 0} else {
+    col_num <- as.integer(plen / row_num); addit <- plen %% row_num}
+  
+  tot_row <- 1
+  tot_col <- 1
+  miny <- 0
+  gls <- list()
+  for (pp in seq_len(pathways |> length())) {
+    print(paste(tot_row, tot_col))
+    
+    tot_row <- tot_row + 1
+
+    g <- pathway(pathways[pp])
+    g <- g |> mutate(x=(x/max(x)+tot_col-1),
+                           y=y-miny)
+    gls[[pp]] <- g
+
+    edf <- g |> activate(nodes) |> data.frame()
+    miny <- miny - min(edf$y)
+    
+    if (tot_row > row_num) {
+      tot_row <- 1
+      tot_col <- tot_col + 1
+      miny <- 0
+    }
+  }
+  if (return_list) {return(gls)}
+  Reduce(graph_join, gls)
+}
+
 #' plot_module_text
 #' plot the text representation of KEGG modules
 #' @importFrom tidygraph tbl_graph
