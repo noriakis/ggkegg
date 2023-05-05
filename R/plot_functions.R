@@ -92,7 +92,11 @@ plot_module_blocks <- function(all_steps, layout="kk") {
     theme_void()
 }
 
-
+#' geom_node_shadowtext
+#' 
+#' Plot shadowtext at node position
+#' 
+#' @export
 #' @importFrom shadowtext GeomShadowText
 geom_node_shadowtext <- function(mapping = NULL, data = NULL,
                            position = 'identity',
