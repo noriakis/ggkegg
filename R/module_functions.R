@@ -674,3 +674,50 @@ parse_module <- function(kmo) {
     
     return(kmo)
 }
+
+#' module_abundance
+#' weighted mean abundance of fraction of present KO in the block
+#' @param mod_id module ID
+#' @param vec KO-named vector of abundance without prefix `ko:`
+#' @param num definition number when multiple definitions are present
+#' @param out calculation of final results, mean or weighted_mean
+#' @export
+module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
+  mod <- module(mod_id)
+  ko_abun <- NULL
+  for (kos in mod@definitions[[num]]$definition_ko_in_block) {
+    if (length(intersect(kos, names(vec))) >= 1) {
+      mean_kos <- vec[intersect(kos, names(vec))] |> mean()
+    } else {
+      mean_kos <- 0
+    }
+    ko_abun <- c(ko_abun, mean_kos)
+  }
+  comp <- module_completeness(mod, names(vec))
+  comp$abundance <- ko_abun
+  comp$strict <- comp$complete * comp$abundance
+  if (calc=="mean") {
+    mean(comp$strict)
+  } else if (calc=="weighted_mean") {
+    weighted.mean(comp$strict, w=comp$ratio)
+  } else {
+    stop("calc must be mean or weighted_mean")
+  }
+}
+
+#' pathway_abundance
+#' @param id pathway id
+#' @param vec named vector of abundance
+#' @export
+pathway_abundance <- function(id, vec, num=1) {
+  pway <- pathway_info(id)
+  mods <- pway$module |> strsplit(" ") |> sapply("[", 1) |> unique()
+  abuns <- NULL
+  for (mod in mods) {
+    abuns <- c(abuns, module_abundance(mod_id=mod, num=num, vec=vec))
+  }
+  tibble(
+    module=mods,
+    abundance=abuns
+  )
+}
