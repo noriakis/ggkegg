@@ -93,6 +93,23 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 }
 
 
+#' @importFrom shadowtext GeomShadowText
+geom_node_shadowtext <- function(mapping = NULL, data = NULL,
+                           position = 'identity',
+                           show.legend = NA, ...) {
+  params <- list(na.rm = FALSE, ...)
+
+  mapping <- c(mapping, aes(x=x, y=y))
+  class(mapping) <- "uneval"
+
+  layer(
+    data = data, mapping = mapping, stat = StatFilter, geom = GeomShadowText,
+    position = position, show.legend = show.legend, inherit.aes = FALSE,
+    params = params
+  )
+}
+
+
 #' @export
 #'
 geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
