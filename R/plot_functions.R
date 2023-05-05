@@ -19,7 +19,6 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
   miny <- 0
   gls <- list()
   for (pp in seq_len(pathways |> length())) {
-    print(paste(tot_row, tot_col))
     
     tot_row <- tot_row + 1
 
