@@ -203,7 +203,9 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 #' 
 #' @export
 module_completeness <- function(kmo, query, name="1") {
-  if (length(kmo@definitions)>1) {message("Multiple definitions found, taking first one")}
+  if (length(kmo@definitions)>1) {message("Multiple definitions found, taking specified definition");
+    message(paste0("  number of definitions: ",length(kmo@definitions)));
+  }
   kmo <- kmo@definitions[[name]] ## Take first definition
   complete <- NULL
   pres <- NULL
@@ -211,7 +213,9 @@ module_completeness <- function(kmo, query, name="1") {
   alls <- NULL
   for (i in seq_along(kmo$definition_ko_in_block)) {
     if (sum(identical(kmo$definition_ko_in_block[[i]],
-      character(0)))!=0) {message("No KO found in definition block. Returning NULL");return(NULL)}
+      character(0)))!=0) {message("No KO found in definition block. Returning NULL");
+      message(paste0("  ", paste(kmo$definition_block, collapse=" ")));
+      return(NULL)}
     present <- kmo$definition_ko_in_block[[i]] %in% query
     names(present) <- kmo$definition_ko_in_block[[i]]
     bool <- gsub("\\+","&",gsub(" ", "&", gsub(",", "|", kmo$definition_block[i])))
@@ -593,6 +597,7 @@ parse_module <- function(kmo) {
       left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
       if (is.na(left2)) {
         message("Some modules cannot be parsed properly, changing the split parameter")
+        message(paste0("  ",left))
         left2 <- gsub(" ", "", unlist(strsplit(left, " "))[2])
         left1 <- gsub(" ", "", unlist(strsplit(left, " "))[1])        
       }
@@ -650,7 +655,11 @@ parse_module <- function(kmo) {
     for (defnum in seq_along(kmo@definition_raw)) {
       result <- divide_string(kmo@definition_raw[[defnum]])
       result <- result[result!=""]
-      if ("--" %in% result) {message("Found '--' sep, ignoring");result <- result[result!="--"]}
+      if ("--" %in% result) {
+        message("Found '--' sep, ignoring");
+        message(paste0("  ",kmo@definition_raw[[defnum]]));
+        result <- result[result!="--"]
+      }
       pattern <- "K\\d{5}"
       matches <- str_extract_all(kmo@definition_raw[[defnum]], pattern)
       num_step <- NULL
