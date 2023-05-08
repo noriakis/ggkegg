@@ -12,7 +12,8 @@ convert_id(
   first_arg_comma = TRUE,
   sep = " ",
   first_arg_sep = TRUE,
-  divide_semicolon = TRUE
+  divide_semicolon = TRUE,
+  edge = FALSE
 )
 }
 \arguments{
@@ -36,6 +37,8 @@ are in the node name, otherwise parse all identifiers}
 
 \item{divide_semicolon}{whether to divide string by semicolon,
 and take the first value}
+
+\item{edge}{if converting edges}
 }
 \description{
 convert the identifier using retrieved information

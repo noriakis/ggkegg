@@ -222,6 +222,7 @@ pathway <- function(pid,
   }
   if (add_pathway_id) {
     V(g)$pathway_id <- pid
+    E(g)$pathway_id <- pid
   }
   if (return_tbl_graph) {
     as_tbl_graph(g)
