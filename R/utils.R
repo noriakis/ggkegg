@@ -322,15 +322,20 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' @param sep separater to separate node names, defaul to space
 #' @param divide_semicolon whether to divide string by semicolon,
 #' and take the first value
+#' @param edge if converting edges
 #' @importFrom data.table fread
 #' @export
 #' 
 convert_id <- function(org, name="name",
   convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,
-  sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE) {
+  sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE, edge=FALSE) {
   graph <- .G()
   pid <- unique(V(graph)$pathway_id)
-  x <- get.vertex.attribute(graph, name)
+  if (edge) {
+    x <- get.edge.attribute(graph, name)
+  } else {
+    x <- get.vertex.attribute(graph, name)
+  }
   url <- paste0("https://rest.kegg.jp/list/",org)
   bfc <- BiocFileCache()
   path <- bfcrpath(bfc, url)
