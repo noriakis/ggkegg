@@ -6,7 +6,7 @@
 process the kgml containing graphics type of `line`
 e.g. in ko01100}
 \usage{
-process_line(g, invert_y = TRUE)
+process_line(g, invert_y = TRUE, verbose = FALSE)
 }
 \description{
 process_line

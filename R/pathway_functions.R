@@ -36,9 +36,14 @@ pathway <- function(pid,
 
   xml <- xmlParse(file_name)
   node_sets <- getNodeSet(xml, "//entry")
-  all_nodes <- NULL
+  all_nodes <- list()
   grs <- list()
   rev_grs <- list()
+
+  node_names <- c("id","name","type","reaction",
+                   "graphics_name",
+                   "x","y","width","height","fgcolor","bgcolor",
+                   "graphics_type","coords")
 
   pwy <- getNodeSet(xml, "//pathway")[[1]]
 
@@ -50,7 +55,7 @@ pathway <- function(pid,
   pwy_link <- xmlAttrs(pwy)["link"]
 
   if (return_image) return(pwy_image)
-
+  ni <- 1
   for (node in node_sets) {
     id <- xmlAttrs(node)["id"]
     name <- xmlAttrs(node)["name"]
@@ -64,7 +69,8 @@ pathway <- function(pid,
       gltype <- xmlAttrs(gl)["type"]
 
       ## If multiple graphics, take the last
-      ## parameters and append only the coordinates
+      ## parameters and append only the multiple coordinates
+      ## Otherwise graph will have duplicate 'original' ID
       glcoords <- xmlAttrs(gl)["coords"]
       mult_coords <- c(mult_coords, glcoords)
 
@@ -87,13 +93,14 @@ pathway <- function(pid,
         }
       }
     }
-    all_nodes <- rbind(all_nodes, c(id, name, type, reac,
-                                glname, x, y, w, h, fg, bg, gltype, paste0(mult_coords, collapse=",")))
+    all_nodes[[ni]] <- c(id, name, type, reac,
+                        glname, x, y, w, h, fg, bg, gltype,
+                        paste0(mult_coords, collapse="|")) |>
+                        setNames(node_names)
+    ni <- ni + 1
   }
-  kegg_nodes <- all_nodes |> data.frame() |>
-    `colnames<-`(c("id","name","type","reaction",
-                   "graphics_name",
-                   "x","y","width","height","fgcolor","bgcolor","graphics_type","coords"))
+  kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
+    `colnames<-`(node_names)
 
   kegg_nodes$x <- as.numeric(kegg_nodes$x)
   kegg_nodes$y <- as.numeric(kegg_nodes$y)
@@ -118,6 +125,7 @@ pathway <- function(pid,
   
   rel_sets <- getNodeSet(xml, "//relation")
   all_rels <- NULL
+  ei <- 1
   for (rel in rel_sets) {
     entry1 <- xmlAttrs(rel)["entry1"]
     entry2 <- xmlAttrs(rel)["entry2"]
@@ -125,11 +133,13 @@ pathway <- function(pid,
     # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
     rel_subtypes <- xmlElementsByTagName(rel,"subtype")
     for (rs in rel_subtypes) {
-      all_rels <- rbind(all_rels, c(entry1, entry2, rel_type, xmlAttrs(rs)["name"]))
+      all_rels[[ei]] <- c(entry1, entry2, rel_type, xmlAttrs(rs)["name"]) |>
+      setNames(c("entry1","entry2","type","subtype"))
+      ei <- ei + 1
     }
   }
   if (!is.null(all_rels)) {
-    kegg_edges <- all_rels |> data.frame() |>
+    kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
       `colnames<-`(c("entry1","entry2","type","subtype"))
   } else {
     kegg_edges <- NULL
@@ -225,9 +235,10 @@ pathway <- function(pid,
     E(g)$pathway_id <- pid
   }
   if (return_tbl_graph) {
-    as_tbl_graph(g)
+    return(as_tbl_graph(g))
   } else {
     return(g)
+    # return(as.igraph(g))
   }
 }
 parse_kgml <- pathway
@@ -237,36 +248,73 @@ parse_kgml <- pathway
 #' e.g. in ko01100
 #' @importFrom tidygraph bind_nodes bind_edges
 #' @export
-process_line <- function(g, invert_y=TRUE) {
+process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
   ## [TODO] speed up
+  ## [TODO] add verbose
   df <- as_tbl_graph(g)
 
-  cos <- NULL
-  eds <- NULL
-  j <- 0
+  cos <- list()
+  eds <- list()
+  j <- 1
+  e <- 1
+  name_col_node <- c("name","x","y","type","original_name")
+  name_col_edge <- c("from","to","type","name",
+    "bgcolor","fgcolor","reaction","orig.id")
+
   for (i in seq_along(V(g)$name)) {
 
     if (V(g)$graphics_type[i]=="line") {
-      co <- unlist(strsplit(V(g)$coords[i], ","))
-      q <- 1
-      for (h in seq_len(length(co)/4)) {
-        cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j), co[q], co[q+1], "line",V(g)$name[i]))
-        cos <- rbind(cos, c(paste0(V(g)$name[i],"_",j+1), co[q+2], co[q+3], "line",V(g)$name[i]))
-        eds <- rbind(eds, c(paste0(V(g)$name[i],"_",j), paste0(V(g)$name[i],"_",j+1),
-                            "line",V(g)$name[i],V(g)$bgcolor[i], V(g)$fgcolor[i], V(g)$reaction[i], V(g)$orig.id[i]))
-        j <- j+2
-        q <- q+4
+
+      raw_name <- V(g)$name[i]
+      bgcol <- V(g)$bgcolor[i]
+      fgcol <- V(g)$fgcolor[i]
+      reac <- V(g)$reaction[i]
+      origid <- V(g)$orig.id[i]
+      rawco <- V(g)$coords[i]
+      if (grepl("\\|",rawco)) {
+        rawcos <- strsplit(rawco, "\\|") |> unlist()
+      } else {
+        rawcos <- rawco
+      }
+
+      for (rc in rawcos) {
+        co <- unlist(strsplit(rc, ","))
+        q <- 1
+        if (verbose) {
+          GetoptLong::qqcat("@{raw_name}, cooridnates components: @{length(co)}\n")
+        }
+        for (h in seq_len(length(co))) {
+          if (is.na(co[q+2])) {break}
+          if (verbose) {
+            GetoptLong::qqcat("  @{paste(co[q], co[q+1])} -> @{paste(co[q+2], co[q+3])}\n")
+          }
+          cos[[j]] <- c(paste0(raw_name,"_",j), co[q], co[q+1], "line",raw_name) |>
+          setNames(name_col_node)
+          cos[[j+1]] <- c(paste0(raw_name,"_",j+1), co[q+2], co[q+3], "line",raw_name)|>
+          setNames(name_col_node)
+          eds[[e]] <- c(paste0(raw_name,"_",j), paste0(raw_name,"_",j+1),
+                              "line",raw_name,bgcol,fgcol,reac,origid
+                              )|>
+          setNames(name_col_edge)
+          e <- e+1
+          j <- j+2
+          q <- q+2
+        }
       }
     }
   }
-  cos <- cos |> data.frame() |> `colnames<-`(c("name","x","y","type","original_name"))
+
+  cos <- dplyr::bind_rows(cos) |> data.frame() |> 
+    `colnames<-`(name_col_node)
   cos$x <- as.numeric(cos$x);
   if (invert_y) {
     cos$y <- -1 * as.numeric(cos$y)
   } else {
     cos$y <- as.numeric(cos$y)
   }
-  eds <- eds |> data.frame() |> `colnames<-`(c("from","to","type","name","bgcolor","fgcolor","reaction","orig.id"))
+  eds <- dplyr::bind_rows(eds) |> data.frame() |> 
+    `colnames<-`(name_col_edge)
+
   df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
   df_add |> activate(nodes) |>
     mutate(original_name=vapply(1:length(original_name),
