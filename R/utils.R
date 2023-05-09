@@ -24,6 +24,31 @@ find_parenthesis_pairs <- function(s) {
 }
 
 
+#' append_line_position
+#'
+#' append the label position at center of edges
+#' in global map like ko01100 where line type nodes
+#' are present in KGML. Add `center` column to graph edge
+#' 
+#' @param g graph
+#' @export
+append_label_position <- function(g) {
+  pos <- g |>
+    activate(edges) |> 
+    data.frame() |>
+    filter(type=="line") |>
+    group_by(orig.id) |> 
+    summarise(n=n()) |> 
+    mutate(n2=n/2) |> 
+    mutate(n3=as.integer(n2+1))
+  posvec <- pos$n3 |> setNames(pos$orig.id)
+  g |> activate(edges) |> group_by(orig.id) |> 
+    mutate(rn=row_number()) |> ungroup() |>
+    mutate(showpos=edge_numeric(name="orig.id", posvec)) |>
+    mutate(center=rn==showpos) |>
+    mutate(rn=NULL, showpos=NULL)
+}
+
 #' return_line_compounds
 #' 
 #' In the map, where lines are converted to edges,
