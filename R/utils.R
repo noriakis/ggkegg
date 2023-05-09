@@ -402,23 +402,45 @@ convert_id <- function(org, name="name",
     if (grepl(sep,x[xn])) {
       spaced <- NULL
       for (qu in unlist(strsplit(x[xn], sep))) {
-        spaced <- c(spaced, ifelse(first_arg_comma,
-          strsplit(convert_vec[qu], ",")[[1]][1],
-          paste0(convert_vec[qu])))
+
+        comma_test <- ifelse(first_arg_comma,
+            strsplit(convert_vec[qu], ",")[[1]][1],
+            paste0(convert_vec[qu]))
+
+        sc_test <- ifelse(divide_semicolon,
+          strsplit(comma_test, ";") |> sapply("[",1),
+          comma_test)
+
+        spaced <- c(spaced, sc_test)
       }
       spaced <- ifelse(first_arg_sep, spaced[1],
-        paste(spaced, collapse=" "))
+        paste(spaced, collapse=sep))
       convs <- c(convs, spaced)
     } else {
-      convs <- c(convs, ifelse(first_arg_comma,
+      comma_test <- ifelse(first_arg_comma,
         strsplit(convert_vec[x[xn]], ",")[[1]][1],
-        convert_vec[x[xn]]))
+        convert_vec[x[xn]])
+      sc_test <- ifelse(divide_semicolon,
+          strsplit(comma_test, ";") |> sapply("[",1),
+          comma_test)
+      convs <- c(convs, sc_test)
     }
   }
-  if (divide_semicolon) {
-    convs <- unlist(lapply(strsplit(convs, ";"),"[", 1))
-  }
   convs
+  # if (divide_semicolon) {
+  #   new_convs <- NULL
+  #   for (i in convs) {
+  #     app <- NULL
+  #     for (j in strsplit(i, " ") |> unlist()) {
+  #       app <- c(app, sapply(strsplit(j, ";"),"[", 1))
+  #     }
+  #     new_convs <- c(new_convs,
+  #       paste0(app, collapse=sep))
+  #   }
+  #   return(new_convs)
+  # } else {
+  #   return(convs)
+  # }
 }
 
 
