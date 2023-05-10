@@ -6,10 +6,6 @@
 \usage{
 pathway(
   pid,
-  rect_width = 25,
-  rect_height = 10,
-  convert_org = NULL,
-  convert_collapse = NULL,
   convert_first = TRUE,
   group_rect_nudge = 2,
   node_rect_nudge = 0,
@@ -20,16 +16,21 @@ pathway(
 )
 }
 \arguments{
-\item{rect_width}{manual specification of rectangle}
+\item{pid}{pathway id}
 
-\item{rect_height}{manual specification of rectangle}
+\item{group_rect_nudge}{nudge the position of group node
+default to add slight increase to show the group node}
 
-\item{convert_org}{organism or category for converting the name
-e.g. "ko", "hsa", ...}
+\item{node_rect_nudge}{nudge the position of all node}
 
-\item{add_pathway_id}{add pathway id to graph}
+\item{invert_y}{invert the y position to match with R graphics}
 
-\item{return_tbl_graph}{return tbl_graph object}
+\item{add_pathway_id}{add pathway id to graph, default to TRUE
+needed for the downstream analysis}
+
+\item{return_tbl_graph}{return tbl_graph object, if FALSE, return igraph}
+
+\item{return_image}{return the image URL}
 }
 \value{
 tbl_graph by default

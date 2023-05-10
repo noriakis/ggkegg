@@ -8,6 +8,14 @@ e.g. in ko01100}
 \usage{
 process_line(g, invert_y = TRUE, verbose = FALSE)
 }
+\arguments{
+\item{g}{graph}
+
+\item{invert_y}{whether to invert the position, default to TRUE
+should match with `pathway` function}
+
+\item{verbose}{show progress}
+}
 \description{
 process_line
 process the kgml containing graphics type of `line`
