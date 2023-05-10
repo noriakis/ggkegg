@@ -2,22 +2,21 @@
 #' 
 #' KEGG pathway parsing function
 #'
-#' @param convert_org organism or category for converting the name
-#' e.g. "ko", "hsa", ...
-#' @param rect_width manual specification of rectangle
-#' @param rect_height manual specification of rectangle
-#' @param add_pathway_id add pathway id to graph
-#' @param return_tbl_graph return tbl_graph object
+#' @param pid pathway id
+#' @param add_pathway_id add pathway id to graph, default to TRUE
+#' needed for the downstream analysis
+#' @param group_rect_nudge nudge the position of group node
+#' default to add slight increase to show the group node
+#' @param node_rect_nudge nudge the position of all node
+#' @param invert_y invert the y position to match with R graphics
+#' @param return_image return the image URL
+#' @param return_tbl_graph return tbl_graph object, if FALSE, return igraph
 #' @return tbl_graph by default
 #' @importFrom igraph graph_from_data_frame
 #' @import igraph
 #' @importFrom tidygraph .G
 #' @export
 pathway <- function(pid,
-           rect_width=25,
-           rect_height=10,
-           convert_org=NULL,
-           convert_collapse=NULL,
            convert_first=TRUE,
            group_rect_nudge=2,
            node_rect_nudge=0,
@@ -205,31 +204,31 @@ pathway <- function(pid,
   # V(g)$group <- unlist(group)
 
   ## This part may be redundant, use `convert_id`
-  convert_vec <- NULL
-  if (!is.null(convert_org)) {
-    for (co in convert_org) {
-      convert_vec <- c(convert_vec,
-                       obtain_map_and_cache(co, pid))
-    }
-    V(g)$converted_name <- unlist(lapply(V(g)$name,
-                                         function(x) {
-                                           inc_genes <- unlist(strsplit(x, " "))
-                                           conv_genes <- NULL
-                                           for (inc in inc_genes) {
-                                             convs <- convert_vec[inc]
-                                             if (is.na(convs)) {
-                                               conv_genes <- c(conv_genes, x)
-                                             } else {
-                                               conv_genes <- c(conv_genes, convs)
-                                             }
-                                           }
-                                           if (convert_first) {
-                                             conv_genes[1]
-                                           } else {
-                                             paste(conv_genes, collapse=convert_collapse)
-                                           }
-                                         }))
-  }
+  # convert_vec <- NULL
+  # if (!is.null(convert_org)) {
+  #   for (co in convert_org) {
+  #     convert_vec <- c(convert_vec,
+  #                      obtain_map_and_cache(co, pid))
+  #   }
+  #   V(g)$converted_name <- unlist(lapply(V(g)$name,
+  #                                        function(x) {
+  #                                          inc_genes <- unlist(strsplit(x, " "))
+  #                                          conv_genes <- NULL
+  #                                          for (inc in inc_genes) {
+  #                                            convs <- convert_vec[inc]
+  #                                            if (is.na(convs)) {
+  #                                              conv_genes <- c(conv_genes, x)
+  #                                            } else {
+  #                                              conv_genes <- c(conv_genes, convs)
+  #                                            }
+  #                                          }
+  #                                          if (convert_first) {
+  #                                            conv_genes[1]
+  #                                          } else {
+  #                                            paste(conv_genes, collapse=convert_collapse)
+  #                                          }
+  #                                        }))
+  # }
   if (add_pathway_id) {
     V(g)$pathway_id <- pid
     E(g)$pathway_id <- pid
@@ -246,6 +245,10 @@ parse_kgml <- pathway
 #' process_line
 #' process the kgml containing graphics type of `line`
 #' e.g. in ko01100
+#' @param g graph
+#' @param invert_y whether to invert the position, default to TRUE
+#' should match with `pathway` function
+#' @param verbose show progress
 #' @importFrom tidygraph bind_nodes bind_edges
 #' @export
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
@@ -322,7 +325,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
      FUN.VALUE="character"))
 }
 
-
+#' get_reaction
 #' parse the reaction in KGML
 #' @noRd
 get_reaction <- function(xml) {
@@ -377,6 +380,10 @@ get_reaction <- function(xml) {
 
 
 #' pathway_info
+#' 
+#' obtain the list of pathway information
+#' @param pid pathway id
+#' @return list of orthology and module contained in the pathway
 #' @export
 pathway_info <- function(pid) {
   if (!file.exists(pid)) {
