@@ -6,7 +6,6 @@
 \usage{
 pathway(
   pid,
-  convert_first = TRUE,
   group_rect_nudge = 2,
   node_rect_nudge = 0,
   invert_y = TRUE,

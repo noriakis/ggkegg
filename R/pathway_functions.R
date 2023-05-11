@@ -17,7 +17,6 @@
 #' @importFrom tidygraph .G
 #' @export
 pathway <- function(pid,
-           convert_first=TRUE,
            group_rect_nudge=2,
            node_rect_nudge=0,
            invert_y=TRUE,
@@ -203,32 +202,7 @@ pathway <- function(pid,
   # }
   # V(g)$group <- unlist(group)
 
-  ## This part may be redundant, use `convert_id`
-  # convert_vec <- NULL
-  # if (!is.null(convert_org)) {
-  #   for (co in convert_org) {
-  #     convert_vec <- c(convert_vec,
-  #                      obtain_map_and_cache(co, pid))
-  #   }
-  #   V(g)$converted_name <- unlist(lapply(V(g)$name,
-  #                                        function(x) {
-  #                                          inc_genes <- unlist(strsplit(x, " "))
-  #                                          conv_genes <- NULL
-  #                                          for (inc in inc_genes) {
-  #                                            convs <- convert_vec[inc]
-  #                                            if (is.na(convs)) {
-  #                                              conv_genes <- c(conv_genes, x)
-  #                                            } else {
-  #                                              conv_genes <- c(conv_genes, convs)
-  #                                            }
-  #                                          }
-  #                                          if (convert_first) {
-  #                                            conv_genes[1]
-  #                                          } else {
-  #                                            paste(conv_genes, collapse=convert_collapse)
-  #                                          }
-  #                                        }))
-  # }
+
   if (add_pathway_id) {
     V(g)$pathway_id <- pid
     E(g)$pathway_id <- pid

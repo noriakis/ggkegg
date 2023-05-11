@@ -84,10 +84,37 @@ ggkegg <- function(pid,
     }
   }
 
-  g <- pathway(pid=pid, convert_org=convert_org,
-                convert_first=convert_first, convert_collapse=convert_collapse,
-                node_rect_nudge=node_rect_nudge, group_rect_nudge=group_rect_nudge,
+  g <- pathway(pid=pid,
+                node_rect_nudge=node_rect_nudge,
+                group_rect_nudge=group_rect_nudge,
                 return_tbl_graph=FALSE)
+  
+  # This part may be redundant, use `convert_id`
+  convert_vec <- NULL
+  if (!is.null(convert_org)) {
+    for (co in convert_org) {
+      convert_vec <- c(convert_vec,
+                       obtain_map_and_cache(co, pid))
+    }
+    V(g)$converted_name <- unlist(lapply(V(g)$name,
+                                         function(x) {
+                                           inc_genes <- unlist(strsplit(x, " "))
+                                           conv_genes <- NULL
+                                           for (inc in inc_genes) {
+                                             convs <- convert_vec[inc]
+                                             if (is.na(convs)) {
+                                               conv_genes <- c(conv_genes, x)
+                                             } else {
+                                               conv_genes <- c(conv_genes, convs)
+                                             }
+                                           }
+                                           if (convert_first) {
+                                             conv_genes[1]
+                                           } else {
+                                             paste(conv_genes, collapse=convert_collapse)
+                                           }
+                                         }))
+  }
 
   if (!is.null(numeric_attribute)){
     V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
