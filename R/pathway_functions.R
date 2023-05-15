@@ -131,14 +131,15 @@ pathway <- function(pid,
     # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
     rel_subtypes <- xmlElementsByTagName(rel,"subtype")
     for (rs in rel_subtypes) {
-      all_rels[[ei]] <- c(entry1, entry2, rel_type, xmlAttrs(rs)["name"]) |>
-      setNames(c("entry1","entry2","type","subtype"))
+      all_rels[[ei]] <- c(entry1, entry2, rel_type,
+        xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
+      setNames(c("entry1","entry2","type","subtype_name","subtype_value"))
       ei <- ei + 1
     }
   }
   if (!is.null(all_rels)) {
     kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
-      `colnames<-`(c("entry1","entry2","type","subtype"))
+      `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value"))
   } else {
     kegg_edges <- NULL
   }
@@ -146,8 +147,9 @@ pathway <- function(pid,
   gr_rels <- NULL
   for (gr_name in names(grs)) {
     for (comp_name in grs[[gr_name]]) {
+      ## Pad other values by `in_group`
       gr_rels <- rbind(gr_rels, 
-        c(gr_name, comp_name, "in_group", "in_group"))
+        c(gr_name, comp_name, "in_group", "in_group", "in_group"))
     }
   }
   ## Include grouping edge
@@ -178,7 +180,8 @@ pathway <- function(pid,
   ## Append grouping
   if (!is.null(kegg_edges)) {
     if (!is.null(gr_rels)) {
-      gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type","subtype"))
+      gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type",
+        "subtype_name","subtype_value"))
       kegg_edges <- rbind(kegg_edges, gr_rels)
     }
   }
@@ -332,8 +335,8 @@ get_reaction <- function(xml) {
   for (i in seq_len(nrow(all_reas))) {
     for (j in unlist(strsplit(all_reas[i,"id"], " "))) {
       rsp_rels <- rbind(rsp_rels,
-      c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", all_reas[i, "reac_name"]),
-      c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", all_reas[i, "reac_name"]))
+      c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", NA, all_reas[i, "reac_name"]),
+      c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", NA, all_reas[i, "reac_name"]))
     }
   }
 
@@ -348,7 +351,7 @@ get_reaction <- function(xml) {
 
 
   rsp_rels <- data.frame(rsp_rels) |> 
-    `colnames<-`(c("entry1","entry2","type","subtype","reaction"))
+    `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value","reaction"))
   rsp_rels
 }
 
