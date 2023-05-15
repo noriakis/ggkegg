@@ -95,8 +95,8 @@ names(pseudo_lfc) <- V(g)$name
 ggkegg("hsa04110",
        convert_org = c("pathway","hsa","ko"),
        numeric_attribute = pseudo_lfc)+
-  geom_edge_parallel(
-    aes(color=subtype),
+  geom_edge_parallel2(
+    aes(color=subtype_name),
     arrow = arrow(length = unit(1, 'mm')), 
     start_cap = square(1, 'cm'),
     end_cap = square(1.5, 'cm')) + 
