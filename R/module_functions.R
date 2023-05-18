@@ -1,34 +1,128 @@
 setOldClass("tbl_graph")
 setClass("kegg_module",
-  slots=list(
-        ID="character",
-        name="character",
-        definition_raw="list",
-        definitions="list",
-        # definition_block="vector",
-        # definition_kos="character",
-        # definition_num_in_block="vector",
-        # definition_ko_in_block="list",
-        definition_components="character",
-
-        reaction="character",
-        reaction_each="tbl_df",
-        reaction_each_raw="tbl_df",
-        reaction_graph="tbl_graph",
-        reaction_components="character"
-        ))
+         slots=list(
+           ID="character",
+           name="character",
+           definition_raw="list",
+           definitions="list",
+           definition_components="character",
+           orthology="character",
+           kegg_class="character",
+           pathway="character",
+           reaction="character",
+           compound="character",
+           rmodule="character",
+           reaction_each="tbl_df",
+           reaction_each_raw="tbl_df",
+           reaction_graph="tbl_graph",
+           reaction_components="character"
+         ))
 
 #' @importFrom GetoptLong qqcat
 setMethod("show",
-  signature(object="kegg_module"),
-  function(object) {
-    qqcat("@{object@ID}\n")
-    qqcat("@{object@name}\n")
-  })
+          signature(object="kegg_module"),
+          function(object) {
+            qqcat("@{object@ID}\n")
+            qqcat("@{object@name}\n")
+          })
 
+# setOldClass("tbl_graph")
+# setClass("kegg_module",
+#   slots=list(
+#         ID="character",
+#         name="character",
+#         definition_raw="list",
+#         definitions="list",
+#         # definition_block="vector",
+#         # definition_kos="character",
+#         # definition_num_in_block="vector",
+#         # definition_ko_in_block="list",
+#         definition_components="character",
 
-#' KEGG module parsing function
+#         reaction="character",
+#         reaction_each="tbl_df",
+#         reaction_each_raw="tbl_df",
+#         reaction_graph="tbl_graph",
+#         reaction_components="character"
+#         ))
+
+# #' @importFrom GetoptLong qqcat
+# setMethod("show",
+#   signature(object="kegg_module"),
+#   function(object) {
+#     qqcat("@{object@ID}\n")
+#     qqcat("@{object@name}\n")
+#   })
+# #' KEGG module parsing function
+# #' module
+# #' @return list of module definition and reaction
+# #' @export
+# module <- function(mid) {
+#   kmo <- new("kegg_module")
+#   kmo@ID <- mid
+#   if (!file.exists(mid)) {
+#     download.file(paste0("https://rest.kegg.jp/get/",mid),
+#                   destfile=mid)
+#   }
+#   con = file(mid, "r")
+#   reac <- FALSE
+#   defflg <- FALSE
+#   defnum <- 1
+#   reacs <- NULL
+#   definitions <- list()
+#   while ( TRUE ) {
+#     line = readLines(con, n = 1)
+#     if ( length(line) == 0 ) {
+#       break
+#     }
+#     if (gsub(" ","",line)=="") {next} ## If blank line, skip
+#     ## happens in some modules describing parallel reactions
+#     if (grepl("NAME", line)) {
+#       name <- unlist(strsplit(line, "        "))[2]
+#       kmo@name <- name
+#     }
+#     if (grepl("ORTHOLOGY", line)) {defflg <- FALSE}
+#     if (grepl("DEFINITION", line)) {defflg <- TRUE}
+#     if (defflg) {
+#       if (grepl("DEFINITION", line)) {
+#         definitions[[defnum]] <- unlist(strsplit(line, "  "))[2]
+#       } else {
+#         definitions[[defnum]] <- unlist(strsplit(line, "            "))[2]
+#       }
+#       defnum <- defnum + 1
+#     }
+#     if (grepl("COMPOUND", line)) {reac <- FALSE}
+#     if (grepl("REACTION", line)) {reac <- TRUE}
+#     if (reac) {
+#         if (grepl("REACTION", line)) {
+#           reacs <- c(reacs, unlist(strsplit(line, "    "))[2])
+#         } else {
+#           reacs <- c(reacs, unlist(strsplit(line, "            "))[2])
+#         }
+#     }
+#   }
+#   if (!is.null(definitions)) {
+#       kmo@definition_raw <- definitions
+#   }
+#   if (!is.null(reacs)) {
+#     kmo@reaction <- reacs
+#   }
+#   close(con)
+#   pattern <- "K\\d{5}"
+#   kos <- paste0("ko:",unlist(str_extract_all(kmo@definition_raw |> unlist(), pattern)))
+#   pattern <- "C\\d{5}"
+#   cos <- paste0("cpd:",unlist(str_extract_all(kmo@reaction, pattern)))
+#   pattern <- "R\\d{5}"
+#   rns <- paste0("rn:",unlist(str_extract_all(kmo@reaction, pattern)))
+#   kmo@definition_components <- c(kos)
+#   kmo@reaction_components <- c(cos, rns)
+#   kmo <- parse_module(kmo)
+#   kmo
+# }
+
 #' module
+#' KEGG module parsing function
+#' @param mid KEGG module ID
 #' @return list of module definition and reaction
 #' @export
 module <- function(mid) {
@@ -39,49 +133,45 @@ module <- function(mid) {
                   destfile=mid)
   }
   con = file(mid, "r")
-  reac <- FALSE
-  defflg <- FALSE
-  defnum <- 1
-  reacs <- NULL
-  definitions <- list()
+  content_list <- list()
   while ( TRUE ) {
     line = readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }
-    if (gsub(" ","",line)=="") {next} ## If blank line, skip
-    ## happens in some modules describing parallel reactions
-    if (grepl("NAME", line)) {
-      name <- unlist(strsplit(line, "        "))[2]
-      kmo@name <- name
+    if (!startsWith(line, " ")) {
+      current_id <- strsplit(line, " ") |> sapply("[", 1)
     }
-    if (grepl("ORTHOLOGY", line)) {defflg <- FALSE}
-    if (grepl("DEFINITION", line)) {defflg <- TRUE}
-    if (defflg) {
-      if (grepl("DEFINITION", line)) {
-        definitions[[defnum]] <- unlist(strsplit(line, "  "))[2]
-      } else {
-        definitions[[defnum]] <- unlist(strsplit(line, "            "))[2]
-      }
-      defnum <- defnum + 1
+    if (!current_id %in% c("REFERENCE","///")) {
+      content <- substr(line, 13, nchar(line))
+      content_list[[current_id]] <- c(content_list[[current_id]], content) 
     }
-    if (grepl("COMPOUND", line)) {reac <- FALSE}
-    if (grepl("REACTION", line)) {reac <- TRUE}
-    if (reac) {
-        if (grepl("REACTION", line)) {
-          reacs <- c(reacs, unlist(strsplit(line, "    "))[2])
-        } else {
-          reacs <- c(reacs, unlist(strsplit(line, "            "))[2])
-        }
-    }
-  }
-  if (!is.null(definitions)) {
-      kmo@definition_raw <- definitions
-  }
-  if (!is.null(reacs)) {
-    kmo@reaction <- reacs
   }
   close(con)
+  kmo@ID <- substr(content_list$ENTRY, 1, 6)
+  kmo@name <- content_list$NAME
+  if (!is.null(content_list$DEFINITION)) {
+      kmo@definition_raw <- as.list(content_list$DEFINITION)
+  }
+  if (!is.null(content_list$ORTHOLOGY)) {
+      kmo@orthology <- content_list$ORTHOLOGY
+  }  
+  if (!is.null(content_list$CLASS)) {
+    kmo@kegg_class <- content_list$CLASS
+  }  
+  if (!is.null(content_list$PATHWAY)) {
+    kmo@pathway <- content_list$PATHWAY
+  }
+  if (!is.null(content_list$REACTION)) {
+    reacs <- content_list$REACTION
+    kmo@reaction <- reacs[reacs!=""]
+  }
+  if (!is.null(content_list$COMPOUND)) {
+    kmo@compound <- content_list$COMPOUND
+  }
+  if (!is.null(content_list$RMODULE)) {
+    kmo@rmodule <- content_list$RMODULE
+  }
   pattern <- "K\\d{5}"
   kos <- paste0("ko:",unlist(str_extract_all(kmo@definition_raw |> unlist(), pattern)))
   pattern <- "C\\d{5}"
@@ -93,6 +183,7 @@ module <- function(mid) {
   kmo <- parse_module(kmo)
   kmo
 }
+
 
 #' module_text
 #' Obtain textual representation of module definition for all the blocks
@@ -596,7 +687,7 @@ parse_module <- function(kmo) {
       left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
       left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
       if (is.na(left2)) {
-        message("Some modules cannot be parsed properly, changing the split parameter")
+        message("Some modules cannot be parsed properly by the delimiter '  ', changing the split parameter")
         message(paste0("  ",left))
         left2 <- gsub(" ", "", unlist(strsplit(left, " "))[2])
         left1 <- gsub(" ", "", unlist(strsplit(left, " "))[1])        

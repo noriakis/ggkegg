@@ -367,6 +367,7 @@ pathway_info <- function(pid) {
     download.file(paste0("https://rest.kegg.jp/get/",pid),
                   destfile=pid)
   }
+  ## [TODO] parse all the components like in module
   pway <- list()
   con = file(pid, "r")
   modflg <- FALSE
