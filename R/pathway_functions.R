@@ -359,7 +359,7 @@ get_reaction <- function(xml) {
 #' pathway_info
 #' 
 #' obtain the list of pathway information
-#' @param pid pathway id
+#' @param pid KEGG Pathway id
 #' @return list of orthology and module contained in the pathway
 #' @export
 pathway_info <- function(pid) {
@@ -367,46 +367,23 @@ pathway_info <- function(pid) {
     download.file(paste0("https://rest.kegg.jp/get/",pid),
                   destfile=pid)
   }
-  ## [TODO] parse all the components like in module
   pway <- list()
   con = file(pid, "r")
-  modflg <- FALSE
-  orthoflg <- FALSE
-  mods <- NULL
-  orthos <- NULL
+  content_list <- list()
   while ( TRUE ) {
     line = readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }
-    if (gsub(" ","",line)=="") {next} ## If blank line, skip
-    ## happens in some modules describing parallel reactions
-    if (grepl("NAME", line)) {
-      name <- unlist(strsplit(line, "        "))[2]
-      pway[["name"]] <- name
+    if (!startsWith(line, " ")) {
+      current_id <- strsplit(line, " ") |> sapply("[", 1)
     }
-    if (grepl("ORTHOLOGY", line)) { orthoflg <- TRUE}
-    if (grepl("MODULE", line)) {modflg <- TRUE}
-    if (grepl("DBLINKS", line)) {modflg <- FALSE}
-    if (grepl("COMPOUND", line)) {modflg<-FALSE;orthoflg<-FALSE}
-    if (grepl("REFERENCE", line)) {modflg <- FALSE;orthoflg<-FALSE}
-    if (modflg) {
-      if (grepl("MODULE", line)) {
-        mods <- c(mods, unlist(strsplit(line, "      "))[2])
-      } else {
-        mods <- c(mods, unlist(strsplit(line, "            "))[2])
-      }
-    }
-    if (orthoflg) {
-      if (grepl("ORTHOLOGY", line)) {
-        orthos <- c(orthos, unlist(strsplit(line, "   "))[2])
-      } else {
-        orthos <- c(orthos, unlist(strsplit(line, "            "))[2])
-      }
+    if (!current_id %in% c("REFERENCE","///")) {
+      content <- substr(line, 13, nchar(line))
+      content_list[[current_id]] <- c(content_list[[current_id]], content) 
     }
   }
   close(con)
-  pway[["orthology"]] <- orthos
-  pway[["module"]] <- mods
-  pway
+  content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |> sapply("[", 1)
+  content_list
 }
