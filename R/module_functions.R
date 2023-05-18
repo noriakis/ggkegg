@@ -811,7 +811,7 @@ module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
 #' @export
 pathway_abundance <- function(id, vec, num=1) {
   pway <- pathway_info(id)
-  mods <- pway$module |> strsplit(" ") |> sapply("[", 1) |> unique()
+  mods <- pway$MODULE |> strsplit(" ") |> sapply("[", 1) |> unique()
   abuns <- NULL
   for (mod in mods) {
     abuns <- c(abuns, module_abundance(mod_id=mod, num=num, vec=vec))
