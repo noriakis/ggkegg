@@ -2,15 +2,18 @@
 % Please edit documentation in R/module_functions.R
 \name{module}
 \alias{module}
-\title{KEGG module parsing function
-module}
+\title{module
+KEGG module parsing function}
 \usage{
 module(mid)
+}
+\arguments{
+\item{mid}{KEGG module ID}
 }
 \value{
 list of module definition and reaction
 }
 \description{
-KEGG module parsing function
 module
+KEGG module parsing function
 }
