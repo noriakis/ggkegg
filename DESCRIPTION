@@ -3,10 +3,14 @@ Type: Package
 Title: KEGG pathway visualization by ggplot2
 Version: 0.99.0
 Authors@R: person("Noriaki", "Sato", email = "nori@hgc.jp", role = c("cre", "aut"))
-Description: This package aims to import, parse, and analyze KEGG pathway data using ggplot2 and ggraph.
+Description: This package aims to import, parse, and analyze KEGG pathway data. The package supports visualizing KEGG  information using ggplot2 and ggraph through a grammer of graphics.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
-    R (>= 4.2.0), ggplot2, ggraph, XML
+    R (>= 4.2.0), ggplot2, ggraph, XML, igraph, tidygraph
+Imports: BiocFileCache, GetoptLong, data.table, dplyr,
+    magick, patchwork, shadowtext,  stringr, tibble
+Suggests: knitr
 RoxygenNote: 7.2.3
+biocViews: Pathways
 VignetteBuilder: knitr
