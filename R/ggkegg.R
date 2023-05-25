@@ -188,20 +188,56 @@ ggkegg <- function(pid,
 #' 
 #' @param enrich enrichResult class object
 #' @param pathway_number pathway number sorted by p-values
+#' @param pid pathway id, override pathway_number if specified
 #' @param fill_color color for genes
+#' @param white_background fill background color white
 #' @export
 #' @return ggraph with overlaid KEGG map
 #' 
 #' 
-rawMap <- function(enrich, pathway_number=1, fill_color="red", how="any") {
-  if (attributes(enrich)$class=="enrichResult") {
-    res <- attributes(enrich)$result
-    pid <- res[pathway_number,]$ID
+rawMap <- function(enrich, pathway_number=1, pid=NULL,
+  fill_color="red", how="any", white_background=TRUE) {
+  number <- length(enrich)
+  if (is.list(enrich)) {
+    # if (length(enrich)!=length(fill_color)) {
+    #   stop("Enrich results and fill_color length must be same.")
+    # }
+    if (is.null(pid)) {stop("Please specify pathway id.")}
   } else {
-    stop("Please provide enrichResult")
+    if (attributes(enrich)$class=="enrichResult") {
+      res <- attributes(enrich)$result
+      if (is.null(pid)) {
+        pid <- res[pathway_number,]$ID
+      }
+    } else {
+      stop("Please provide enrichResult")
+    }
   }
-  g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
-  ggraph(g, layout="manual", x=x, y=y)+
-    geom_node_rect(fill=fill_color, aes(filter=cp))+
-    overlay_raw_map()+theme_void()
+  if (number==1) {
+    g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
+    gg <- ggraph(g, layout="manual", x=x, y=y)+
+      geom_node_rect(fill=fill_color, aes(filter=cp))+
+      overlay_raw_map()+theme_void()
+  } else {
+    g <- pathway(pid)
+    for (i in seq_len(number)) {
+      g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]], how=how, pid=pid))
+    }
+    V(g)$space <- V(g)$width/number
+    gg <- ggraph(g, layout="manual", x=x, y=y)
+    nds <- g |> activate(nodes) |> data.frame()
+    for (i in seq_len(number)) {
+      # tmp_col <- sym(paste0("cp",i))
+      gg <- gg + geom_node_rect(
+        fill=fill_color, data=nds[nds[[paste0("cp",i)]],],
+        xmin=nds[nds[[paste0("cp",i)]],]$xmin+nds[nds[[paste0("cp",i)]],]$space*(i-1)
+        )
+    }
+    gg <- gg + overlay_raw_map()+theme_void()
+  }
+  if (white_background) {
+    gg + theme(panel.background = element_rect(fill = 'white', colour = 'white'))
+  } else {
+    gg
+  }
 }
