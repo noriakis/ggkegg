@@ -186,7 +186,7 @@ ggkegg <- function(pid,
 #' return the ggplot object with raw KEGG map overlaid on
 #' enriched pathway
 #' 
-#' @param enrich enrichResult class object
+#' @param enrich enrichResult class object, or list of them
 #' @param pathway_number pathway number sorted by p-values
 #' @param pid pathway id, override pathway_number if specified
 #' @param fill_color color for genes
@@ -198,6 +198,10 @@ ggkegg <- function(pid,
 rawMap <- function(enrich, pathway_number=1, pid=NULL,
   fill_color="red", how="any", white_background=TRUE) {
   number <- length(enrich)
+  if (length(fill_color)!=number) {
+    qqcat("Length of fill_color and enrich mismatches, taking first color")
+    fill_color <- rep(fill_color[1], number)
+  }
   if (is.list(enrich)) {
     # if (length(enrich)!=length(fill_color)) {
     #   stop("Enrich results and fill_color length must be same.")
@@ -229,7 +233,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     for (i in seq_len(number)) {
       # tmp_col <- sym(paste0("cp",i))
       gg <- gg + geom_node_rect(
-        fill=fill_color, data=nds[nds[[paste0("cp",i)]],],
+        fill=fill_color[i], data=nds[nds[[paste0("cp",i)]],],
         xmin=nds[nds[[paste0("cp",i)]],]$xmin+nds[nds[[paste0("cp",i)]],]$space*(i-1)
         )
     }
