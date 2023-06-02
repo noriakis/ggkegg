@@ -197,9 +197,10 @@ ggkegg <- function(pid,
 #' 
 rawMap <- function(enrich, pathway_number=1, pid=NULL,
   fill_color="red", how="any", white_background=TRUE) {
+  ## [TODO] support for MicrobiomeProfiler
   number <- length(enrich)
   if (length(fill_color)!=number) {
-    qqcat("Length of fill_color and enrich mismatches, taking first color")
+    qqcat("Length of fill_color and enrich mismatches, taking first color\n")
     fill_color <- rep(fill_color[1], number)
   }
   if (is.list(enrich)) {
@@ -217,6 +218,12 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
       stop("Please provide enrichResult")
     }
   }
+  ## For MicrobiomeProfiler
+  if (startsWith(pid, "map")) {
+    qqcat("Changing prefix of pathway ID from map to ko\n")
+    pid <- gsub("map","ko",pid)
+  }
+
   if (number==1) {
     g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
     gg <- ggraph(g, layout="manual", x=x, y=y)+
