@@ -182,6 +182,9 @@ pathway <- function(pid,
     if (!is.null(gr_rels)) {
       gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type",
         "subtype_name","subtype_value"))
+      if ("reaction" %in% colnames(kegg_edges)) {
+        gr_rels$reaction <- "in_group"
+      }
       kegg_edges <- rbind(kegg_edges, gr_rels)
     }
   }
