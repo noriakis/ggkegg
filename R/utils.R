@@ -263,7 +263,7 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
   res <- attributes(res)$result
 
   if (org!="UNKNOWN") {
-    if (org=="microbiome") {org <- "ko"}
+    if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
     enrich_attribute <- paste0(org, ":", unlist(strsplit(
       res[pid,]$geneID, "/")))
   } else {
