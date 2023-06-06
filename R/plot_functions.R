@@ -235,6 +235,7 @@ plot_kegg_network <- function(g) {
 #' add geom_node_rect, geom_node_text and geom_edge_link
 #' @param edge_color color attribute to edge
 #' @param group_color border color for group node rectangles
+#' @param node_label column name for node label
 #' @export
 #' @examples 
 #' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),

@@ -35,6 +35,8 @@ find_parenthesis_pairs <- function(s) {
 #' @importFrom dplyr row_number n distinct ungroup
 #' @importFrom stats setNames
 #' @return tbl_graph
+#' @examples \donttest{pathway("ko01100") |> 
+#' process_line() |> append_label_position()}
 #' @export
 append_label_position <- function(g) {
   pos <- g |>
@@ -46,10 +48,10 @@ append_label_position <- function(g) {
     mutate(n2=n/2) |> 
     mutate(n3=as.integer(.data$n2+1))
   posvec <- pos$n3 |> setNames(pos$orig.id)
-  g |> activate(edges) |> group_by(orig.id) |> 
+  g |> activate(edges) |> group_by(.data$orig.id) |> 
     mutate(rn=row_number()) |> ungroup() |>
     mutate(showpos=edge_numeric(name="orig.id", posvec)) |>
-    mutate(center=.data$rn==showpos) |>
+    mutate(center=.data$rn==.data$showpos) |>
     mutate(rn=NULL, showpos=NULL)
 }
 
@@ -60,14 +62,17 @@ append_label_position <- function(g) {
 #' Give the original edge ID of KGML (orig.id in edge table), and 
 #' return the original compound node ID
 #' 
+#' @param g tbl_graph object
 #' @param orig original edge ID
 #' @return vector of original compound node IDs
 #' @export
 return_line_compounds <- function(g, orig) {
   ndf <- g |> activate(nodes) |> data.frame()
   edf <- g |> activate(edges) |> data.frame()
-  highl <- ndf[edf[edf$to %in% as.integer(ndf[ndf$orig.id %in% orig,] |> row.names()),]$from,]$orig.id
-  highl2 <- ndf[edf[edf$from %in% as.integer(ndf[ndf$orig.id %in% orig,] |> row.names()),]$to,]$orig.id
+  highl <- ndf[edf[edf$to %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
+    row.names()),]$from,]$orig.id
+  highl2 <- ndf[edf[edf$from %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
+    row.names()),]$to,]$orig.id
   c(highl, highl2)
 }
 
@@ -79,6 +84,7 @@ return_line_compounds <- function(g, orig) {
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
 #' @param name name of column to match for
+#' @param how `any` or `all`
 #' @export
 #' @return numeric vector
 #' @importFrom tibble is_tibble
@@ -87,13 +93,16 @@ return_line_compounds <- function(g, orig) {
 #' 
 edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
   graph <- .G()
-  if (!is_tibble(num) & !is.vector(num)) {stop("Please provide tibble or named vector")}
+  if (!is_tibble(num) & !is.vector(num)) {
+    stop("Please provide tibble or named vector")}
   if (is_tibble(num)) {
-    if (duplicated(num$id) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    if (duplicated(num$id) |> unique() |> length() > 1) {
+      stop("Duplicate ID found")}
     changer <- num$value
     names(changer) <- num$id
   } else {
-    if (duplicated(names(num)) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    if (duplicated(names(num)) |> unique() |> length() > 1) {
+      stop("Duplicate ID found")}
     changer <- num
   }
   x <- get.edge.attribute(graph, name)
@@ -103,7 +112,8 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
     in_node <- strsplit(xx, " ") |> unlist() |> unique()
     thresh <- ifelse(how=="any", 1, length(in_node))
     if (length(intersect(names(changer), in_node)) >= thresh) {
-      summed <- do.call(num_combine, list(x=changer[intersect(names(changer), in_node)]))
+      summed <- do.call(num_combine,
+        list(x=changer[intersect(names(changer), in_node)]))
     } else {
       summed <- NA
     }
@@ -121,6 +131,7 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
 #' @param name name of column to match for
+#' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @export
 #' @return numeric vector
 #' @importFrom tibble is_tibble
@@ -128,13 +139,16 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' 
 node_numeric <- function(num, num_combine=mean, name="name", how="any") {
   graph <- .G()
-  if (!is_tibble(num) & !is.vector(num)) {stop("Please provide tibble or named vector")}
+  if (!is_tibble(num) & !is.vector(num)) {
+    stop("Please provide tibble or named vector")}
   if (is_tibble(num)) {
-    if (duplicated(num$id) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    if (duplicated(num$id) |> unique() |> length() > 1) {
+      stop("Duplicate ID found")}
     changer <- num$value
     names(changer) <- num$id
   } else {
-    if (duplicated(names(num)) |> unique() |> length() > 1) {stop("Duplicate ID found")}
+    if (duplicated(names(num)) |> unique() |> length() > 1) {
+      stop("Duplicate ID found")}
     changer <- num
   }
   x <- get.vertex.attribute(graph, name)
@@ -144,7 +158,8 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
     in_node <- strsplit(xx, " ") |> unlist() |> unique()
     thresh <- ifelse(how=="any", 1, length(in_node))
     if (length(intersect(names(changer), in_node)) >= thresh) {
-      summed <- do.call(num_combine, list(x=changer[intersect(names(changer), in_node)]))
+      summed <- do.call(num_combine,
+        list(x=changer[intersect(names(changer), in_node)]))
     } else {
       summed <- NA
     }
@@ -163,10 +178,15 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' 
 #' @param graph tbl_graph to append values to
 #' @param mat matrix representing gene as row and sample as column
+#' @param gene_type gene ID of matrix row
+#' @param org organism ID to convert ID
+#' @param org_db organism database to convert ID
+#' @param num_combine function to combine multiple numeric values
 #' @export
+#' @importFrom AnnotationDbi select
 #' @return tbl_graph
-node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
-                              num_combine=mean) {
+node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
+                        org_db=org.Hs.eg.db, num_combine=mean) {
   
   get_value <- function(x) {
     val <- list()
@@ -175,7 +195,8 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
       vals <- strsplit(x[xx], " ") |> unlist() |> unique()
       subset_conv <- convert_df |> filter(converted %in% vals) |> data.frame()
       if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
-      if (dim(subset_conv)[1]==1) {val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
+      if (dim(subset_conv)[1]==1) {
+        val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
       val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
     }
     binded <- do.call(rbind, val)
@@ -185,10 +206,10 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
   node_df <- graph |> activate(nodes) |> data.frame()
   node_name <- node_df$name
   if (gene_type!="ENTREZID") {
-    convert_df <- mat |> row.names() |> AnnotationDbi::select(x=org_db,
-                                                              keys=_,
-                                                              columns="ENTREZID",
-                                                              keytype=gene_type)
+    convert_df <- mat |> row.names() |> select(x=org_db,
+                                          keys=_,
+                                          columns="ENTREZID",
+                                          keytype=gene_type)
   } else {
     convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
   }
@@ -209,9 +230,15 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
 #' 
 #' @param graph tbl_graph to append values to
 #' @param mat matrix representing gene as row and sample as column
+#' @param gene_type gene ID of matrix row
+#' @param org organism ID to convert ID
+#' @param org_db organism database to convert ID
+#' @param num_combine function to combine multiple numeric values
 #' @export
+#' @importFrom AnnotationDbi select
 #' @return tbl_graph
-edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs.eg.db,
+edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
+                              org_db=org.Hs.eg.db,
                               num_combine=mean) {
   
   get_value <- function(x) {
@@ -219,29 +246,34 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
     for (xx in seq_along(x)) {
       if (x[xx]=="undefined") {val[[xx]] <- NA; next}
       vals <- strsplit(x[xx], " ") |> unlist() |> unique()
-      subset_conv <- convert_df |> filter(converted %in% vals) |> data.frame()
+      subset_conv <- convert_df |> filter(.data$converted %in% vals) |> 
+                      data.frame()
       if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
-      if (dim(subset_conv)[1]==1) {val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
+      if (dim(subset_conv)[1]==1) {
+        val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
       val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
     }
     binded <- do.call(rbind, val)
     binded
   }
   
-  node_df <- graph |> activate(nodes) |> data.frame()
+  node_df <- graph |> activate("nodes") |> data.frame()
   node_name <- node_df$name
   if (gene_type!="ENTREZID") {
-    convert_df <- mat |> row.names() |> AnnotationDbi::select(x=org_db,
-                                                              keys=_,
-                                                              columns="ENTREZID",
-                                                              keytype=gene_type)
-  } else {
+    convert_df <- mat |> row.names() |> select(x=org_db,
+                                                          keys=_,
+                                                          columns="ENTREZID",
+                                                          keytype=gene_type)
+} else {
     convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
   }
   
   convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
-  new_graph <- graph |> activate(edges) |> mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |> data.frame()
-  summed <- data.frame(get_value(new_graph$from_nd) + get_value(new_graph$to_nd))
+  new_graph <- graph |> activate(edges) |>
+    mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |> 
+    data.frame()
+  summed <- data.frame(
+    get_value(new_graph$from_nd) + get_value(new_graph$to_nd))
   new_edges <- cbind(new_graph, summed)
   appended <- tbl_graph(nodes=node_df, edges=new_edges)
   appended
@@ -257,22 +289,25 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
 #' @param pid pathway ID, if NULL, try to infer from graph attribute
 #' @return enrich_attribute column in node
 #' @examples
-#'nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
 #'                    x=c(1,1),
 #'                    xmin=c(-1,-1),
 #'                    xmax=c(2,2),
 #'                    y=c(1,1),
 #'                    ymin=c(-1,-1),
 #'                    ymax=c(2,2))
-#'edges <- data.frame(from=1, to=2)
-#'graph <- tbl_graph(nodes, edges)
-#'cp <- enrichKEGG(nodes$name |>
-#'                 strsplit(":") |> 
-#'                 sapply("[",2))
-#'graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' if (require("clusterProfiler")) {
+#'   cp <- enrichKEGG(nodes$name |>
+#'                   strsplit(":") |> 
+#'                   sapply("[",2))
+#' }
+#' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 #' @export
 append_cp <- function(res, how="any", name="name", pid=NULL) {
-  if (attributes(res)$class!="enrichResult") { stop("Please provide enrichResult class object") }
+  if (attributes(res)$class!="enrichResult") {
+    stop("Please provide enrichResult class object") }
 
   graph <- .G()
   if (is.null(pid)) {
@@ -326,6 +361,7 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
 #' @param name column name for ID in tbl_graph nodes
 #' @return numeric vector
 #' @import org.Hs.eg.db
+#' @importFrom AnnotationDbi select
 #' @export
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
@@ -334,15 +370,17 @@ assign_deseq2 <- function(res, column="log2FoldChange",
                           name="name") {
   graph <- .G()
   if (gene_type!="ENTREZID") {
-    convert_df <- res |> row.names() |> AnnotationDbi::select(x=org_db,
+    convert_df <- res |> row.names() |> select(x=org_db,
                                                 keys=_,
                                                 columns="ENTREZID",
                                                 keytype=gene_type)
     
-    nums <- data.frame(row.names(res), res[[column]]) |> `colnames<-`(c(gene_type, column))
+    nums <- data.frame(row.names(res), res[[column]]) |> 
+    `colnames<-`(c(gene_type, column))
     merged <- merge(nums, convert_df, by=gene_type)
   } else {
-    merged <- data.frame(row.names(res), res[[column]]) |> `colnames<-`(c("ENTREZID", column))
+    merged <- data.frame(row.names(res), res[[column]]) |> 
+    `colnames<-`(c("ENTREZID", column))
   }
   merged$converted <- paste0(org, ":", merged[["ENTREZID"]])
   changer <- merged[[column]] |> `names<-`(merged[["converted"]])
@@ -351,8 +389,8 @@ assign_deseq2 <- function(res, column="log2FoldChange",
   for (xx in x) {
     in_node <- strsplit(xx, " ") |> unlist() |> unique()
     final_attribute <- c(final_attribute,
-                         do.call(numeric_combine,
-                                 list(x=changer[intersect(in_node, names(changer))])))
+                 do.call(numeric_combine,
+                         list(x=changer[intersect(in_node, names(changer))])))
   }
   final_attribute
 }
@@ -436,7 +474,8 @@ convert_id <- function(org, name="name",
       paste0(pref,convert$V1)
   }
   if (!colon) {
-    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"), "[", 2))
+    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"),
+      "[", 2))
   }
   convs <- NULL
   for (xn in seq_along(x)) {
@@ -530,7 +569,8 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
     names(convert_vec) <- convert$V1
   }
   if (!colon) {
-    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"), "[", 2))
+    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"),
+      "[", 2))
   }
   convert_vec
 }
@@ -554,70 +594,71 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' @export
 #' 
 combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
-  
-  ## Make igraph with strength from bnlearn
-  el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
-    `colnames<-`(c("from","to"))
-  g <- str |> merge(el) |> mutate(from=paste0(prefix,from),
-                                               to=paste0(prefix,to)) |>
-                              data.frame() |> graph_from_data_frame()
-  
-  ## Merge node names with reference
-  js <- NULL
-  for (i in V(pg)$name) {
-    if (grepl(" ",i)) {
-      ref_node <- strsplit(i, " ") |> unlist()
-      for (j in V(g)$name) {
-        if (how=="any") {
-          if (length(intersect(ref_node, j))>0) {
-            js <- rbind(js, c(j, i))
+  if (requireNamespace("bnlearn", quietly = TRUE)) {
+    ## Make igraph with strength from bnlearn
+    el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
+      `colnames<-`(c("from","to"))
+    g <- str |> merge(el) |> mutate(from=paste0(prefix,.data$from),
+                                                 to=paste0(prefix,.data$to)) |>
+                                data.frame() |> graph_from_data_frame()
+    
+    ## Merge node names with reference
+    js <- NULL
+    for (i in V(pg)$name) {
+      if (grepl(" ",i)) {
+        ref_node <- strsplit(i, " ") |> unlist()
+        for (j in V(g)$name) {
+          if (how=="any") {
+            if (length(intersect(ref_node, j))>0) {
+              js <- rbind(js, c(j, i))
+            }
+          } else {
+            if (length(intersect(ref_node, j))==length(ref_node)) {
+              js <- rbind(js, c(j, i))
+            }          
           }
-        } else {
-          if (length(intersect(ref_node, j))==length(ref_node)) {
-            js <- rbind(js, c(j, i))
-          }          
         }
+      } else {
+        js <- rbind(js, c(i, i))
       }
-    } else {
-      js <- rbind(js, c(i, i))
     }
-  }
-  
-  js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
-  gdf <- as_data_frame(g)
-  
-  new_df <- NULL
-  for (i in seq_len(nrow(gdf))) {
-    if (gdf[i,"from"] %in% js$raw){
-      new_from <- js[js[,1]==gdf[i,"from"],]$reference
-      new_df <- rbind(new_df,
-                      c(new_from, gdf[i,"to"], 
-                        gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
-    } else {
-      stop("no `from` included in raw node name")
+    
+    js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
+    gdf <- as_data_frame(g)
+    
+    new_df <- NULL
+    for (i in seq_len(nrow(gdf))) {
+      if (gdf[i,"from"] %in% js$raw){
+        new_from <- js[js[,1]==gdf[i,"from"],]$reference
+        new_df <- rbind(new_df,
+                        c(new_from, gdf[i,"to"], 
+                          gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
+      } else {
+        stop("no `from` included in raw node name")
+      }
     }
-  }
-  gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
+    gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
 
-  new_df <- NULL
-  for (i in seq_len(nrow(gdf))) {
-    if (gdf[i,"to"] %in% js$raw){
-      new_to <- js[js[,1]==gdf[i,"to"],]$reference
-      new_df <- rbind(new_df,
-                      c(gdf[i,"from"], new_to, 
-                        gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
-    } else {
-      stop("no `to` included in raw node name")    
+    new_df <- NULL
+    for (i in seq_len(nrow(gdf))) {
+      if (gdf[i,"to"] %in% js$raw){
+        new_to <- js[js[,1]==gdf[i,"to"],]$reference
+        new_df <- rbind(new_df,
+                        c(gdf[i,"from"], new_to, 
+                          gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
+      } else {
+        stop("no `to` included in raw node name")    
+      }
     }
-  }
-  gdf <- new_df |> `colnames<-`(colnames(gdf))
-  
-  gdf$strength <- as.numeric(gdf$strength)
-  gdf$direction <- as.numeric(gdf$direction)
-  
-  ## Drop duplicates
-  gdf <- gdf |> distinct(from, to, strength, direction)
+    gdf <- new_df |> `colnames<-`(colnames(gdf))
+    
+    gdf$strength <- as.numeric(gdf$strength)
+    gdf$direction <- as.numeric(gdf$direction)
+    
+    ## Drop duplicates
+    gdf <- gdf |> distinct(.data$from, .data$to, .data$strength, .data$direction)
 
-  joined <- graph_join(pg, gdf, by="name")
-  joined
+    joined <- graph_join(pg, gdf, by="name")
+    joined    
+  }
 }

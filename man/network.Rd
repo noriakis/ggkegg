@@ -8,6 +8,9 @@ parsing the network elements starting with N}
 \usage{
 network(nid)
 }
+\arguments{
+\item{nid}{KEGG NETWORK ID}
+}
 \value{
 list of network definition
 }
@@ -15,4 +18,7 @@ list of network definition
 KEGG network parsing function
 network
 parsing the network elements starting with N
+}
+\examples{
+\donttest{network("N00002")}
 }
