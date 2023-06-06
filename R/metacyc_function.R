@@ -15,6 +15,7 @@
 #' file <- "pathways.dat"
 #' \dontrun{parseMetaCycPathwayReactions(file, candSp="all")}
 #' @export
+#' @return nested list of MetaCyc pathway descriptions
 #' 
 parseMetaCycPathwayReactions <- function(file) {
   flg <- FALSE
@@ -62,7 +63,7 @@ parseMetaCycPathwayReactions <- function(file) {
 #' parse reaction layout of metacyc pathway
 #' and return tbl_graph object
 #' 
-#' @export
+#' @noRd
 parse_reaction_layout <- function(reacs) {
   eds <- NULL
   for (r in reacs) {

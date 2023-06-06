@@ -13,6 +13,20 @@ module_text(
   convert = NULL
 )
 }
+\arguments{
+\item{kmo}{module object}
+
+\item{name}{name of definition}
+
+\item{candidate_ko}{KO to highlight}
+
+\item{paint_colour}{color to highlight}
+
+\item{convert}{named vector converting the KO to gene name}
+}
+\value{
+textual description of module definitions
+}
 \description{
 module_text
 Obtain textual representation of module definition for all the blocks

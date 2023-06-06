@@ -124,6 +124,7 @@ setMethod("show",
 #' KEGG module parsing function
 #' @param mid KEGG module ID
 #' @return list of module definition and reaction
+#' @examples \donttest{module("M00003")}
 #' @export
 module <- function(mid) {
   kmo <- new("kegg_module")
@@ -187,7 +188,13 @@ module <- function(mid) {
 
 #' module_text
 #' Obtain textual representation of module definition for all the blocks
+#' @param kmo module object
+#' @param name name of definition
+#' @param candidate_ko KO to highlight
+#' @param paint_colour color to highlight
+#' @param convert named vector converting the KO to gene name
 #' @export
+#' @return textual description of module definitions
 module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
   kmo <- kmo@definitions[[name]]
   plot_list <- list()
@@ -292,7 +299,12 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 
 #' module_completeness
 #' 
+#' @param kmo module object
+#' @param query vector of KO
+#' @param name name of definitions when multiple definitions are present
+#' @examples \donttest{module_completeness("M00003", c("K00927"))}
 #' @export
+#' @return tibble
 module_completeness <- function(kmo, query, name="1") {
   if (length(kmo@definitions)>1) {message("Multiple definitions found, taking specified definition");
     message(paste0("  number of definitions: ",length(kmo@definitions)));
@@ -330,10 +342,16 @@ module_completeness <- function(kmo, query, name="1") {
 #' Given module definition and block number,
 #' Recursively obtain graphical represencation of block and 
 #' connect them by pseudo-nodes representing blocks.
+#' @param kmo module object
+#' @param name name of definition when multiple definitions are present
+#' @param block specify if need to parse specific block
 #' @export
+#' @return list of module definitions
 obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
   kmo <- kmo@definitions[[name]]
-  if (is.null(block)) {cand_step <- kmo$definition_block}
+  if (is.null(block)) {cand_step <- kmo$definition_block} else {
+    cand_step <- block
+  }
   all_steps <- NULL
   orders <- NULL
 
@@ -631,7 +649,6 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 
 
 #' parse_module
-#' @export
 #' @importFrom dplyr tibble
 #' @noRd
 parse_module <- function(kmo) {
@@ -782,6 +799,8 @@ parse_module <- function(kmo) {
 #' @param num definition number when multiple definitions are present
 #' @param out calculation of final results, mean or weighted_mean
 #' @export
+#' @examples \donttest{module_abundance("M00003",c(1.2) |> setNames("K00927"))}
+#' @return numeric value
 module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
   mod <- module(mod_id)
   ko_abun <- NULL
@@ -808,6 +827,9 @@ module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
 #' pathway_abundance
 #' @param id pathway id
 #' @param vec named vector of abundance
+#' @param num number of module definition
+#' @return numeric value
+#' @examples \donttest{pathway_abundance("ko00270", c(1.2) |> `setNames`("K00927"))}
 #' @export
 pathway_abundance <- function(id, vec, num=1) {
   pway <- pathway_info(id)

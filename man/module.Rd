@@ -17,3 +17,6 @@ list of module definition and reaction
 module
 KEGG module parsing function
 }
+\examples{
+\donttest{module("M00003")}
+}
