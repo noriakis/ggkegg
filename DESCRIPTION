@@ -12,5 +12,5 @@ Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble
 Suggests: knitr
 RoxygenNote: 7.2.3
-biocViews: Pathways
+biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr

@@ -11,6 +11,9 @@ geom_node_rect_kegg(type = NULL, rect_fill = "grey")
 
 \item{rect_fill}{rectangular fill}
 }
+\value{
+ggplot2 object
+}
 \description{
 geom_node_rect_kegg
 }

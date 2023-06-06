@@ -4,7 +4,9 @@
 #' @return list of components in drug
 #' @export
 drug <- function(did) {
-  if (!startsWith(did, "D")) {stop("Please provide a string that starts with N.")}
+  if (!startsWith(did, "D")) {
+    stop("Please provide a string that starts with N.")
+  }
   if (!file.exists(did)) {
     download.file(paste0("https://rest.kegg.jp/get/",did),
                   destfile=did)

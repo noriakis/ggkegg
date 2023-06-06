@@ -8,6 +8,7 @@
 #' @param row_num row number
 #' @param return_list return list of graphs instead of joined graph
 #' @export
+#' @return graph adjusted for the position
 #' 
 multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
   plen <- length(pathways)
@@ -42,8 +43,11 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
 
 #' plot_module_text
 #' plot the text representation of KEGG modules
+#' @param plot_list the result of `module_text()`
+#' @param show_name name column to be plotted
 #' @importFrom tidygraph tbl_graph
 #' @import patchwork
+#' @return ggplot2 object
 #' @export
 plot_module_text <- function(plot_list, show_name="name") {
   panel_list <- list()
@@ -51,9 +55,11 @@ plot_module_text <- function(plot_list, show_name="name") {
     plot_list[[concat]]$name <- plot_list[[concat]][[show_name]]
     g <- tbl_graph(nodes=plot_list[[concat]])
     panel_list[[concat]] <- ggraph(g, x=x, y=1) +
-     geom_node_rect(aes(filter=.data$koflag), fill=plot_list[[concat]][plot_list[[concat]]$koflag,]$color,
+     geom_node_rect(aes(filter=.data$koflag),
+      fill=plot_list[[concat]][plot_list[[concat]]$koflag,]$color,
       alpha=0.5, color="black")+
-     geom_node_rect(aes(filter=!.data$koflag & !.data$conflag), fill="transparent", color="black")+
+     geom_node_rect(aes(filter=!.data$koflag & !.data$conflag),
+      fill="transparent", color="black")+
      geom_node_text(aes(label=name,filter=.data$koflag | .data$conflag))+
      theme_void()
   }
@@ -63,7 +69,10 @@ plot_module_text <- function(plot_list, show_name="name") {
 
 #' plot_module_blocks
 #' wrapper function for plotting module definition blocks
+#' @param all_steps the result of `obtain_sequential_module_definition()`
+#' @param layout ggraph layout parameter
 #' @export
+#' @return ggplot2 object
 plot_module_blocks <- function(all_steps, layout="kk") {
   allnodes <- unique(V(all_steps)$name)
   if (sum(startsWith(allnodes, "K"))==length(allnodes)) {
@@ -73,7 +82,8 @@ plot_module_blocks <- function(all_steps, layout="kk") {
     geom_edge_link(aes(filter=type %in% c("block_transition","rel")),
                        end_cap=circle(5, 'mm'),start_cap=circle(5,"mm"),
                        color="red")+
-    geom_edge_link(aes(filter=!type %in% c("block_transition","rel","in_block"))) + 
+    geom_edge_link(aes(filter=!type %in% 
+      c("block_transition","rel","in_block"))) + 
     geom_edge_link(aes(label=type,
                            filter=!startsWith(type,"in") & 
                              !type %in% c("block_transition","rel")),
@@ -96,6 +106,12 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 #' Plot shadowtext at node position
 #' 
 #' @export
+#' @param mapping aes mapping
+#' @param data data to plot
+#' @param position positional argument
+#' @param show.legend whether to show legend
+#' @param ... passed to `params` in `layer()` function
+#' @return geom
 #' @importFrom shadowtext GeomShadowText
 geom_node_shadowtext <- function(mapping = NULL, data = NULL,
                            position = 'identity',
@@ -112,7 +128,15 @@ geom_node_shadowtext <- function(mapping = NULL, data = NULL,
   )
 }
 
-
+#' geom_node_rect
+#' 
+#' add rectangular shapes to ggplot2 using GeomRect
+#' @param mapping aes mapping
+#' @param data data to plot
+#' @param position positional argument
+#' @param show.legend whether to show legend
+#' @param ... passed to `params` in `layer()` function
+#' @return geom
 #' @export
 #'
 geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
@@ -135,6 +159,7 @@ geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
 #' @param type type to be plotted (gene, map, compound ...)
 #' @param rect_fill rectangular fill
 #' @export
+#' @return ggplot2 object
 geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
   ## [TODO] implement ggproto
   structure(list(type=type, rect_fill=rect_fill),
@@ -147,6 +172,7 @@ geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
 #' @param object_name The name of the object to add
 #' @export ggplot_add.geom_node_rect_kegg
 #' @export
+#' @return ggplot2 object
 ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
   if (is.null(object$type)){
     type <- unique(plot$data$type)
@@ -157,7 +183,8 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
   if (!is.null(plot$data$undefined)) {
     plot <- plot + geom_node_rect(aes(filter=.data$undefined),
                 fill="transparent", color="red")
-    plot <- plot + geom_node_rect(aes(filter=.data$undefined & .data$type %in% type),
+    plot <- plot + geom_node_rect(
+      aes(filter=.data$undefined & .data$type %in% type),
       fill=object$rect_fill, color="black")
 
   } else {
@@ -172,6 +199,8 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' 
 #' plot the output of network_graph
 #' 
+#' @param g graph object returned by `network()`
+#' @return ggplot2 object
 #' @export
 plot_kegg_network <- function(g) {
   ## [TODO] Presuming G***** and CS***** is not in the symbol
@@ -207,6 +236,7 @@ plot_kegg_network <- function(g) {
 #' @param edge_color color attribute to edge
 #' @param group_color border color for group node rectangles
 #' @export
+#' @return ggplot2 object
 geom_kegg <- function(edge_color=NULL,
                       node_label=name,
                       group_color="red") {
@@ -221,6 +251,7 @@ geom_kegg <- function(edge_color=NULL,
 #' @param plot The ggplot object to add object to
 #' @param object_name The name of the object to add
 #' @export ggplot_add.geom_kegg
+#' @return ggplot2 object
 #' @export
 ggplot_add.geom_kegg <- function(object, plot, object_name) {
   plot <- plot + 
@@ -231,7 +262,7 @@ ggplot_add.geom_kegg <- function(object, plot, object_name) {
   plot <- plot+ geom_node_rect(aes(filter=.data$type=="group"),
                        fill="transparent", color=object$group_color)
   plot <- plot + geom_node_rect(aes(fill=I(bgcolor),
-                                     filter=bgcolor!="none" & .data$type!="group"))
+                                filter=bgcolor!="none" & .data$type!="group"))
   plot <- plot+
     geom_node_text(aes(label=!!object$node_label,
                        filter=type!="group"), family="serif", size=2)+
