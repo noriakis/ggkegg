@@ -24,7 +24,9 @@ setMethod("show",
 #' KEGG network parsing function
 #' network
 #' parsing the network elements starting with N
+#' @param nid KEGG NETWORK ID
 #' @return list of network definition
+#' @examples \donttest{network("N00002")}
 #' @export
 network <- function(nid) {
   if (!startsWith(nid, "N")) {stop("Please provide a string that starts with N.")}
@@ -104,6 +106,8 @@ convert_definition_to_graph <- function(kne) {
 #' 
 #' obtain tbl_graph of KEGG network
 #' 
+#' @param kne network object
+#' @param type definition or expanded
 #' @return tbl_graph
 #' @export
 network_graph <- function (kne, type="definition") {

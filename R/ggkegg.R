@@ -4,6 +4,7 @@
 #' making igraph object and passing it to ggraph.
 #' 
 #' @param pid KEGG Pathway id e.g. hsa04110
+#' @param pathway_number pathway number if passing enrichResult
 #' @param layout default to "native", using KGML positions
 #' @param return_igraph return the resulting igraph object
 #' @param return_tbl_graph return the resulting tbl_graph object
@@ -30,10 +31,14 @@
 #' @param module_definition_type `text` or `network` 
 #' when parsing module definition.
 #' If `text`, return ggplot object. If `network`, return `tbl_graph`.
+#' @param numeric_attribute named vector for appending numeric attribute
+#' @param node_rect_nudge parameter for nudging the node rect
+#' @param group_rect_nudge parameter for nudging the group node rect
 #' @import ggraph
 #' @import ggplot2
 #' @importFrom tidygraph as_tbl_graph
 #' @importFrom igraph induced.subgraph delete_vertex_attr
+#' @importFrom methods new
 #' @export
 #' @return ggplot2 object
 ggkegg <- function(pid,
@@ -195,6 +200,7 @@ ggkegg <- function(pid,
 #' @param pid pathway id, override pathway_number if specified
 #' @param fill_color color for genes
 #' @param white_background fill background color white
+#' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @export
 #' @examples \donttest{
 #' cp <- enrichKEGG(c("1029","4171"))

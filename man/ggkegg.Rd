@@ -33,6 +33,8 @@ ggkegg(
 \item{return_tbl_graph}{return the resulting tbl_graph object
 (override `return_igraph` argument)}
 
+\item{pathway_number}{pathway number if passing enrichResult}
+
 \item{convert_org}{these organism names are fetched from REST API
 and cached, and used to convert the KEGG identifiers.
 e.g. c("hsa", "compound")}
@@ -52,6 +54,12 @@ should be set to `TRUE` when the layout is not from native KGML.}
 
 \item{delete_zero_degree}{delete nodes with zero degree,
 default to FALSE}
+
+\item{numeric_attribute}{named vector for appending numeric attribute}
+
+\item{node_rect_nudge}{parameter for nudging the node rect}
+
+\item{group_rect_nudge}{parameter for nudging the group node rect}
 
 \item{module_type}{specify which module attributes to obtain
 (definition or reaction)}

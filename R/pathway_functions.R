@@ -17,6 +17,7 @@
 #' @importFrom tidygraph .G
 #' @importFrom XML xmlParse
 #' @importFrom tibble as_tibble
+#' @importFrom utils download.file head tail
 #' @examples \donttest{pathway("hsa04110")}
 #' @export
 pathway <- function(pid,

@@ -29,6 +29,7 @@ overlay_raw_map <- function(pid=NULL,
 #' @param object_name The name of the object to add
 #' @export ggplot_add.overlay_raw_map
 #' @return ggplot2 object
+#' @importFrom grDevices as.raster
 #' @export
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   if (is.null(object$pid)) {
