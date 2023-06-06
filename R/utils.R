@@ -24,13 +24,16 @@ find_parenthesis_pairs <- function(s) {
 }
 
 
-#' append_line_position
+#' append_label_position
 #'
 #' append the label position at center of edges
 #' in global map like ko01100 where line type nodes
 #' are present in KGML. Add `center` column to graph edge
 #' 
 #' @param g graph
+#' @importFrom dplyr mutate summarise group_by filter
+#' @importFrom dplyr row_number n distinct ungroup
+#' @return tbl_graph
 #' @export
 append_label_position <- function(g) {
   pos <- g |>
@@ -57,6 +60,7 @@ append_label_position <- function(g) {
 #' return the original compound node ID
 #' 
 #' @param orig original edge ID
+#' @return vector of original compound node IDs
 #' @export
 return_line_compounds <- function(g, orig) {
   ndf <- g |> activate(nodes) |> data.frame()
@@ -75,6 +79,7 @@ return_line_compounds <- function(g, orig) {
 #' @param num_combine how to combine number when multiple hit in the same node
 #' @param name name of column to match for
 #' @export
+#' @return numeric vector
 #' @importFrom tibble is_tibble
 #' @importFrom tidygraph activate
 #' 
@@ -116,6 +121,7 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' @param num_combine how to combine number when multiple hit in the same node
 #' @param name name of column to match for
 #' @export
+#' @return numeric vector
 #' @importFrom tibble is_tibble
 #' 
 #' 
@@ -299,6 +305,7 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
 #' @param res The result() of DESeq()
 #' @param column column of the numeric attribute, default to log2FoldChange
 #' @param gene_type default to SYMBOL
+#' @return numeric vector
 #' @export
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
@@ -351,6 +358,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' and take the first value
 #' @param edge if converting edges
 #' @importFrom data.table fread
+#' @return vector containing converted IDs
 #' @export
 #' 
 convert_id <- function(org, name="name",
@@ -511,6 +519,7 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' @param how `any` or `all`
 #' 
 #' @return tbl_graph
+#' @importFrom tidygraph graph_join
 #' @export
 #' 
 combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {

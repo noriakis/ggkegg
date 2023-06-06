@@ -16,16 +16,19 @@
 #' e.g. c("hsa", "compound")
 #' @param convert_first after converting, take the first element as 
 #' node name when multiple genes are listed in the node
-#' @param convert_collapse if not NULL, collapse the gene names by this character
+#' @param convert_collapse if not NULL, collapse 
+#' the gene names by this character
 #' when multiple genes are listed in the node.
 #' @param convert_reaction reaction name (graph attribute `reaction`) 
 #' will be converted to reaction formula
 #' @param delete_undefined delete `undefined` node specifying group,
 #' should be set to `TRUE` when the layout is not from native KGML.
-#' @param delete_zero_degree delete nodes with zero degree, default to FALSE
+#' @param delete_zero_degree delete nodes with zero degree,
+#' default to FALSE
 #' @param module_type specify which module attributes to obtain
 #' (definition or reaction)
-#' @param module_definition_type `text` or `network` when parsing module definition.
+#' @param module_definition_type `text` or `network` 
+#' when parsing module definition.
 #' If `text`, return ggplot object. If `network`, return `tbl_graph`.
 #' @import ggraph
 #' @import ggplot2
@@ -97,23 +100,23 @@ ggkegg <- function(pid,
                        obtain_map_and_cache(co, pid))
     }
     V(g)$converted_name <- unlist(lapply(V(g)$name,
-                                         function(x) {
-                                           inc_genes <- unlist(strsplit(x, " "))
-                                           conv_genes <- NULL
-                                           for (inc in inc_genes) {
-                                             convs <- convert_vec[inc]
-                                             if (is.na(convs)) {
-                                               conv_genes <- c(conv_genes, x)
-                                             } else {
-                                               conv_genes <- c(conv_genes, convs)
-                                             }
-                                           }
-                                           if (convert_first) {
-                                             conv_genes[1]
-                                           } else {
-                                             paste(conv_genes, collapse=convert_collapse)
-                                           }
-                                         }))
+                               function(x) {
+                                 inc_genes <- unlist(strsplit(x, " "))
+                                 conv_genes <- NULL
+                                 for (inc in inc_genes) {
+                                   convs <- convert_vec[inc]
+                                   if (is.na(convs)) {
+                                     conv_genes <- c(conv_genes, x)
+                                   } else {
+                                     conv_genes <- c(conv_genes, convs)
+                                   }
+                                 }
+                                 if (convert_first) {
+                                   conv_genes[1]
+                                 } else {
+                                   paste(conv_genes, collapse=convert_collapse)
+                                 }
+                               }))
   }
 
   if (!is.null(numeric_attribute)){
@@ -145,24 +148,24 @@ ggkegg <- function(pid,
   if (convert_reaction) {
     convert_vec <- obtain_map_and_cache("reaction",NULL)
     V(g)$converted_reaction <- unlist(lapply(V(g)$reaction,
-                                         function(x) {
-                                           inc_genes <- unlist(strsplit(x, " "))
-                                           conv_genes <- NULL
-                                           for (inc in inc_genes) {
-                                             convs <- convert_vec[inc]
-                                             if (is.na(convs)) {
-                                               conv_genes <- c(conv_genes, x)
-                                             } else {
-                                               conv_genes <- c(conv_genes, convs)
-                                             }
-                                           }
-                                           if (convert_first) {
-                                             conv_genes[1]
-                                           } else {
-                                             paste(conv_genes, collapse=convert_collapse)
-                                           }
-                                         }))
-    
+                               function(x) {
+                                 inc_genes <- unlist(strsplit(x, " "))
+                                 conv_genes <- NULL
+                                 for (inc in inc_genes) {
+                                   convs <- convert_vec[inc]
+                                   if (is.na(convs)) {
+                                     conv_genes <- c(conv_genes, x)
+                                   } else {
+                                     conv_genes <- c(conv_genes, convs)
+                                   }
+                                 }
+                                 if (convert_first) {
+                                   conv_genes[1]
+                                 } else {
+                                   paste(conv_genes, collapse=convert_collapse)
+                                 }
+                               }))
+
   }
   if (return_tbl_graph) {
     return(as_tbl_graph(g))
@@ -232,7 +235,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
   } else {
     g <- pathway(pid)
     for (i in seq_len(number)) {
-      g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]], how=how, pid=pid))
+      g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
+        how=how, pid=pid))
     }
     V(g)$space <- V(g)$width/number
     gg <- ggraph(g, layout="manual", x=x, y=y)
@@ -241,13 +245,15 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
       # tmp_col <- sym(paste0("cp",i))
       gg <- gg + geom_node_rect(
         fill=fill_color[i], data=nds[nds[[paste0("cp",i)]],],
-        xmin=nds[nds[[paste0("cp",i)]],]$xmin+nds[nds[[paste0("cp",i)]],]$space*(i-1)
+        xmin=nds[nds[[paste0("cp",i)]],]$xmin+
+        nds[nds[[paste0("cp",i)]],]$space*(i-1)
         )
     }
     gg <- gg + overlay_raw_map()+theme_void()
   }
   if (white_background) {
-    gg + theme(panel.background = element_rect(fill = 'white', colour = 'white'))
+    gg + theme(panel.background = element_rect(fill = 'white',
+      colour = 'white'))
   } else {
     gg
   }

@@ -13,6 +13,9 @@
 
 \item{object_name}{The name of the object to add}
 }
+\value{
+ggplot2 object
+}
 \description{
 ggplot_add.geom_node_rect_kegg
 }

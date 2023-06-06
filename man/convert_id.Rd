@@ -40,6 +40,9 @@ and take the first value}
 
 \item{edge}{if converting edges}
 }
+\value{
+vector containing converted IDs
+}
 \description{
 convert the identifier using retrieved information
 }

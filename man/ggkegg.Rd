@@ -40,7 +40,8 @@ e.g. c("hsa", "compound")}
 \item{convert_first}{after converting, take the first element as 
 node name when multiple genes are listed in the node}
 
-\item{convert_collapse}{if not NULL, collapse the gene names by this character
+\item{convert_collapse}{if not NULL, collapse 
+the gene names by this character
 when multiple genes are listed in the node.}
 
 \item{convert_reaction}{reaction name (graph attribute `reaction`) 
@@ -49,12 +50,14 @@ will be converted to reaction formula}
 \item{delete_undefined}{delete `undefined` node specifying group,
 should be set to `TRUE` when the layout is not from native KGML.}
 
-\item{delete_zero_degree}{delete nodes with zero degree, default to FALSE}
+\item{delete_zero_degree}{delete nodes with zero degree,
+default to FALSE}
 
 \item{module_type}{specify which module attributes to obtain
 (definition or reaction)}
 
-\item{module_definition_type}{`text` or `network` when parsing module definition.
+\item{module_definition_type}{`text` or `network` 
+when parsing module definition.
 If `text`, return ggplot object. If `network`, return `tbl_graph`.}
 }
 \description{

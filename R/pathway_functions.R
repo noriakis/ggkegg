@@ -15,6 +15,8 @@
 #' @importFrom igraph graph_from_data_frame
 #' @import igraph
 #' @importFrom tidygraph .G
+#' @importFrom XML xmlParse
+#' @importFrom tibble as_tibble
 #' @export
 pathway <- function(pid,
            group_rect_nudge=2,
@@ -308,6 +310,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' get_reaction
 #' parse the reaction in KGML
 #' @noRd
+#' @importFrom XML xmlAttrs getNodeSet xmlElementsByTagName
 get_reaction <- function(xml) {
   rea_sets <- getNodeSet(xml, "//reaction")
   all_reas <- NULL

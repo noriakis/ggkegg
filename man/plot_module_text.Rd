@@ -7,6 +7,14 @@ plot the text representation of KEGG modules}
 \usage{
 plot_module_text(plot_list, show_name = "name")
 }
+\arguments{
+\item{plot_list}{the result of `module_text()`}
+
+\item{show_name}{name column to be plotted}
+}
+\value{
+ggplot2 object
+}
 \description{
 plot_module_text
 plot the text representation of KEGG modules
