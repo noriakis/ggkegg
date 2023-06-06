@@ -4,7 +4,7 @@
 find_parenthesis_pairs <- function(s) {
   stack <- list()
   pairs <- list()
-  for (i in 1:nchar(s)) {
+  for (i in seq_len(nchar(s))) {
     c <- substr(s, i, i)
     if (c == "(") {
       stack <- c(stack, i)
@@ -255,6 +255,20 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
 #' @param name name column to search for query
 #' @param pid pathway ID, if NULL, try to infer from graph attribute
 #' @return enrich_attribute column in node
+#' @examples
+#'nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#'edges <- data.frame(from=1, to=2)
+#'graph <- tbl_graph(nodes, edges)
+#'cp <- clusterProfiler::enrichKEGG(nodes$name |> 
+#'                              strsplit(":") |> 
+#'                             sapply("[",2))
+#'graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 #' @export
 append_cp <- function(res, how="any", name="name", pid=NULL) {
   if (attributes(res)$class!="enrichResult") { stop("Please provide enrichResult class object") }
@@ -360,6 +374,17 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' @importFrom data.table fread
 #' @return vector containing converted IDs
 #' @export
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' graph <- graph |> mutate(conv=convert_id("hsa"))
 #' 
 convert_id <- function(org, name="name",
   convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,

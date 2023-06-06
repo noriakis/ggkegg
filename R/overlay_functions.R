@@ -9,9 +9,12 @@
 #' @param clip clip the both end of x- and y-axis by one dot
 #' @param adjust adjust the x-axis location by 0.5 in data coordinates
 #' @import magick
+#' @return ggplot2 object
 #' @export
 overlay_raw_map <- function(pid=NULL,
-                            transparent_colors=c("#FFFFFF","#BFBFFF","#BFFFBF","#7F7F7F","#808080"),
+                            transparent_colors=c("#FFFFFF",
+                              "#BFBFFF","#BFFFBF","#7F7F7F",
+                              "#808080"),
                             adjust=TRUE, clip=FALSE) {
   structure(list(pid=pid,
                  transparent_colors=transparent_colors,
@@ -25,6 +28,7 @@ overlay_raw_map <- function(pid=NULL,
 #' @param plot The ggplot object to add object to
 #' @param object_name The name of the object to add
 #' @export ggplot_add.overlay_raw_map
+#' @return ggplot2 object
 #' @export
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   if (is.null(object$pid)) {
@@ -57,7 +61,8 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   ymax=0
 
   if (object$clip) {
-    ras <- ras[1:nrow(ras)-1,1:ncol(ras)-1]
+    ras <- ras[seq_len(nrow(ras)-1),
+    seq_len(ncol(ras)-1)]
   }
   if (object$adjust) {
     xmin <- xmin - 0.5

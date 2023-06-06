@@ -236,6 +236,20 @@ plot_kegg_network <- function(g) {
 #' @param edge_color color attribute to edge
 #' @param group_color border color for group node rectangles
 #' @export
+#' @examples 
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2),
+#'                    type=c("gene","gene"),
+#'                    bgcolor=c("red","blue"))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' p <- ggraph(graph, layout="manual", x=x, y=y)+
+#' geom_kegg()
 #' @return ggplot2 object
 geom_kegg <- function(edge_color=NULL,
                       node_label=name,
@@ -253,6 +267,20 @@ geom_kegg <- function(edge_color=NULL,
 #' @export ggplot_add.geom_kegg
 #' @return ggplot2 object
 #' @export
+#' @examples 
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2),
+#'                    type=c("gene","gene"),
+#'                    bgcolor=c("red","blue"))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' p <- ggraph(graph, layout="manual", x=x, y=y)+
+#' geom_kegg()
 ggplot_add.geom_kegg <- function(object, plot, object_name) {
   plot <- plot + 
     geom_edge_link(width=0.5,
