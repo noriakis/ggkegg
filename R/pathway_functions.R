@@ -234,6 +234,7 @@ parse_kgml <- pathway
 #' @param verbose show progress
 #' @importFrom tidygraph bind_nodes bind_edges
 #' @export
+#' @return tbl_graph
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
   ## [TODO] speed up
   ## [TODO] add verbose

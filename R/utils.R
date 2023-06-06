@@ -33,22 +33,23 @@ find_parenthesis_pairs <- function(s) {
 #' @param g graph
 #' @importFrom dplyr mutate summarise group_by filter
 #' @importFrom dplyr row_number n distinct ungroup
+#' @importFrom stats setNames
 #' @return tbl_graph
 #' @export
 append_label_position <- function(g) {
   pos <- g |>
     activate(edges) |> 
     data.frame() |>
-    filter(type=="line") |>
-    group_by(orig.id) |> 
+    filter(.data$type=="line") |>
+    group_by(.data$orig.id) |> 
     summarise(n=n()) |> 
     mutate(n2=n/2) |> 
-    mutate(n3=as.integer(n2+1))
+    mutate(n3=as.integer(.data$n2+1))
   posvec <- pos$n3 |> setNames(pos$orig.id)
   g |> activate(edges) |> group_by(orig.id) |> 
     mutate(rn=row_number()) |> ungroup() |>
     mutate(showpos=edge_numeric(name="orig.id", posvec)) |>
-    mutate(center=rn==showpos) |>
+    mutate(center=.data$rn==showpos) |>
     mutate(rn=NULL, showpos=NULL)
 }
 
@@ -265,9 +266,9 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa", org_db=org.Hs
 #'                    ymax=c(2,2))
 #'edges <- data.frame(from=1, to=2)
 #'graph <- tbl_graph(nodes, edges)
-#'cp <- clusterProfiler::enrichKEGG(nodes$name |> 
-#'                              strsplit(":") |> 
-#'                             sapply("[",2))
+#'cp <- enrichKEGG(nodes$name |>
+#'                 strsplit(":") |> 
+#'                 sapply("[",2))
 #'graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 #' @export
 append_cp <- function(res, how="any", name="name", pid=NULL) {
@@ -319,7 +320,12 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
 #' @param res The result() of DESeq()
 #' @param column column of the numeric attribute, default to log2FoldChange
 #' @param gene_type default to SYMBOL
+#' @param org_db organism database to convert ID to ENTREZID
+#' @param org organism ID in KEGG
+#' @param numeric_combine how to combine multiple numeric values
+#' @param name column name for ID in tbl_graph nodes
 #' @return numeric vector
+#' @import org.Hs.eg.db
 #' @export
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",

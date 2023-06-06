@@ -6,6 +6,19 @@
 \usage{
 module_completeness(kmo, query, name = "1")
 }
+\arguments{
+\item{kmo}{module object}
+
+\item{query}{vector of KO}
+
+\item{name}{name of definitions when multiple definitions are present}
+}
+\value{
+tibble
+}
 \description{
 module_completeness
+}
+\examples{
+\donttest{module_completeness("M00003", c("K00927"))}
 }

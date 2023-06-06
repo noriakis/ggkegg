@@ -197,7 +197,7 @@ ggkegg <- function(pid,
 #' @param white_background fill background color white
 #' @export
 #' @examples \donttest{
-#' cp <- clusterProfiler::enrichKEGG(c("1029","4171"))
+#' cp <- enrichKEGG(c("1029","4171"))
 #' rawMap(list(cp,cp))
 #' }
 #' @return ggraph with overlaid KEGG map

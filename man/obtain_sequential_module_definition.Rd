@@ -6,6 +6,16 @@
 \usage{
 obtain_sequential_module_definition(kmo, name = "1", block = NULL)
 }
+\arguments{
+\item{kmo}{module object}
+
+\item{name}{name of definition when multiple definitions are present}
+
+\item{block}{specify if need to parse specific block}
+}
+\value{
+list of module definitions
+}
 \description{
 Given module definition and block number,
 Recursively obtain graphical represencation of block and 

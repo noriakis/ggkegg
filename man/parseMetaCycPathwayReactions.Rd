@@ -9,6 +9,9 @@ parseMetaCycPathwayReactions(file)
 \arguments{
 \item{file}{path to pathways.dat}
 }
+\value{
+nested list of MetaCyc pathway descriptions
+}
 \description{
 parse MetaCyc "pathways.dat"
 and return the nested list of:

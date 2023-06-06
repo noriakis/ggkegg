@@ -16,6 +16,9 @@ should match with `pathway` function}
 
 \item{verbose}{show progress}
 }
+\value{
+tbl_graph
+}
 \description{
 process_line
 process the kgml containing graphics type of `line`

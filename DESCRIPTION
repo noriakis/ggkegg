@@ -9,7 +9,8 @@ Encoding: UTF-8
 Depends:
     R (>= 4.2.0), ggplot2, ggraph, XML, igraph, tidygraph
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
-    magick, patchwork, shadowtext,  stringr, tibble
+    magick, patchwork, shadowtext,  stringr, tibble,
+    org.Hs.eg.db
 Suggests: knitr
 RoxygenNote: 7.2.3
 biocViews: Pathways, DataImport, KEGG
