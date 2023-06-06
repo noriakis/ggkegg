@@ -13,6 +13,7 @@
 #' @param sep separater for node names
 #' @param no_sep not separate node name
 #' @export
+#' @return boolean vector
 highlight_set_nodes <- function(set, how="all",
   name="name", sep=" ", no_sep=FALSE) {
   graph <- .G()
@@ -57,6 +58,7 @@ highlight_set_nodes <- function(set, how="all",
 #' @param sep separater for node names
 #' @param no_sep not separate node name
 #' @export
+#' @return boolean vector
 highlight_set_edges <- function(set, how="all",
   name="name", sep=" ", no_sep=FALSE) {
   graph <- .G()
@@ -101,6 +103,7 @@ highlight_set_edges <- function(set, how="all",
 #' @param verbose show messages or not
 #' @importFrom data.table :=
 #' @export
+#' @return boolean vector
 highlight_module <- function(graph, kmo,
                             name="name",
                             sep=" ",

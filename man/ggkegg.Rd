@@ -60,6 +60,9 @@ default to FALSE}
 when parsing module definition.
 If `text`, return ggplot object. If `network`, return `tbl_graph`.}
 }
+\value{
+ggplot2 object
+}
 \description{
 main function parsing KEGG pathway data,
 making igraph object and passing it to ggraph.

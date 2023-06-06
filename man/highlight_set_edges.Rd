@@ -20,6 +20,9 @@ is in query.}
 
 \item{no_sep}{not separate node name}
 }
+\value{
+boolean vector
+}
 \description{
 identify if edges are involved in specific query.
 if multiple IDs are listed after separation by `sep`,

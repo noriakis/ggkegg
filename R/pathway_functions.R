@@ -17,6 +17,7 @@
 #' @importFrom tidygraph .G
 #' @importFrom XML xmlParse
 #' @importFrom tibble as_tibble
+#' @examples \donttest{pathway("hsa04110")}
 #' @export
 pathway <- function(pid,
            group_rect_nudge=2,
@@ -302,7 +303,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 
   df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
   df_add |> activate(nodes) |>
-    mutate(original_name=vapply(1:length(original_name),
+    mutate(original_name=vapply(seq_len(length(original_name)),
      function(x){ if(is.na(original_name[x])) name[x] else original_name[x]},
      FUN.VALUE="character"))
 }

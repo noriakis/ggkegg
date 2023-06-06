@@ -204,9 +204,9 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
         dfs <- data.frame(posmat)
       }
       posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
-      posmat$name <- paste0("G",str_pad(1:nrow(posmat),5,pad="0"))
+      posmat$name <- paste0("G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
       ul <- sort(unique(posmat$length))
-      he <- (1:length(ul))+1
+      he <- (seq_len(length(ul)))+1
       names(he) <- ul
       posmat$height <- he[as.character(posmat$length)]/2
       posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
@@ -394,9 +394,9 @@ module_graph <- function(input_string, skip_minus=FALSE) {
       dfs <- data.frame(posmat)
     }
     posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
-    posmat$name <- paste0("G",str_pad(1:nrow(posmat),5,pad="0"))
+    posmat$name <- paste0("G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
     ul <- sort(unique(posmat$length))
-    he <- (1:length(ul))+1
+    he <- (seq_len(length(ul)))+1
     names(he) <- ul
     posmat$height <- he[as.character(posmat$length)]/2
     posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
@@ -722,7 +722,7 @@ parse_module <- function(kmo) {
       current_step <- ""
       open_parentheses <- 0
       
-      for (i in 1:nchar(input_string)) {
+      for (i in seq_len(nchar(input_string))) {
         char <- substr(input_string, i, i)
         
         if (char == "(") {

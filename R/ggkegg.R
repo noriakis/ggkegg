@@ -35,6 +35,7 @@
 #' @importFrom tidygraph as_tbl_graph
 #' @importFrom igraph induced.subgraph delete_vertex_attr
 #' @export
+#' @return ggplot2 object
 ggkegg <- function(pid,
                    layout="native",
                    return_igraph=FALSE,
@@ -195,6 +196,10 @@ ggkegg <- function(pid,
 #' @param fill_color color for genes
 #' @param white_background fill background color white
 #' @export
+#' @examples \donttest{
+#' cp <- clusterProfiler::enrichKEGG(c("1029","4171"))
+#' rawMap(list(cp,cp))
+#' }
 #' @return ggraph with overlaid KEGG map
 #' 
 #' 

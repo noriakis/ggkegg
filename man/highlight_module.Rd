@@ -17,6 +17,9 @@ highlight_module(graph, kmo, name = "name", sep = " ", verbose = FALSE)
 
 \item{verbose}{show messages or not}
 }
+\value{
+boolean vector
+}
 \description{
 identify if edges are involved in module reaction, and whether 
 linked compounds are involved in the reaction. It would not be exactly 

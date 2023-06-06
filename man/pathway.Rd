@@ -37,3 +37,6 @@ tbl_graph by default
 \description{
 KEGG pathway parsing function
 }
+\examples{
+\donttest{pathway("hsa04110")}
+}
