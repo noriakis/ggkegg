@@ -238,7 +238,11 @@ parse_kgml <- pathway
 #' @return tbl_graph
 #' @examples 
 #' ## For those containing nodes with the graphic type of `line`
-#' \donttest{g <- pathway("ko01100") |> process_line()}
+#' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
+#'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
+#'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
+#' gm_test <- tbl_graph(gm_test)
+#' test <- process_line(gm_test)
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
   ## [TODO] speed up
   ## [TODO] add verbose

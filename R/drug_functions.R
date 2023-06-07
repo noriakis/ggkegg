@@ -2,7 +2,7 @@
 #' KEGG drug parsing function
 #' @param did KEGG drug ID
 #' @return list of components in drug
-#' @export
+#' @noRd
 drug <- function(did) {
   if (!startsWith(did, "D")) {
     stop("Please provide a string that starts with N.")

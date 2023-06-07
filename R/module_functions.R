@@ -862,6 +862,9 @@ create_test_module <- function() {
   mo <- new("kegg_module")
   mo@ID <- "test"
   mo@name <- "test module"
+  mo@reaction_each <- tibble(left=list("C00112"),reaction=list("R00112"),
+    right=list("C00224"))
+  mo@reaction_each_raw <- tibble(left="C00112",reaction="R00112",right="C00224")
   mo@definition_raw <- list(c("K00112+K00224"))
   mo@definitions <- list("1"=list("definition_block"="K00112+K00224",
                                   "definition_kos"=c("K00112","K00224"),
