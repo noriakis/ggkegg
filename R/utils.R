@@ -37,8 +37,11 @@ find_parenthesis_pairs <- function(s) {
 #' @return tbl_graph
 #' @examples 
 #' ## For those containing nodes with the graphic type of `line`
-#' \donttest{pathway("ko01100") |> 
-#' process_line() |> append_label_position()}
+#' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
+#'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
+#'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
+#' gm_test <- tbl_graph(gm_test)
+#' test <- process_line(gm_test) |> append_label_position()
 #' @export
 append_label_position <- function(g) {
   pos <- g |>
@@ -68,6 +71,14 @@ append_label_position <- function(g) {
 #' @param orig original edge ID
 #' @return vector of original compound node IDs
 #' @export
+#' @examples
+#' ## For those containing nodes with the graphic type of `line`
+#' ## This returns no IDs as no edges are present
+#' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
+#'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
+#'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
+#' gm_test <- tbl_graph(gm_test)
+#' test <- process_line(gm_test) |> return_line_compounds(1)
 return_line_compounds <- function(g, orig) {
   ndf <- g |> activate(nodes) |> data.frame()
   edf <- g |> activate(edges) |> data.frame()
@@ -224,7 +235,7 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' num_df <- data.frame(row.names=c("1029","4171"),
 #'                      "sample1"=c(1.1,1.2),
 #'                      "sample2"=c(1.1,1.2),
-#'                      check.names=F)
+#'                      check.names=FALSE)
 #' graph <- graph |> node_matrix(num_df, gene_type = "ENTREZID")
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
@@ -291,7 +302,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' num_df <- data.frame(row.names=c("1029","4171"),
 #'                      "sample1"=c(1.1,1.2),
 #'                      "sample2"=c(1.1,1.2),
-#'                      check.names=F)
+#'                      check.names=FALSE)
 #' graph <- graph |> edge_matrix(num_df, gene_type = "ENTREZID")
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                               org_db=org.Hs.eg.db,
@@ -660,6 +671,21 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' @return tbl_graph
 #' @importFrom tidygraph graph_join
 #' @export
+#' @examples
+#' if (requireNamespace("bnlearn", quietly = TRUE)) {
+#'   av <- bnlearn::model2network("[1029|4171][4171]")
+#'   str <- data.frame(from="4171",to="1029",strength=0.8,direction=0.7)
+#'   nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                       x=c(1,1),
+#'                       xmin=c(-1,-1),
+#'                       xmax=c(2,2),
+#'                       y=c(1,1),
+#'                       ymin=c(-1,-1),
+#'                       ymax=c(2,2))
+#'   edges <- data.frame(from=1, to=2, name="K00112")
+#'   graph <- tbl_graph(nodes, edges)
+#'   combined <- combine_with_bnlearn(graph, str, av, prefix="hsa:")
+#' }
 #' 
 combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
   if (requireNamespace("bnlearn", quietly = TRUE)) {
@@ -669,7 +695,7 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
     g <- str |> merge(el) |> mutate(from=paste0(prefix,.data$from),
                                                  to=paste0(prefix,.data$to)) |>
                                 data.frame() |> graph_from_data_frame()
-    
+
     ## Merge node names with reference
     js <- NULL
     for (i in V(pg)$name) {
@@ -690,10 +716,10 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
         js <- rbind(js, c(i, i))
       }
     }
-    
+
     js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
     gdf <- as_data_frame(g)
-    
+
     new_df <- NULL
     for (i in seq_len(nrow(gdf))) {
       if (gdf[i,"from"] %in% js$raw){
@@ -705,6 +731,7 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
         stop("no `from` included in raw node name")
       }
     }
+
     gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
 
     new_df <- NULL

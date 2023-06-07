@@ -197,6 +197,6 @@ create_test_network <- function() {
   ne@ID <- "test"
   ne@name <- "test network"
   ne@definition <- "DDX41 -> IRF3"
-  ne@definition_graph <- ggkegg:::convert_definition_to_graph(ne)
+  ne@definition_graph <- convert_definition_to_graph(ne)
   ne
 }

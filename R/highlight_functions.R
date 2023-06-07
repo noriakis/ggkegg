@@ -128,6 +128,18 @@ highlight_set_edges <- function(set, how="all",
 #' @importFrom data.table :=
 #' @export
 #' @return boolean vector
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' mo <- create_test_module()
+#' graph <- graph |> highlight_module(mo)
 #' 
 highlight_module <- function(graph, kmo,
                             name="name",

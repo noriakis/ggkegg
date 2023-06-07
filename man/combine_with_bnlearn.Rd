@@ -25,3 +25,20 @@ tbl_graph
 combine the reference KEGG pathway graph 
 with bnlearn boot.strength output
 }
+\examples{
+if (requireNamespace("bnlearn", quietly = TRUE)) {
+  av <- bnlearn::model2network("[1029|4171][4171]")
+  str <- data.frame(from="4171",to="1029",strength=0.8,direction=0.7)
+  nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+                      x=c(1,1),
+                      xmin=c(-1,-1),
+                      xmax=c(2,2),
+                      y=c(1,1),
+                      ymin=c(-1,-1),
+                      ymax=c(2,2))
+  edges <- data.frame(from=1, to=2, name="K00112")
+  graph <- tbl_graph(nodes, edges)
+  combined <- combine_with_bnlearn(graph, str, av, prefix="hsa:")
+}
+
+}
