@@ -194,6 +194,9 @@ module <- function(mid) {
 #' @param paint_colour color to highlight
 #' @param convert named vector converting the KO to gene name
 #' @export
+#' @examples
+#' mo <- create_test_module()
+#' tex <- module_text(mo)
 #' @return textual description of module definitions
 module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
   kmo <- kmo@definitions[[name]]
@@ -302,7 +305,8 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 #' @param kmo module object
 #' @param query vector of KO
 #' @param name name of definitions when multiple definitions are present
-#' @examples \donttest{module_completeness("M00003", c("K00927"))}
+#' @examples
+#' test_complete <- module_completeness(create_test_module(), c("K00112"))
 #' @export
 #' @return tibble
 module_completeness <- function(kmo, query, name="1") {
@@ -346,6 +350,9 @@ module_completeness <- function(kmo, query, name="1") {
 #' @param name name of definition when multiple definitions are present
 #' @param block specify if need to parse specific block
 #' @export
+#' @examples
+#' mo <- create_test_module()
+#' sequential_mod <- obtain_sequential_module_definition(mo)
 #' @return list of module definitions
 obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
   kmo <- kmo@definitions[[name]]
@@ -843,4 +850,22 @@ pathway_abundance <- function(id, vec, num=1) {
     module=mods,
     abundance=abuns
   )
+}
+
+
+#' create_test_module
+#' @export
+#' @examples create_test_module()
+#' @return return a test module to use in examples
+create_test_module <- function() {
+  ## Completely random module
+  mo <- new("kegg_module")
+  mo@ID <- "test"
+  mo@name <- "test module"
+  mo@definition_raw <- list(c("K00112+K00224"))
+  mo@definitions <- list("1"=list("definition_block"="K00112+K00224",
+                                  "definition_kos"=c("K00112","K00224"),
+                                  "definition_num_in_block"=2,
+                                  "definition_ko_in_block"=list(c("K00112","K00224"))))
+  mo
 }

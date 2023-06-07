@@ -35,7 +35,9 @@ find_parenthesis_pairs <- function(s) {
 #' @importFrom dplyr row_number n distinct ungroup
 #' @importFrom stats setNames
 #' @return tbl_graph
-#' @examples \donttest{pathway("ko01100") |> 
+#' @examples 
+#' ## For those containing nodes with the graphic type of `line`
+#' \donttest{pathway("ko01100") |> 
 #' process_line() |> append_label_position()}
 #' @export
 append_label_position <- function(g) {
@@ -89,6 +91,18 @@ return_line_compounds <- function(g, orig) {
 #' @return numeric vector
 #' @importFrom tibble is_tibble
 #' @importFrom tidygraph activate
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                     x=c(1,1),
+#'                     xmin=c(-1,-1),
+#'                     xmax=c(2,2),
+#'                     y=c(1,1),
+#'                     ymin=c(-1,-1),
+#'                     ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' graph <- graph |> activate("edges") |>
+#'    mutate(num=edge_numeric(c(1.1) |> setNames("K00112")))
 #' 
 #' 
 edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
@@ -135,6 +149,18 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' @export
 #' @return numeric vector
 #' @importFrom tibble is_tibble
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' graph <- graph |> 
+#'            mutate(num=node_numeric(c(1.1) |> setNames("hsa:1029")))
 #' 
 #' 
 node_numeric <- function(num, num_combine=mean, name="name", how="any") {
@@ -185,6 +211,21 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' @export
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' num_df <- data.frame(row.names=c("1029","4171"),
+#'                      "sample1"=c(1.1,1.2),
+#'                      "sample2"=c(1.1,1.2),
+#'                      check.names=F)
+#' graph <- graph |> node_matrix(num_df, gene_type = "ENTREZID")
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
   
@@ -202,7 +243,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     binded <- do.call(rbind, val)
     binded
   }
-  
+
   node_df <- graph |> activate(nodes) |> data.frame()
   node_name <- node_df$name
   if (gene_type!="ENTREZID") {
@@ -237,6 +278,21 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @export
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' num_df <- data.frame(row.names=c("1029","4171"),
+#'                      "sample1"=c(1.1,1.2),
+#'                      "sample2"=c(1.1,1.2),
+#'                      check.names=F)
+#' graph <- graph |> edge_matrix(num_df, gene_type = "ENTREZID")
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                               org_db=org.Hs.eg.db,
                               num_combine=mean) {
@@ -363,6 +419,18 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
 #' @import org.Hs.eg.db
 #' @importFrom AnnotationDbi select
 #' @export
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' res <- data.frame(row.names="1029",log2FoldChange=1.2)
+#' graph <- graph |> mutate(num=assign_deseq2(res, gene_type = "ENTREZID"))
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
                           org_db=org.Hs.eg.db, org="hsa",
@@ -428,7 +496,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #'                    ymax=c(2,2))
 #' edges <- data.frame(from=1, to=2)
 #' graph <- tbl_graph(nodes, edges)
-#' graph <- graph |> mutate(conv=convert_id("hsa"))
+#' \donttest{graph <- graph |> mutate(conv=convert_id("hsa"))}
 #' 
 convert_id <- function(org, name="name",
   convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,

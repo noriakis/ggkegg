@@ -11,6 +11,19 @@
 #' @import magick
 #' @return ggplot2 object
 #' @export
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2),
+#'                    pathway_id="hsa04110")
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' \donttest{ggraph(graph) + overlay_raw_map()}
+#'
 overlay_raw_map <- function(pid=NULL,
                             transparent_colors=c("#FFFFFF",
                               "#BFBFFF","#BFFFBF","#7F7F7F",
@@ -31,6 +44,19 @@ overlay_raw_map <- function(pid=NULL,
 #' @return ggplot2 object
 #' @importFrom grDevices as.raster
 #' @export
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2),
+#'                    pathway_id="hsa04110")
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' \donttest{ggraph(graph) + overlay_raw_map()}
+#'
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   if (is.null(object$pid)) {
     infer <- plot$data$pathway_id |> unique()

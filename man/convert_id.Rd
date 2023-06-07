@@ -56,6 +56,6 @@ nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
                    ymax=c(2,2))
 edges <- data.frame(from=1, to=2)
 graph <- tbl_graph(nodes, edges)
-graph <- graph |> mutate(conv=convert_id("hsa"))
+\donttest{graph <- graph |> mutate(conv=convert_id("hsa"))}
 
 }

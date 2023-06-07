@@ -31,3 +31,7 @@ textual description of module definitions
 module_text
 Obtain textual representation of module definition for all the blocks
 }
+\examples{
+mo <- create_test_module()
+tex <- module_text(mo)
+}

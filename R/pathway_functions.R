@@ -236,6 +236,9 @@ parse_kgml <- pathway
 #' @importFrom tidygraph bind_nodes bind_edges
 #' @export
 #' @return tbl_graph
+#' @examples 
+#' ## For those containing nodes with the graphic type of `line`
+#' \donttest{g <- pathway("ko01100") |> process_line()}
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
   ## [TODO] speed up
   ## [TODO] add verbose

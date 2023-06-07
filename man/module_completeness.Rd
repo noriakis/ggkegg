@@ -20,5 +20,5 @@ tibble
 module_completeness
 }
 \examples{
-\donttest{module_completeness("M00003", c("K00927"))}
+test_complete <- module_completeness(create_test_module(), c("K00112"))
 }

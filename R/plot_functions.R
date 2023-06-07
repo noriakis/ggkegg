@@ -9,6 +9,8 @@
 #' @param return_list return list of graphs instead of joined graph
 #' @export
 #' @return graph adjusted for the position
+#' @examples
+#' \donttest{multi_pathway_native(list("hsa04110","hsa03460"))}
 #' 
 multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
   plen <- length(pathways)
@@ -49,6 +51,10 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
 #' @import patchwork
 #' @return ggplot2 object
 #' @export
+#' @examples
+#' mo <- create_test_module()
+#' tex <- module_text(mo)
+#' plt <- plot_module_text(tex)
 plot_module_text <- function(plot_list, show_name="name") {
   panel_list <- list()
   for (concat in seq_along(plot_list)) {
@@ -73,6 +79,10 @@ plot_module_text <- function(plot_list, show_name="name") {
 #' @param layout ggraph layout parameter
 #' @export
 #' @return ggplot2 object
+#' @examples
+#' mo <- create_test_module()
+#' sequential_mod <- obtain_sequential_module_definition(mo)
+#' plt <- plot_module_blocks(sequential_mod)
 plot_module_blocks <- function(all_steps, layout="kk") {
   allnodes <- unique(V(all_steps)$name)
   if (sum(startsWith(allnodes, "K"))==length(allnodes)) {
@@ -113,6 +123,18 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 #' @param ... passed to `params` in `layer()` function
 #' @return geom
 #' @importFrom shadowtext GeomShadowText
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
+#'  geom_node_shadowtext(aes(label=name))
 geom_node_shadowtext <- function(mapping = NULL, data = NULL,
                            position = 'identity',
                            show.legend = NA, ...) {
@@ -138,7 +160,18 @@ geom_node_shadowtext <- function(mapping = NULL, data = NULL,
 #' @param ... passed to `params` in `layer()` function
 #' @return geom
 #' @export
-#'
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
+#'  geom_node_rect()
 geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
                             show.legend = NA, ...) {
   mapping <- c(mapping, aes(xmin = xmin,
@@ -160,6 +193,18 @@ geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
 #' @param rect_fill rectangular fill
 #' @export
 #' @return ggplot2 object
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2), type=c("gene","gene"))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
+#'  geom_node_rect_kegg()
 geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
   ## [TODO] implement ggproto
   structure(list(type=type, rect_fill=rect_fill),
@@ -173,6 +218,18 @@ geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
 #' @export ggplot_add.geom_node_rect_kegg
 #' @export
 #' @return ggplot2 object
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2), type=c("gene","gene"))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
+#'  geom_node_rect_kegg()
 ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
   if (is.null(object$type)){
     type <- unique(plot$data$type)
@@ -202,6 +259,10 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' @param g graph object returned by `network()`
 #' @return ggplot2 object
 #' @export
+#' @examples
+#' ne <- create_test_network()
+#' neg <- network_graph(ne)
+#' plt <- plot_kegg_network(neg)
 plot_kegg_network <- function(g) {
   ## [TODO] Presuming G***** and CS***** is not in the symbol
   gg <- g |> as_tbl_graph() |> activate(nodes) |>
