@@ -10,7 +10,7 @@ Depends:
     R (>= 4.2.0), ggplot2, ggraph, XML, igraph, tidygraph
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
-    org.Hs.eg.db, methods, utils, stats, AnnotationDbi
+    org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices
 Suggests: knitr, clusterProfiler, bnlearn
 RoxygenNote: 7.2.3
 biocViews: Pathways, DataImport, KEGG

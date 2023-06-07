@@ -14,6 +14,17 @@
 #' @param no_sep not separate node name
 #' @export
 #' @return boolean vector
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2)
+#' graph <- tbl_graph(nodes, edges)
+#' graph <- graph |> mutate(hl=highlight_set_nodes(c("hsa:1029")))
 highlight_set_nodes <- function(set, how="all",
   name="name", sep=" ", no_sep=FALSE) {
   graph <- .G()
@@ -59,6 +70,19 @@ highlight_set_nodes <- function(set, how="all",
 #' @param no_sep not separate node name
 #' @export
 #' @return boolean vector
+#' @examples
+#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+#'                    x=c(1,1),
+#'                    xmin=c(-1,-1),
+#'                    xmax=c(2,2),
+#'                    y=c(1,1),
+#'                    ymin=c(-1,-1),
+#'                    ymax=c(2,2))
+#' edges <- data.frame(from=1, to=2, name="K00112")
+#' graph <- tbl_graph(nodes, edges)
+#' graph <- graph |> activate("edges") |>
+#'     mutate(hl=highlight_set_edges(c("K00112")))
+#' 
 highlight_set_edges <- function(set, how="all",
   name="name", sep=" ", no_sep=FALSE) {
   graph <- .G()
@@ -104,6 +128,7 @@ highlight_set_edges <- function(set, how="all",
 #' @importFrom data.table :=
 #' @export
 #' @return boolean vector
+#' 
 highlight_module <- function(graph, kmo,
                             name="name",
                             sep=" ",

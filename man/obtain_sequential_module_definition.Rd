@@ -21,3 +21,7 @@ Given module definition and block number,
 Recursively obtain graphical represencation of block and 
 connect them by pseudo-nodes representing blocks.
 }
+\examples{
+mo <- create_test_module()
+sequential_mod <- obtain_sequential_module_definition(mo)
+}

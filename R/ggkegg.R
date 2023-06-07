@@ -202,12 +202,12 @@ ggkegg <- function(pid,
 #' @param white_background fill background color white
 #' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @export
-#' @examples \donttest{
-#' cp <- enrichKEGG(c("1029","4171"))
-#' rawMap(list(cp,cp))
+#' @examples
+#' if (require("clusterProfiler")) {
+#'     cp <- enrichKEGG(c("1029","4171"))
+#'     \donttest{rawMap(list(cp,cp), pid="hsa04110")}
 #' }
 #' @return ggraph with overlaid KEGG map
-#' 
 #' 
 rawMap <- function(enrich, pathway_number=1, pid=NULL,
   fill_color="red", how="any", white_background=TRUE) {

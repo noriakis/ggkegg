@@ -17,3 +17,16 @@ ggplot2 object
 \description{
 geom_node_rect_kegg
 }
+\examples{
+nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
+                   x=c(1,1),
+                   xmin=c(-1,-1),
+                   xmax=c(2,2),
+                   y=c(1,1),
+                   ymin=c(-1,-1),
+                   ymax=c(2,2), type=c("gene","gene"))
+edges <- data.frame(from=1, to=2)
+graph <- tbl_graph(nodes, edges)
+plt <- ggraph(graph, layout="manual", x=x, y=y) +
+ geom_node_rect_kegg()
+}

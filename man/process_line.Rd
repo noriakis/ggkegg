@@ -24,3 +24,7 @@ process_line
 process the kgml containing graphics type of `line`
 e.g. in ko01100
 }
+\examples{
+## For those containing nodes with the graphic type of `line`
+\donttest{g <- pathway("ko01100") |> process_line()}
+}

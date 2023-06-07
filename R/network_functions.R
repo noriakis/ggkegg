@@ -109,6 +109,9 @@ convert_definition_to_graph <- function(kne) {
 #' @param kne network object
 #' @param type definition or expanded
 #' @return tbl_graph
+#' @examples
+#' ne <- create_test_network()
+#' neg <- network_graph(ne)
 #' @export
 network_graph <- function (kne, type="definition") {
   if (type=="definition") {
@@ -182,4 +185,18 @@ network_graph <- function (kne, type="definition") {
   g <- g |> activate(nodes) |>   mutate(network_name=kne@name,
     network_ID=kne@ID)
   g
+}
+
+
+#' create_test_network
+#' @return test network
+#' @export
+#' @examples create_test_network()
+create_test_network <- function() {
+  ne <- new("kegg_network")
+  ne@ID <- "test"
+  ne@name <- "test network"
+  ne@definition <- "DDX41 -> IRF3"
+  ne@definition_graph <- ggkegg:::convert_definition_to_graph(ne)
+  ne
 }
