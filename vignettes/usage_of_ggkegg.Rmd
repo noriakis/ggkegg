@@ -18,7 +18,15 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # ggkegg
 
+This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages. For the detailed usage, please refer to [the documentation](https://noriakis.github.io/software/ggkegg).
 
+## Pathway
+
+Here we prepare an example `tbl_graph` representing pathway information. Typically one can obtain a real KEGG PATHWAY `tbl_graph` by `pathway` function.
+
+```{r pathway1, message=FALSE, warning=FALSE}
+# graph <- pathway("hsa04110")
+```
 
 
 ```{r}
