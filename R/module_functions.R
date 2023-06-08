@@ -214,7 +214,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
         dfs <- data.frame(posmat)
       }
       posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
-      posmat$name <- paste0("G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
+      posmat$name <- paste0("manual_G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
       ul <- sort(unique(posmat$length))
       he <- (seq_len(length(ul)))+1
       names(he) <- ul
@@ -365,7 +365,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
   for (i in seq_along(cand_step)) {
     if (kmo$definition_num_in_block[i]!=1) {
       for (ko in kmo$definition_ko_in_block[[i]]) {
-        all_steps <- rbind(all_steps, c(ko, paste0("BLOCK",i),"in_block"))
+        all_steps <- rbind(all_steps, c(ko, paste0("manual_BLOCK",i),"in_block"))
         all_steps <- all_steps |> data.frame() |> `colnames<-`(c("from","to","type"))
       }
       plotg <- as_data_frame(module_graph(kmo$definition_block[i]))
@@ -378,7 +378,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
       plotg$to <- to
 
       all_steps <- rbind(all_steps, plotg)
-      orders <- c(orders, paste0("BLOCK",i))
+      orders <- c(orders, paste0("manual_BLOCK",i))
     } else {
       ## Some steps have only "-K*****"
       orders <- c(orders, kmo$definition_block[i])
@@ -419,7 +419,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
       dfs <- data.frame(posmat)
     }
     posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
-    posmat$name <- paste0("G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
+    posmat$name <- paste0("manual_G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
     ul <- sort(unique(posmat$length))
     he <- (seq_len(length(ul)))+1
     names(he) <- ul
@@ -435,6 +435,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
       }
     }
   } else {
+    posmat <- NULL
     converted_string <- input_string
   }
   # Process "+" or "-" or " " between comma
@@ -443,7 +444,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
     css <- NULL
     for (i in gsub("\\)","",gsub("\\(","",unlist(strsplit(converted_string, ","))))){
       if (nchar(i)!=6) {
-        css <- rbind(css, c(i,paste0("CS",str_pad(cssnum,4,pad="0"))))
+        css <- rbind(css, c(i,paste0("manual_CS",str_pad(cssnum,4,pad="0"))))
         cssnum <- cssnum + 1
       }
     }
