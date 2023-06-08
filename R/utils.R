@@ -373,9 +373,13 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 #' @export
 append_cp <- function(res, how="any", name="name", pid=NULL) {
-  if (attributes(res)$class!="enrichResult") {
-    stop("Please provide enrichResult class object") }
-
+  if (!attributes(res)$class %in% c("enrichResult","gseaResult")) {
+    stop("Please provide enrichResult or gseaResult class object") }
+  if (attributes(res)$class=="gseaResult") {
+    gene_col <- "core_enrichment"
+  } else {
+    gene_col <- "geneID"
+  }
   graph <- .G()
   if (is.null(pid)) {
     pid <- unique(V(graph)$pathway_id)
@@ -388,10 +392,10 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
   if (org!="UNKNOWN") {
     if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
     enrich_attribute <- paste0(org, ":", unlist(strsplit(
-      res[pid,]$geneID, "/")))
+      res[pid,][[gene_col]], "/")))
   } else {
     enrich_attribute <- unlist(strsplit(
-      res[pid,]$geneID, "/"))     
+      res[pid,][[gene_col]], "/"))     
   }
   bools <- NULL
   for (xx in x) {
