@@ -128,22 +128,24 @@ network_graph <- function (kne, type="definition") {
   name_change <- NULL
   nns <- NULL
   for (nn in seq_along(raw_nodes$name)) {
-    bln <- paste0("BLOCK",nn,"_",kne@ID)
+    bln <- paste0("manual_BLOCK",nn,"_",kne@ID)
     ## In NETWORK definition, "-" is included in gene symbol
-    gra <- module_graph(raw_nodes$name[nn], skip_minus=TRUE)
+    ## Also, names like `Ca2+` is present, manually curate them
+    input_string <- gsub("Ca2\\+","Ca",raw_nodes$name[nn])
+    gra <- module_graph(input_string, skip_minus=TRUE)
     if (is.character(gra)) {
       # blocks <- rbind(blocks, c(gra, bln))
     } else {
       es <- as_data_frame(gra)
-      es[,1] <- ifelse(startsWith(es[,1],"CS"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
-      es[,2] <- ifelse(startsWith(es[,2],"CS"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
-      es[,1] <- ifelse(startsWith(es[,1],"G"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
-      es[,2] <- ifelse(startsWith(es[,2],"G"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
+      es[,1] <- ifelse(startsWith(es[,1],"manual_CS"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
+      es[,2] <- ifelse(startsWith(es[,2],"manual_CS"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
+      es[,1] <- ifelse(startsWith(es[,1],"manual_G"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
+      es[,2] <- ifelse(startsWith(es[,2],"manual_G"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
       edges <- rbind(edges, es)
       
       vs <- data.frame(V(gra)$name, bln)
-      vs[,1] <- ifelse(startsWith(vs[,1],"CS"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
-      vs[,1] <- ifelse(startsWith(vs[,1],"G"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
+      vs[,1] <- ifelse(startsWith(vs[,1],"manual_CS"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
+      vs[,1] <- ifelse(startsWith(vs[,1],"manual_G"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
       for (j in vs[,1]) {
         edges <- rbind(edges, c(j,bln,"in_block"))
       }
@@ -154,7 +156,7 @@ network_graph <- function (kne, type="definition") {
       nns <- c(nns, nn)
     }
   }
-  name_change <- paste0("BLOCK",name_change,"_",kne@ID)
+  name_change <- paste0("manual_BLOCK",name_change,"_",kne@ID)
   names(name_change) <- as.character(nns)
   new_edges_from <- NULL
   new_edges_to <- NULL

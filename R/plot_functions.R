@@ -99,12 +99,12 @@ plot_module_blocks <- function(all_steps, layout="kk") {
                              !type %in% c("block_transition","rel")),
                        angle_calc="along",
                        label_dodge = unit(2, 'mm')) + 
-    geom_node_point(size=4, aes(filter=!startsWith(name,"BLOCK") &
-                                  !startsWith(name,"G") &
-                                !startsWith(name,"CS"))) + 
-    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"BLOCK"))) + 
-    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"CS") |
-                                            startsWith(name,"G"))) + 
+    geom_node_point(size=4, aes(filter=!startsWith(name,"manual_BLOCK") &
+                                  !startsWith(name,"manual_G") &
+                                !startsWith(name,"manual_CS"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"manual_BLOCK"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"manual_CS") |
+                                            startsWith(name,"manual_G"))) + 
     geom_node_text(aes(label=name,
                        filter=startsWith(name,"K")),
                    repel=TRUE, size=4, bg.colour="white")+
@@ -267,24 +267,24 @@ plot_kegg_network <- function(g) {
   ## [TODO] Presuming G***** and CS***** is not in the symbol
   gg <- g |> as_tbl_graph() |> activate(nodes) |>
   mutate(splitn=strsplit(name,"_") |> sapply("[",1)) |>
-  mutate(group=startsWith(splitn,"G") & nchar(splitn)==6,
-    and_group=startsWith(splitn,"CS") & nchar(splitn)==6)
+  mutate(group=startsWith(splitn,"manual_G") & nchar(splitn)==6,
+    and_group=startsWith(splitn,"manual_CS") & nchar(splitn)==6)
   ggraph(gg, layout="kk") +
     geom_edge_link(aes(label=type,
                        filter=!startsWith(type,"in")),
                    angle_calc="along", force_flip=FALSE,
                    label_dodge = unit(2, 'mm')) +
     geom_edge_link(aes(filter=startsWith(type,"in_and")))+ 
-    geom_node_point(size=4, aes(filter=!startsWith(name,"BLOCK") &
+    geom_node_point(size=4, aes(filter=!startsWith(name,"manual_BLOCK") &
                                   !(group)&
                                   !(and_group))) + 
-    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"BLOCK"))) + 
+    geom_node_point(size=2, shape=21, aes(filter=startsWith(name,"manual_BLOCK"))) + 
     geom_node_point(size=2, shape=21, aes(filter=(group) |
                                             (and_group))) + 
     geom_node_text(aes(label=name,
                        filter=!(and_group) &
                         !(group) &
-                         !startsWith(name,"BLOCK")),
+                         !startsWith(name,"manual_BLOCK")),
                    repel=TRUE, size=4, bg.colour="white")+
     theme_void()
 }
