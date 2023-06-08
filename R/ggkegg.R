@@ -195,7 +195,7 @@ ggkegg <- function(pid,
 #' return the ggplot object with raw KEGG map overlaid on
 #' enriched pathway
 #' 
-#' @param enrich enrichResult class object, or list of them
+#' @param enrich enrichResult or gseaResult class object, or list of them
 #' @param pathway_number pathway number sorted by p-values
 #' @param pid pathway id, override pathway_number if specified
 #' @param fill_color color for genes
@@ -228,8 +228,13 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
       if (is.null(pid)) {
         pid <- res[pathway_number,]$ID
       }
+    } else if (attributes(enrich)$class=="gseaResult") {
+      res <- attributes(enrich)$result
+      if (is.null(pid)) {
+        pid <- res[pathway_number,]$ID
+      }      
     } else {
-      stop("Please provide enrichResult")
+      stop("Please provide enrichResult")      
     }
   }
   ## For MicrobiomeProfiler
