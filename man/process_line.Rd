@@ -2,9 +2,7 @@
 % Please edit documentation in R/pathway_functions.R
 \name{process_line}
 \alias{process_line}
-\title{process_line
-process the kgml containing graphics type of `line`
-e.g. in ko01100}
+\title{process_line}
 \usage{
 process_line(g, invert_y = TRUE, verbose = FALSE)
 }
@@ -20,9 +18,9 @@ should match with `pathway` function}
 tbl_graph
 }
 \description{
-process_line
-process the kgml containing graphics type of `line`
-e.g. in ko01100
+process the KGML containing graphics type of `line`, like
+global maps e.g. ko01100. Recursively add nodes and edges 
+connecting them based on `coords` properties in KGML.
 }
 \examples{
 ## For those containing nodes with the graphic type of `line`
