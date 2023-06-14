@@ -375,14 +375,17 @@ process_reaction <- function(g) {
   ## Prepare new edges
   new_eds <- NULL
   k <- 1
-  for (i in eds$reaction) {
-      tmp <- eds[eds$reaction==i,]
+  for (i in eds$reaction |> unique()) {
+      konm <- nds[nds$reaction %in% i,]$name
+      konm <- ifelse(is.null(konm),NA,konm)
+      tmp <- eds[eds$reaction %in% i,]
       if (tmp$type |> unique()=="irreversible") {
           fs <- tmp[tmp$subtype_name=="substrate",]$from
           tos <- tmp[tmp$subtype_name=="product",]$to
           for (cfs in fs) {
               for (ctos in tos) {
-                  new_eds[[k]] <- c(cfs, ctos, "irreversible", tmp$reaction |> unique())
+                  new_eds[[k]] <- c(cfs, ctos, "irreversible",
+                    tmp$reaction |> unique(), konm)
                   k <- k + 1
               }
           }
@@ -391,7 +394,8 @@ process_reaction <- function(g) {
           tos <- tmp[tmp$subtype_name=="product",]$to
           for (cfs in fs) {
               for (ctos in tos) {
-                  new_eds[[k]] <- c(cfs, ctos, "reversible", tmp$reaction |> unique())
+                  new_eds[[k]] <- c(cfs, ctos, "reversible",
+                    tmp$reaction |> unique(), konm)
                                     # tmp$pathway_id |> unique(), tmp$name |> unique(),
                                     # tmp$bgcolor |> unique(),
                                     # tmp$fgcolor |> unique(),
@@ -401,7 +405,8 @@ process_reaction <- function(g) {
           } 
           for (ctos in tos) {
               for (cfs in fs) {
-                  new_eds[[k]] <- c(ctos, cfs, "reversible", tmp$reaction |> unique())
+                  new_eds[[k]] <- c(ctos, cfs, "reversible",
+                    tmp$reaction |> unique(), konm)
                   k <- k + 1
               }
           }    
@@ -409,7 +414,7 @@ process_reaction <- function(g) {
   }
 
   new_eds <- do.call(rbind, new_eds) |> data.frame() |>
-  `colnames<-`(c("from","to","type","reaction"))
+  `colnames<-`(c("from","to","type","reaction","name"))
 
   new_eds <- new_eds[!duplicated(new_eds),]
   new_eds$from <- as.integer(new_eds$from)
