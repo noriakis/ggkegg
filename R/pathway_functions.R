@@ -227,8 +227,11 @@ pathway <- function(pid,
 parse_kgml <- pathway
 
 #' process_line
-#' process the kgml containing graphics type of `line`
-#' e.g. in ko01100
+#' 
+#' process the KGML containing graphics type of `line`, like
+#' global maps e.g. ko01100. Recursively add nodes and edges 
+#' connecting them based on `coords` properties in KGML.
+#' 
 #' @param g graph
 #' @param invert_y whether to invert the position, default to TRUE
 #' should match with `pathway` function
@@ -246,6 +249,8 @@ parse_kgml <- pathway
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
   ## [TODO] speed up
   ## [TODO] add verbose
+  ## [TODO] add positional argument to coords to show arrow
+  ## We cannot do this, as coords are not ordered to show direction
   df <- as_tbl_graph(g)
 
   cos <- list()
@@ -266,6 +271,11 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
       reac <- V(g)$reaction[i]
       origid <- V(g)$orig.id[i]
       rawco <- V(g)$coords[i]
+
+      ## reversible or irreversible
+      # rev <- E(g)[E(g)$reaction==reac]$type |> unique()
+      # rev <- ifelse(identical(rev,character(0)),NA,rev)
+
       if (grepl("\\|",rawco)) {
         rawcos <- strsplit(rawco, "\\|") |> unlist()
       } else {
@@ -279,7 +289,10 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
           GetoptLong::qqcat("@{raw_name}, cooridnates components: @{length(co)}\n")
         }
         for (h in seq_len(length(co))) {
-          if (is.na(co[q+2])) {break}
+          if (is.na(co[q+2])) {
+            # eds[[e-1]]["position"] <- "End"
+            break
+          }
           if (verbose) {
             GetoptLong::qqcat("  @{paste(co[q], co[q+1])} -> @{paste(co[q+2], co[q+3])}\n")
           }
@@ -291,6 +304,9 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
                               "line",raw_name,bgcol,fgcol,reac,origid
                               )|>
           setNames(name_col_edge)
+          # if (h==1) {
+          #   eds[[e]]["position"] <- "Start"
+          # }
           e <- e+1
           j <- j+2
           q <- q+2
@@ -316,6 +332,92 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
      function(x){ if(is.na(original_name[x])) name[x] else original_name[x]},
      FUN.VALUE="character"))
 }
+
+#' process_reaction
+#' 
+#' process the kgml of global maps
+#' e.g. in ko01100
+#' 
+#' Typically, `process_line` function is used to draw relationships 
+#' as in the original KGML positions, however, the `coords` properties
+#' is not considering the direction of reactions (substrate -> product),
+#' thus if it is preferred, `process_reaction` is used to populate
+#' new edges corresponding to `substrate -> product` and `product -> substrate`
+#' if the reaction is reversible.
+#' 
+#' @param g graph
+#' @importFrom tidygraph bind_nodes bind_edges
+#' @export
+#' @return tbl_graph
+#' @examples
+#' gm_test <- rbind(data.frame(name="cpd:C99998",type="compound",
+#'            graphics_name="C99998",fgcolor="#ff0000",bgcolor="#ffffff"),
+#'            data.frame(name="cpd:C99999",type="compound",
+#'                       graphics_name="C99999",fgcolor="#ff0000",bgcolor="#ffffff"),
+#'            data.frame(name="ko:K00224",type="ortholog",
+#'                       graphics_name="K00224",fgcolor="#ff0000",bgcolor="#ffffff")
+#'            )
+#' gm_test_edges <- rbind(data.frame(from=1,to=3,reaction="rn:R99999",subtype_name="substrate",
+#'                             type="irreversible"),
+#'                        data.frame(from=3,to=2,reaction="rn:R99999",subtype_name="product",
+#'                                   type="irreversible"))
+#' gm_test <- tbl_graph(gm_test, gm_test_edges)
+#' test <- process_reaction(gm_test)
+#' 
+process_reaction <- function(g) {
+
+  ## Obtain raw nodes
+  nds <- g |> activate(nodes) |> data.frame()
+
+  ## Obtain raw edges
+  eds <- g |> activate(edges) |> data.frame()
+
+  ## Prepare new edges
+  new_eds <- NULL
+  k <- 1
+  for (i in eds$reaction) {
+      tmp <- eds[eds$reaction==i,]
+      if (tmp$type |> unique()=="irreversible") {
+          fs <- tmp[tmp$subtype_name=="substrate",]$from
+          tos <- tmp[tmp$subtype_name=="product",]$to
+          for (cfs in fs) {
+              for (ctos in tos) {
+                  new_eds[[k]] <- c(cfs, ctos, "irreversible", tmp$reaction |> unique())
+                  k <- k + 1
+              }
+          }
+      } else {
+          fs <- tmp[tmp$subtype_name=="substrate",]$from
+          tos <- tmp[tmp$subtype_name=="product",]$to
+          for (cfs in fs) {
+              for (ctos in tos) {
+                  new_eds[[k]] <- c(cfs, ctos, "reversible", tmp$reaction |> unique())
+                                    # tmp$pathway_id |> unique(), tmp$name |> unique(),
+                                    # tmp$bgcolor |> unique(),
+                                    # tmp$fgcolor |> unique(),
+                                    # tmp$orig.id |> unique())
+                  k <- k + 1
+              }
+          } 
+          for (ctos in tos) {
+              for (cfs in fs) {
+                  new_eds[[k]] <- c(ctos, cfs, "reversible", tmp$reaction |> unique())
+                  k <- k + 1
+              }
+          }    
+      }
+  }
+
+  new_eds <- do.call(rbind, new_eds) |> data.frame() |>
+  `colnames<-`(c("from","to","type","reaction"))
+
+  new_eds <- new_eds[!duplicated(new_eds),]
+  new_eds$from <- as.integer(new_eds$from)
+  new_eds$to <- as.integer(new_eds$to)
+
+  new_g <- tbl_graph(nodes=nds, edges = new_eds)
+}
+
 
 #' get_reaction
 #' parse the reaction in KGML
