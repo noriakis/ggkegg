@@ -68,6 +68,8 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   }
   ## Return the image URL, download and cache
   url <- paste0(as.character(pathway(object$pid,
+                                     use_cache=object$use_cache,
+                                     directory=object$directory,
                                      return_image=TRUE)))
   if (object$use_cache) {
     bfc <- BiocFileCache()
@@ -77,7 +79,6 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     if (!is.null(object$directory)) {
       path <- paste0(object$directory,"/",path)
     }
-    print(url)
     download.file(url=url, destfile=path, mode = 'wb')
   }
   
