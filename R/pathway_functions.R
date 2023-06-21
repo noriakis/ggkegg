@@ -3,6 +3,8 @@
 #' KEGG pathway parsing function
 #'
 #' @param pid pathway id
+#' @param directory directory to download KGML
+#' @param use_cache whether to use BiocFileCache
 #' @param add_pathway_id add pathway id to graph, default to TRUE
 #' needed for the downstream analysis
 #' @param group_rect_nudge nudge the position of group node
@@ -21,6 +23,8 @@
 #' @examples \donttest{pathway("hsa04110")}
 #' @export
 pathway <- function(pid,
+           directory=NULL,
+           use_cache=FALSE,
            group_rect_nudge=2,
            node_rect_nudge=0,
            invert_y=TRUE,
@@ -31,9 +35,18 @@ pathway <- function(pid,
   ## https://www.genome.jp/kegg/xml/docs/
 
   file_name <- paste0(pid,".xml")
+  if (!is.null(directory)) {
+    file_name <- paste0(directory,"/",file_name)
+  }
   if (!file.exists(file_name)) {
-    download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
+    if (use_cache) {
+      bfc <- BiocFileCache()
+      file_name <- bfcrpath(bfc,
+        paste0("https://rest.kegg.jp/get/",pid,"/kgml"))
+    } else {
+      download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
                   destfile=file_name)
+    }
   }
 
   xml <- xmlParse(file_name)

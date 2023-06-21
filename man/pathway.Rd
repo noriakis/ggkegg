@@ -6,6 +6,8 @@
 \usage{
 pathway(
   pid,
+  directory = NULL,
+  use_cache = FALSE,
   group_rect_nudge = 2,
   node_rect_nudge = 0,
   invert_y = TRUE,
@@ -16,6 +18,10 @@ pathway(
 }
 \arguments{
 \item{pid}{pathway id}
+
+\item{directory}{directory to download KGML}
+
+\item{use_cache}{whether to use BiocFileCache}
 
 \item{group_rect_nudge}{nudge the position of group node
 default to add slight increase to show the group node}
