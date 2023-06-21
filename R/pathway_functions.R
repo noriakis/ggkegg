@@ -496,15 +496,27 @@ get_reaction <- function(xml) {
 #' 
 #' obtain the list of pathway information
 #' @param pid KEGG Pathway id
+#' @param use_cache whether to use cache
+#' @param directory directory of file
 #' @return list of orthology and module contained in the pathway
 #' @export
-pathway_info <- function(pid) {
+pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
+  if (!is.null(directory)){
+    dest <- paste0(directory, "/", pid)
+  } else {
+    dest <- pid
+  }
   if (!file.exists(pid)) {
-    download.file(paste0("https://rest.kegg.jp/get/",pid),
-                  destfile=pid)
+    if (use_cache) {
+      bfc <- BiocFileCache()
+      dest <- bfcrpath(bfc, paste0("https://rest.kegg.jp/get/",pid))  
+    } else {
+      download.file(paste0("https://rest.kegg.jp/get/",pid),
+                    destfile=dest)      
+    }
   }
   pway <- list()
-  con = file(pid, "r")
+  con = file(dest, "r")
   content_list <- list()
   while ( TRUE ) {
     line = readLines(con, n = 1)
