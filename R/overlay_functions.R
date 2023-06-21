@@ -3,11 +3,13 @@
 #' Overlay the raw KEGG pathway image on ggraph
 #' 
 #' @param pid pathway ID
+#' @param directory directory to store images if not use cache
 #' @param transparent_colors make these colors transparent to overlay
 #' Typical choice of colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
 #' "#ADADAD","#838383"
 #' @param clip clip the both end of x- and y-axis by one dot
 #' @param adjust adjust the x-axis location by 0.5 in data coordinates
+#' @param use_cache whether to use BiocFileCache()
 #' @import magick
 #' @return ggplot2 object
 #' @export
@@ -24,15 +26,17 @@
 #' graph <- tbl_graph(nodes, edges)
 #' \donttest{ggraph(graph) + overlay_raw_map()}
 #'
-overlay_raw_map <- function(pid=NULL,
+overlay_raw_map <- function(pid=NULL, directory=NULL,
                             transparent_colors=c("#FFFFFF",
                               "#BFBFFF","#BFFFBF","#7F7F7F",
                               "#808080"),
-                            adjust=TRUE, clip=FALSE) {
+                            adjust=TRUE, clip=FALSE, use_cache=TRUE) {
   structure(list(pid=pid,
                  transparent_colors=transparent_colors,
                  adjust=adjust,
-                 clip=clip),
+                 clip=clip,
+                 directory=directory,
+                 use_cache=use_cache),
             class = "overlay_raw_map")
 }
 
@@ -65,8 +69,17 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   ## Return the image URL, download and cache
   url <- paste0(as.character(pathway(object$pid,
                                      return_image=TRUE)))
-  bfc <- BiocFileCache()
-  path <- bfcrpath(bfc, url)
+  if (object$use_cache) {
+    bfc <- BiocFileCache()
+    path <- bfcrpath(bfc, url)    
+  } else {
+    path <- paste0(object$pid, ".png")
+    if (!is.null(object$directory)) {
+      path <- paste0(object$directory,"/",path)
+    }
+    print(url)
+    download.file(url=url, destfile=path, mode = 'wb')
+  }
   
   ## Load, transparent and rasterize
   magick_image <- image_read(path)
