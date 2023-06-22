@@ -9,6 +9,10 @@ module(mid, use_cache = FALSE, directory = NULL)
 }
 \arguments{
 \item{mid}{KEGG module ID}
+
+\item{use_cache}{use cache}
+
+\item{directory}{directory to save raw files}
 }
 \value{
 list of module definition and reaction

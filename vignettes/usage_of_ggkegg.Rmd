@@ -142,14 +142,19 @@ mod |>
   obtain_sequential_module_definition() |>## return tbl_graph
 ggraph()+
   geom_node_point()+
-  geom_edge_link(aes(label=type, filter=!startsWith(type,"in_")),
-                 label_dodge = unit(2,"mm"), color="red", angle_calc = "along")+
+  geom_edge_link(aes(label=type, filter=!startsWith(type,"in_") & !startsWith(type,"block_")),
+                 label_dodge = unit(2,"mm"), color="tomato", angle_calc = "along")+
     geom_edge_link(aes(filter= startsWith(type,"in_")))+ ## Additional edges specifying grouped relationship
+    geom_edge_link(aes(label=type, filter=startsWith(type,"block_")),
+                 start_cap=circle(5,"mm"), end_cap=circle(5,"mm"),
+                 color="steelblue")+ ## Edges specifying block transition
   geom_node_shadowtext(aes(label=name, filter=startsWith(name,"K")),
                        bg.colour="white", color="black")+
   theme_graph()
 ## plot_module_blocks() can be used for module containing definitions with multiple blocks
 ```
+
+We can assess module completeness, user-defined module abundances. Please refer to [the module section of documentation](https://noriakis.github.io/software/ggkegg/module.html).
 
 ```{r}
 sessionInfo()
