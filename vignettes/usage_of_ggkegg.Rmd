@@ -76,7 +76,7 @@ One can pipe the functions to convert `name` column consisting of `hsa` KEGG gen
 
 `highlight_set_nodes()` and `highlight_set_edges()` can be used to identify nodes that satisfy query IDs. Nodes often have multiple IDs, and user can choose `how="any"` (if one of identifiers in the nodes matches the query) or `how="all"` (if all of the identifiers in the nodes match the query) to highlight.
 
-```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+```{r highlight, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 graph |>
   activate(nodes) |>
   mutate(ident=highlight_set_nodes("hsa:6737"),) |>
