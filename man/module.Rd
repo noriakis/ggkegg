@@ -5,7 +5,7 @@
 \title{module
 KEGG module parsing function}
 \usage{
-module(mid)
+module(mid, use_cache = FALSE, directory = NULL)
 }
 \arguments{
 \item{mid}{KEGG module ID}

@@ -1,33 +1,134 @@
 ---
 title: "ggkegg"
 author: "Noriaki Sato"
-output: rmarkdown::html_vignette
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_float: true
 vignette: >
   %\VignetteIndexEntry{ggkegg}
   %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
+  \usepackage[utf8]{inputenc}
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      fig.width=8,
-                      fig.height=8,
+                      fig.width=12,
+                      fig.height=6,
                       warning=FALSE,
                       message=FALSE)
 ```
 
 # ggkegg
 
-This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages. For the detailed usage, please refer to [the documentation](https://noriakis.github.io/software/ggkegg).
+This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages. As we will not download the raw KEGG information in this vignette, please refer to [the documentation](https://noriakis.github.io/software/ggkegg) for the detailed usage.
 
 ## Pathway
 
-Here we prepare an example `tbl_graph` representing pathway information. Typically one can obtain a real KEGG PATHWAY `tbl_graph` by `pathway` function.
+Here we prepare an example `tbl_graph` representing pathway information. Typically one can obtain a real KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directroy with `directory` argument.
 
-```{r pathway1, message=FALSE, warning=FALSE}
+```{r pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
+library(ggkegg)
+graph <- return_pathway_example()
+graph
 # graph <- pathway("hsa04110")
+# graph <- pathway("hsa04110", directory="path/to/xml")
+# graph <- pathway("hsa04110", use_cache=TRUE)
 ```
 
+### Plot using `ggraph`
+
+The parsed `tbl_graph` can be used to plot the information by `ggraph`.
+
+```{r plot_pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+ggraph(graph, layout="manual", x=x, y=y)+
+  geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+  geom_node_text(aes(label=graphics_name))+
+  geom_edge_parallel(aes(linetype=subtype_name),
+                   arrow=arrow(length=unit(1,"mm"),
+                               type="closed"),
+                   end_cap=circle(1.5,"cm"),
+                   start_cap=circle(1.5,"cm"))+
+  theme_void()
+```
+
+## Converting identifiers
+
+The user can convert identifiers using `convert_id` function to be used in `mutate`.
+One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them.
+
+```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+graph |>
+  activate(nodes) |>
+  mutate(hsa=convert_id("hsa")) |>
+  ggraph(layout="manual", x=x, y=y)+
+  geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+  geom_node_text(aes(label=hsa))+ ## specify converted column in node table
+  geom_edge_parallel(aes(linetype=subtype_name),
+                   arrow=arrow(length=unit(1,"mm"),
+                               type="closed"),
+                   end_cap=circle(1.5,"cm"),
+                   start_cap=circle(1.5,"cm"))+
+  theme_void()
+```
+
+### Overlaying raw KEGG image
+
+We can use `overlay_raw_map` to overlay the raw KEGG images on the created ggraph.
+The node and text can be directly customized by using various geoms and effects such as `ggfx`.
+The code below creates nodes using default parsed background color and just overlay the image.
+
+```{r example_raw, message=FALSE, warning=FALSE}
+# graph <- pathway("hsa04110")
+# ggraph(graph, layout="manual", x=x, y=y)+
+#   geom_node_rect(aes(fill=I(bgcolor)))+
+#   overlay_raw_map()
+```
+
+
+### Use with the other omics packages
+
+The package supports direct importing and visualization, and investigation of the results of the other packages such as enrichment analysis results from `clusterProfiler` and differential expression analysis results from `DESeq2`. As this involves downloading the pathway information, please refer to [use cases](https://noriakis.github.io/software/ggkegg/usecases.html) in the documentation.
+
+## Module
+
+
+### Parsing module
+
+KEGG MODULE can be parsed and used in the analysis. The formula to obtain module is the same as pathway. Here, we use test pathway which contains two KEGG ORTHOLOGY, two compounds and one reaction.
+This will create `kegg_module` class object storing definition and reactions.
+
+```{r module, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
+mod <- create_test_module()
+# module("M00002", use_cache=TRUE)
+mod
+```
+
+### Visualizing module
+
+The module can be visualized by text-based or network-based, depicting how they interact.
+
+```{r mod_vis1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+## Text-based
+mod |>
+  module_text() |> ## return data.frame
+  plot_module_text()
+```
+
+```{r mod_vis2, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
+## Network-based
+mod |>
+  obtain_sequential_module_definition() |>## return tbl_graph
+ggraph()+
+  geom_node_point()+
+  geom_edge_link(aes(label=type, filter=!startsWith(type,"in_")),
+                 label_dodge = unit(2,"mm"), color="red", angle_calc = "along")+
+    geom_edge_link(aes(filter= startsWith(type,"in_")))+ ## Additional edges specifying grouped relationship
+  geom_node_shadowtext(aes(label=name, filter=startsWith(name,"K")),
+                       bg.colour="white", color="black")+
+  theme_graph()
+## plot_module_blocks() can be used for module containing definitions with multiple blocks
+```
 
 ```{r}
 sessionInfo()
