@@ -322,6 +322,12 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 #' Please feel free to contact the bug, or modules that cannot be calculated.
 #' (Module definitions consisting of module IDs [M*] cannot be calculated)
 #' 
+#' Below is quoted from https://www.genome.jp/kegg/module.html
+#' 
+#' `A space or a plus sign, representing a connection in the pathway or the molecular complex,
+#' is treated as an AND operator and a comma, used for alternatives, is treated as an OR operator.
+#' A minus sign designates an optional item in the complex.`
+#' 
 #' @param kmo module object
 #' @param query vector of KO
 #' @param name name of definitions when multiple definitions are present
