@@ -126,14 +126,26 @@ setMethod("show",
 #' @return list of module definition and reaction
 #' @examples \donttest{module("M00003")}
 #' @export
-module <- function(mid) {
+module <- function(mid, use_cache=FALSE, directory=NULL) {
   kmo <- new("kegg_module")
   kmo@ID <- mid
-  if (!file.exists(mid)) {
-    download.file(paste0("https://rest.kegg.jp/get/",mid),
-                  destfile=mid)
+
+  if (!is.null(directory)) {
+    dest <- paste0(directory,"/",mid)
+  } else {
+    dest <- mid
   }
-  con = file(mid, "r")
+  if (!file.exists(dest)) {
+    if (use_cache) {
+      bfc <- BiocFileCache()
+      dest <- bfcrpath(bfc,
+        paste0("https://rest.kegg.jp/get/",mid))
+    } else {
+      download.file(paste0("https://rest.kegg.jp/get/",mid),
+                  destfile=dest)
+    }
+  }
+  con = file(dest, "r")
   content_list <- list()
   while ( TRUE ) {
     line = readLines(con, n = 1)
@@ -855,6 +867,10 @@ pathway_abundance <- function(id, vec, num=1) {
 
 
 #' create_test_module
+#' 
+#' Test kegg_module for examples and vignettes.
+#' The module has no biological meanings.
+#' 
 #' @export
 #' @examples create_test_module()
 #' @return return a test module to use in examples
@@ -863,13 +879,13 @@ create_test_module <- function() {
   mo <- new("kegg_module")
   mo@ID <- "test"
   mo@name <- "test module"
-  mo@reaction_each <- tibble(left=list("C00112"),reaction=list("R00112"),
-    right=list("C00224"))
-  mo@reaction_each_raw <- tibble(left="C00112",reaction="R00112",right="C00224")
-  mo@definition_raw <- list(c("K00112+K00224"))
-  mo@definitions <- list("1"=list("definition_block"="K00112+K00224",
-                                  "definition_kos"=c("K00112","K00224"),
+  mo@reaction_each <- tibble(left=list("C00065"),reaction=list("R00586"),
+    right=list("C00979"))
+  mo@reaction_each_raw <- tibble(left="C00065",reaction="R00586",right="C00979")
+  mo@definition_raw <- list(c("K00174+K00175"))
+  mo@definitions <- list("1"=list("definition_block"="K00174+K00175",
+                                  "definition_kos"=c("K00174","K00175"),
                                   "definition_num_in_block"=2,
-                                  "definition_ko_in_block"=list(c("K00112","K00224"))))
+                                  "definition_ko_in_block"=list(c("K00174","K00175"))))
   mo
 }

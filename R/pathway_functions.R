@@ -535,3 +535,51 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
   content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |> sapply("[", 1)
   content_list
 }
+
+
+
+#' return_pathway_example
+#' 
+#' As downloading from KEGG API is not desirable
+#' in vignettes or examples, return the `tbl_graph`
+#' with two nodes and two edges.
+#' @examples return_pathway_example
+#' @export
+#' @return tbl_graph
+return_pathway_example <- function() {
+  ddx <- data.frame(
+    name="hsa:51428",
+    type="gene",
+    reaction=NA,
+    graphics_name="DDX41",
+    x=500, y=-400,
+    width=20,height=9,
+    bgcolor="#BFFFBF",
+    pathway_id="test"
+  )
+  
+  trim <- data.frame(
+    name="hsa:6737",
+    type="gene",
+    reaction=NA,
+    graphics_name="TRIM21",
+    x=560, y=-400,
+    width=20,height=9,
+    bgcolor="#BFFFBF",
+    pathway_id="test"
+  )
+  
+  nodes <- rbind(trim, ddx)
+  nodes$xmin = nodes$x-nodes$width/2
+  nodes$ymin = nodes$y-nodes$height/2
+  nodes$xmax = nodes$x+nodes$width/2
+  nodes$ymax = nodes$y+nodes$height/2
+  
+  edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
+                 c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
+    data.frame()
+  edges$from <- as.integer(edges$from)
+  edges$to <- as.integer(edges$to)
+  tbl_graph(nodes, edges)
+}
+
