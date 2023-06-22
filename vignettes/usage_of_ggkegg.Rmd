@@ -55,15 +55,35 @@ ggraph(graph, layout="manual", x=x, y=y)+
 ## Converting identifiers
 
 The user can convert identifiers using `convert_id` function to be used in `mutate`.
-One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them.
+One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them (not run because it downloads converting table).
+
+```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+# graph |>
+#   activate(nodes) |>
+#   mutate(hsa=convert_id("hsa")) |>
+#   ggraph(layout="manual", x=x, y=y)+
+#   geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+#   geom_node_text(aes(label=hsa))+ ## specify converted column in node table
+#   geom_edge_parallel(aes(linetype=subtype_name),
+#                    arrow=arrow(length=unit(1,"mm"),
+#                                type="closed"),
+#                    end_cap=circle(1.5,"cm"),
+#                    start_cap=circle(1.5,"cm"))+
+#   theme_void()
+```
+
+### Highlighting set of nodes and edges
+
+`highlight_set_nodes()` and `highlight_set_edges()` can be used to identify nodes that satisfy query IDs. Nodes often have multiple IDs, and user can choose `how="any"` (if one of identifiers in the nodes matches the query) or `how="all"` (if all of the identifiers in the nodes match the query) to highlight.
 
 ```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 graph |>
   activate(nodes) |>
-  mutate(hsa=convert_id("hsa")) |>
+  mutate(ident=highlight_set_nodes("hsa:6737"),) |>
   ggraph(layout="manual", x=x, y=y)+
   geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-  geom_node_text(aes(label=hsa))+ ## specify converted column in node table
+  geom_node_rect(aes(fill="tomato", filter=ident), color="black")+
+  geom_node_text(aes(label=graphics_name))+
   geom_edge_parallel(aes(linetype=subtype_name),
                    arrow=arrow(length=unit(1,"mm"),
                                type="closed"),
@@ -71,6 +91,7 @@ graph |>
                    start_cap=circle(1.5,"cm"))+
   theme_void()
 ```
+
 
 ### Overlaying raw KEGG image
 
