@@ -123,6 +123,8 @@ setMethod("show",
 #' module
 #' KEGG module parsing function
 #' @param mid KEGG module ID
+#' @param use_cache use cache
+#' @param directory directory to save raw files
 #' @return list of module definition and reaction
 #' @examples \donttest{module("M00003")}
 #' @export
@@ -314,6 +316,12 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 
 #' module_completeness
 #' 
+#' This converts module definitions consisting of KO identifiers to the expression
+#' by converting `+` and ` ` to `AND`, and `,` to `OR`. After that, KO IDs specified
+#' by `query` is inserted to expression by `TRUE` or `FALSE`, and is evaluated.
+#' Please feel free to contact the bug, or modules that cannot be calculated.
+#' (Module definitions consisting of module IDs [M*] cannot be calculated)
+#' 
 #' @param kmo module object
 #' @param query vector of KO
 #' @param name name of definitions when multiple definitions are present
@@ -358,6 +366,7 @@ module_completeness <- function(kmo, query, name="1") {
 #' Given module definition and block number,
 #' Recursively obtain graphical represencation of block and 
 #' connect them by pseudo-nodes representing blocks.
+#' 
 #' @param kmo module object
 #' @param name name of definition when multiple definitions are present
 #' @param block specify if need to parse specific block
@@ -882,10 +891,10 @@ create_test_module <- function() {
   mo@reaction_each <- tibble(left=list("C00065"),reaction=list("R00586"),
     right=list("C00979"))
   mo@reaction_each_raw <- tibble(left="C00065",reaction="R00586",right="C00979")
-  mo@definition_raw <- list(c("K00174+K00175"))
-  mo@definitions <- list("1"=list("definition_block"="K00174+K00175",
-                                  "definition_kos"=c("K00174","K00175"),
-                                  "definition_num_in_block"=2,
-                                  "definition_ko_in_block"=list(c("K00174","K00175"))))
+  mo@definition_raw <- list(c("(K00174+K00175,K00382) (K01902+K01903,K01899"))
+  mo@definitions <- list("1"=list("definition_block"=c("K00174+K00175,K00382","K01902+K01903,K01899"),
+                                  "definition_kos"=c("K00174","K00175","K00382","K01902","K01903","K01899"),
+                                  "definition_num_in_block"=c(3,3),
+                                  "definition_ko_in_block"=list(c("K00174","K00175","K00382"),c("K01902","K01903","K01899"))))
   mo
 }
