@@ -1,5 +1,2 @@
-M*
-N*
-ko*
 *.xml
-*.BiocCheck
+*BiocCheck
