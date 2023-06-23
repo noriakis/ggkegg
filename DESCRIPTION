@@ -11,7 +11,7 @@ Depends:
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
     org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices
-Suggests: knitr, clusterProfiler, bnlearn, rmarkdown
+Suggests: knitr, clusterProfiler, bnlearn, rmarkdown, BiocStyle
 RoxygenNote: 7.2.3
 biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr
