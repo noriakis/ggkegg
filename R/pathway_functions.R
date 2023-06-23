@@ -516,15 +516,15 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
     }
   }
   pway <- list()
-  con = file(dest, "r")
+  con <- file(dest, "r")
   content_list <- list()
   while ( TRUE ) {
-    line = readLines(con, n = 1)
+    line <- readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }
     if (!startsWith(line, " ")) {
-      current_id <- strsplit(line, " ") |> sapply("[", 1)
+      current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
     }
     if (!current_id %in% c("REFERENCE","///")) {
       content <- substr(line, 13, nchar(line))
@@ -532,7 +532,8 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
     }
   }
   close(con)
-  content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |> sapply("[", 1)
+  content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |> vapply("[", 1,
+    FUN.VALUE="character")
   content_list
 }
 
@@ -570,10 +571,10 @@ return_pathway_example <- function() {
   )
   
   nodes <- rbind(trim, ddx)
-  nodes$xmin = nodes$x-nodes$width/2
-  nodes$ymin = nodes$y-nodes$height/2
-  nodes$xmax = nodes$x+nodes$width/2
-  nodes$ymax = nodes$y+nodes$height/2
+  nodes$xmin <- nodes$x-nodes$width/2
+  nodes$ymin <- nodes$y-nodes$height/2
+  nodes$xmax <- nodes$x+nodes$width/2
+  nodes$ymax <- nodes$y+nodes$height/2
   
   edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
                  c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>

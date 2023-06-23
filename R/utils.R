@@ -368,7 +368,7 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' if (require("clusterProfiler")) {
 #'   cp <- enrichKEGG(nodes$name |>
 #'                   strsplit(":") |> 
-#'                   sapply("[",2))
+#'                   vapply("[",2,FUN.VALUE="character"))
 #' }
 #' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 #' @export
@@ -571,7 +571,7 @@ convert_id <- function(org, name="name",
             paste0(convert_vec[qu]))
 
         sc_test <- ifelse(divide_semicolon,
-          strsplit(comma_test, ";") |> sapply("[",1),
+          strsplit(comma_test, ";") |> vapply("[",1,FUN.VALUE="character"),
           comma_test)
 
         spaced <- c(spaced, sc_test)
@@ -584,7 +584,7 @@ convert_id <- function(org, name="name",
         strsplit(convert_vec[x[xn]], ",")[[1]][1],
         convert_vec[x[xn]])
       sc_test <- ifelse(divide_semicolon,
-          strsplit(comma_test, ";") |> sapply("[",1),
+          strsplit(comma_test, ";") |> vapply("[",1,FUN.VALUE="character"),
           comma_test)
       convs <- c(convs, sc_test)
     }

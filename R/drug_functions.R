@@ -12,15 +12,15 @@ drug <- function(did) {
                   destfile=did)
   }
   current_sub_id <- NULL
-  con = file(did, "r")
+  con <- file(did, "r")
   content_list <- list()
   while ( TRUE ) {
-    line = readLines(con, n = 1)
+    line <- readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }
     if (!startsWith(line, " ")) {
-      current_id <- strsplit(line, " ") |> sapply("[", 1)
+      current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
       current_sub_id <- NULL
     } else {
       if (substr(line, 1, 12)!="            ") {
