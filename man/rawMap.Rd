@@ -37,6 +37,6 @@ enriched pathway
 \examples{
 if (require("clusterProfiler")) {
     cp <- enrichKEGG(c("1029","4171"))
-    \donttest{rawMap(list(cp,cp), pid="hsa04110")}
+    \dontrun{rawMap(list(cp,cp), pid="hsa04110")}
 }
 }

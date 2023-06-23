@@ -28,7 +28,7 @@ setMethod("show",
 #' @param use_cache use cache
 #' @param directory directory to save raw files
 #' @return list of network definition
-#' @examples \donttest{network("N00002")}
+#' @examples \dontrun{network("N00002")}
 #' @export
 network <- function(nid, use_cache=FALSE, directory=NULL) {
   if (!startsWith(nid, "N")) {stop("Please provide a string that starts with N.")}

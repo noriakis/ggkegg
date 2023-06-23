@@ -45,6 +45,6 @@ nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
                    pathway_id="hsa04110")
 edges <- data.frame(from=1, to=2, name="K00112")
 graph <- tbl_graph(nodes, edges)
-\donttest{ggraph(graph) + overlay_raw_map()}
+\dontrun{ggraph(graph) + overlay_raw_map()}
 
 }

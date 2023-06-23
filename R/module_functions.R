@@ -126,7 +126,7 @@ setMethod("show",
 #' @param use_cache use cache
 #' @param directory directory to save raw files
 #' @return list of module definition and reaction
-#' @examples \donttest{module("M00003")}
+#' @examples \dontrun{module("M00003")}
 #' @export
 module <- function(mid, use_cache=FALSE, directory=NULL) {
   kmo <- new("kegg_module")
@@ -835,7 +835,7 @@ parse_module <- function(kmo) {
 #' @param calc calculation of final results, mean or weighted_mean
 #' @export
 #' @importFrom stats weighted.mean
-#' @examples \donttest{module_abundance("M00003",c(1.2) |> setNames("K00927"))}
+#' @examples \dontrun{module_abundance("M00003",c(1.2) |> setNames("K00927"))}
 #' @return numeric value
 module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
   mod <- module(mod_id)
@@ -865,7 +865,7 @@ module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
 #' @param vec named vector of abundance
 #' @param num number of module definition
 #' @return numeric value
-#' @examples \donttest{pathway_abundance("ko00270", c(1.2) |> `setNames`("K00927"))}
+#' @examples \dontrun{pathway_abundance("ko00270", c(1.2) |> `setNames`("K00927"))}
 #' @export
 pathway_abundance <- function(id, vec, num=1) {
   pway <- pathway_info(id)

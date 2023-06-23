@@ -511,7 +511,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #'                    ymax=c(2,2))
 #' edges <- data.frame(from=1, to=2)
 #' graph <- tbl_graph(nodes, edges)
-#' \donttest{graph <- graph |> mutate(conv=convert_id("hsa"))}
+#' \dontrun{graph <- graph |> mutate(conv=convert_id("hsa"))}
 #' 
 convert_id <- function(org, name="name",
   convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,
