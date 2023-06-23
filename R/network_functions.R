@@ -25,18 +25,31 @@ setMethod("show",
 #' network
 #' parsing the network elements starting with N
 #' @param nid KEGG NETWORK ID
+#' @param use_cache use cache
+#' @param directory directory to save raw files
 #' @return list of network definition
 #' @examples \donttest{network("N00002")}
 #' @export
-network <- function(nid) {
+network <- function(nid, use_cache=FALSE, directory=NULL) {
   if (!startsWith(nid, "N")) {stop("Please provide a string that starts with N.")}
   kne <- new("kegg_network")
   kne@ID <- nid
-  if (!file.exists(nid)) {
-    download.file(paste0("https://rest.kegg.jp/get/",nid),
-                  destfile=nid)
+  if (!is.null(directory)) {
+    dest <- paste0(directory,"/",nid)
+  } else {
+    dest <- nid
   }
-  con = file(nid, "r")
+  if (!file.exists(dest)) {
+    if (use_cache) {
+      bfc <- BiocFileCache()
+      dest <- bfcrpath(bfc,
+        paste0("https://rest.kegg.jp/get/",nid))
+    } else {
+      download.file(paste0("https://rest.kegg.jp/get/",nid),
+                  destfile=dest)
+    }
+  }
+  con = file(dest, "r")
 
   while ( TRUE ) {
     line = readLines(con, n = 1)

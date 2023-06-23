@@ -6,10 +6,14 @@
 network
 parsing the network elements starting with N}
 \usage{
-network(nid)
+network(nid, use_cache = FALSE, directory = NULL)
 }
 \arguments{
 \item{nid}{KEGG NETWORK ID}
+
+\item{use_cache}{use cache}
+
+\item{directory}{directory to save raw files}
 }
 \value{
 list of network definition
