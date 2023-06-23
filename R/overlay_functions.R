@@ -96,10 +96,10 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   ras <- as.raster(magick_image)
 
 
-  xmin=0
-  xmax=w
-  ymin=-1*h
-  ymax=0
+  xmin <- 0
+  xmax <- w
+  ymin <- -1*h
+  ymax <- 0
 
   if (object$clip) {
     ras <- ras[seq_len(nrow(ras)-1),

@@ -19,10 +19,10 @@
 #' 
 parseMetaCycPathwayReactions <- function(file) {
   flg <- FALSE
-  con = file(file, "r")
+  con <- file(file, "r")
   allList <- list()
   while ( TRUE ) {
-    line = readLines(con, n = 1)
+    line <- readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }

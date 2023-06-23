@@ -147,15 +147,15 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
                   destfile=dest)
     }
   }
-  con = file(dest, "r")
+  con <- file(dest, "r")
   content_list <- list()
   while ( TRUE ) {
-    line = readLines(con, n = 1)
+    line <- readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }
     if (!startsWith(line, " ")) {
-      current_id <- strsplit(line, " ") |> sapply("[", 1)
+      current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
     }
     if (!current_id %in% c("REFERENCE","///")) {
       content <- substr(line, 13, nchar(line))
@@ -869,7 +869,7 @@ module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
 #' @export
 pathway_abundance <- function(id, vec, num=1) {
   pway <- pathway_info(id)
-  mods <- pway$MODULE |> strsplit(" ") |> sapply("[", 1) |> unique()
+  mods <- pway$MODULE |> strsplit(" ") |> vapply("[", 1, FUN.VALUE="character") |> unique()
   abuns <- NULL
   for (mod in mods) {
     abuns <- c(abuns, module_abundance(mod_id=mod, num=num, vec=vec))

@@ -34,7 +34,7 @@ graph <- tbl_graph(nodes, edges)
 if (require("clusterProfiler")) {
   cp <- enrichKEGG(nodes$name |>
                   strsplit(":") |> 
-                  sapply("[",2))
+                  vapply("[",2,FUN.VALUE="character"))
 }
 graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 }

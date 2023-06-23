@@ -266,7 +266,7 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 plot_kegg_network <- function(g) {
   ## [TODO] Presuming G***** and CS***** is not in the symbol
   gg <- g |> as_tbl_graph() |> activate(nodes) |>
-  mutate(splitn=strsplit(name,"_") |> sapply("[",1)) |>
+  mutate(splitn=strsplit(name,"_") |> vapply("[",1,FUN.VALUE="character")) |>
   mutate(group=startsWith(splitn,"manual_G") & nchar(splitn)==6,
     and_group=startsWith(splitn,"manual_CS") & nchar(splitn)==6)
   ggraph(gg, layout="kk") +

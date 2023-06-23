@@ -49,10 +49,10 @@ network <- function(nid, use_cache=FALSE, directory=NULL) {
                   destfile=dest)
     }
   }
-  con = file(dest, "r")
+  con <- file(dest, "r")
 
   while ( TRUE ) {
-    line = readLines(con, n = 1)
+    line <- readLines(con, n = 1)
     if ( length(line) == 0 ) {
       break
     }
