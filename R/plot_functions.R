@@ -10,7 +10,7 @@
 #' @export
 #' @return graph adjusted for the position
 #' @examples
-#' \donttest{multi_pathway_native(list("hsa04110","hsa03460"))}
+#' \dontrun{multi_pathway_native(list("hsa04110","hsa03460"))}
 #' 
 multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
   plen <- length(pathways)

@@ -24,7 +24,7 @@
 #'                    pathway_id="hsa04110")
 #' edges <- data.frame(from=1, to=2, name="K00112")
 #' graph <- tbl_graph(nodes, edges)
-#' \donttest{ggraph(graph) + overlay_raw_map()}
+#' \dontrun{ggraph(graph) + overlay_raw_map()}
 #'
 overlay_raw_map <- function(pid=NULL, directory=NULL,
                             transparent_colors=c("#FFFFFF",
@@ -59,7 +59,7 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
 #'                    pathway_id="hsa04110")
 #' edges <- data.frame(from=1, to=2, name="K00112")
 #' graph <- tbl_graph(nodes, edges)
-#' \donttest{ggraph(graph) + overlay_raw_map()}
+#' \dontrun{ggraph(graph) + overlay_raw_map()}
 #'
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   if (is.null(object$pid)) {

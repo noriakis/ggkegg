@@ -24,5 +24,5 @@ network
 parsing the network elements starting with N
 }
 \examples{
-\donttest{network("N00002")}
+\dontrun{network("N00002")}
 }
