@@ -31,11 +31,12 @@ Here we prepare an example `tbl_graph` representing pathway information. Typical
 library(ggkegg)
 graph <- return_pathway_example()
 graph
-\donttest{
-  graph <- pathway("hsa04110")
-  graph <- pathway("hsa04110", directory="path/to/xml")
-  graph <- pathway("hsa04110", use_cache=TRUE)
-}
+```
+
+```{r pathway2, eval=FALSE}
+# graph <- pathway("hsa04110")
+# graph <- pathway("hsa04110", directory="path/to/xml")
+# graph <- pathway("hsa04110", use_cache=TRUE)
 ```
 
 ### Plot using `ggraph`
@@ -59,21 +60,19 @@ ggraph(graph, layout="manual", x=x, y=y)+
 The user can convert identifiers using `convert_id` function to be used in `mutate`.
 One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them (not run because it downloads converting table).
 
-```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
-\donttest{
-  graph |>
-    activate(nodes) |>
-    mutate(hsa=convert_id("hsa")) |>
-    ggraph(layout="manual", x=x, y=y)+
-    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-    geom_node_text(aes(label=hsa))+ ## specify converted column in node table
-    geom_edge_parallel(aes(linetype=subtype_name),
-                     arrow=arrow(length=unit(1,"mm"),
-                                 type="closed"),
-                     end_cap=circle(1.5,"cm"),
-                     start_cap=circle(1.5,"cm"))+
-    theme_void()
-}
+```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1, eval=FALSE}
+# graph |>
+#   activate(nodes) |>
+#   mutate(hsa=convert_id("hsa")) |>
+#   ggraph(layout="manual", x=x, y=y)+
+#   geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+#   geom_node_text(aes(label=hsa))+ ## specify converted column in node table
+#   geom_edge_parallel(aes(linetype=subtype_name),
+#                    arrow=arrow(length=unit(1,"mm"),
+#                                type="closed"),
+#                    end_cap=circle(1.5,"cm"),
+#                    start_cap=circle(1.5,"cm"))+
+#   theme_void()
 ```
 
 ### Highlighting set of nodes and edges
@@ -103,13 +102,11 @@ We can use `overlay_raw_map` to overlay the raw KEGG images on the created ggrap
 The node and text can be directly customized by using various geoms and effects such as `ggfx`.
 The code below creates nodes using default parsed background color and just overlay the image.
 
-```{r example_raw, message=FALSE, warning=FALSE}
-\donttest{
-  graph <- pathway("hsa04110")
-  ggraph(graph, layout="manual", x=x, y=y)+
-    geom_node_rect(aes(fill=I(bgcolor)))+
-    overlay_raw_map()  
-  }
+```{r example_raw, message=FALSE, warning=FALSE, eval=FALSE}
+# graph <- pathway("hsa04110")
+# ggraph(graph, layout="manual", x=x, y=y)+
+#   geom_node_rect(aes(fill=I(bgcolor)))+
+#   overlay_raw_map()
 ```
 
 
@@ -127,10 +124,11 @@ This will create `kegg_module` class object storing definition and reactions.
 
 ```{r module, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 mod <- create_test_module()
-\donttest{
-  module("M00002", use_cache=TRUE)
-}
 mod
+```
+
+```{r module2, eval=FALSE}
+# module("M00002", use_cache=TRUE)
 ```
 
 ### Visualizing module
