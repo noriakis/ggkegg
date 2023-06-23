@@ -26,9 +26,9 @@ Please feel free to contact the bug, or modules that cannot be calculated.
 \details{
 Below is quoted from https://www.genome.jp/kegg/module.html
 
-```A space or a plus sign, representing a connection in the pathway or the molecular complex,
+`A space or a plus sign, representing a connection in the pathway or the molecular complex,
 is treated as an AND operator and a comma, used for alternatives, is treated as an OR operator.
-A minus sign designates an optional item in the complex.```
+A minus sign designates an optional item in the complex.`
 }
 \examples{
 test_complete <- module_completeness(create_test_module(), c("K00112"))
