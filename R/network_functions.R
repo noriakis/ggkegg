@@ -128,11 +128,11 @@ convert_definition_to_graph <- function(kne) {
 #' @export
 network_graph <- function (kne, type="definition") {
   if (type=="definition") {
-    raw_nodes <- kne@definition_graph |> activate(nodes) |> data.frame()
-    raw_edges <- kne@definition_graph |> activate(edges) |> data.frame()
+    raw_nodes <- kne@definition_graph |> activate("nodes") |> data.frame()
+    raw_edges <- kne@definition_graph |> activate("edges") |> data.frame()
   } else {
-    raw_nodes <- kne@expanded_graph |> activate(nodes) |> data.frame()
-    raw_edges <- kne@expanded_graph |> activate(edges) |> data.frame()
+    raw_nodes <- kne@expanded_graph |> activate("nodes") |> data.frame()
+    raw_edges <- kne@expanded_graph |> activate("edges") |> data.frame()
     
   }
   
@@ -197,7 +197,7 @@ network_graph <- function (kne, type="definition") {
   all_edges <- rbind(raw_edges |> `colnames<-`(c("from","to","type","subtype")),
         edges)
   g <- as_tbl_graph(all_edges, directed = TRUE)
-  g <- g |> activate(nodes) |>   mutate(network_name=kne@name,
+  g <- g |> activate("nodes") |>   mutate(network_name=kne@name,
     network_ID=kne@ID)
   g
 }
