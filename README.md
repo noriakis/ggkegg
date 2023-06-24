@@ -69,8 +69,8 @@ m <- module("M00013")
 g <- pathway("ko00640") |> mutate(mod=highlight_set_nodes(m@reaction_components,how="all"))
 gg <- ggraph(g, layout="manual", x=x, y=y)+
   geom_node_rect(fill="grey",aes(filter=type=="ortholog"))+
-  geom_node_point(aes(filter=type=="compound"), color="blue", size=2)+
   overlay_raw_map("ko00640")+
+  geom_node_point(aes(filter=type=="compound"), shape=21, fill="blue", color="black", size=2)+
   ggfx::with_outer_glow(geom_node_point(aes(filter=mod, x=x, y=y), color="red",size=2),
                         colour="yellow",expand=5)+
   theme_void()
