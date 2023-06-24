@@ -4,7 +4,12 @@
 \alias{geom_kegg}
 \title{geom_kegg}
 \usage{
-geom_kegg(edge_color = NULL, node_label = name, group_color = "red")
+geom_kegg(
+  edge_color = NULL,
+  node_label = .data$name,
+  group_color = "red",
+  parallel = FALSE
+)
 }
 \arguments{
 \item{edge_color}{color attribute to edge}
@@ -12,6 +17,8 @@ geom_kegg(edge_color = NULL, node_label = name, group_color = "red")
 \item{node_label}{column name for node label}
 
 \item{group_color}{border color for group node rectangles}
+
+\item{parallel}{use geom_edge_parallel() instead of geom_edge_link()}
 }
 \value{
 ggplot2 object

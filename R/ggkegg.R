@@ -180,7 +180,7 @@ ggkegg <- function(pid,
     return(g)
   }
   if (layout=="native") {
-    ggraph(g, layout="manual", x=x, y=y)
+    ggraph(g, layout="manual", x=.data$x, y=.data$y)
   } else {
     g <- delete_vertex_attr(g, "x")
     g <- delete_vertex_attr(g, "y")
@@ -245,8 +245,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 
   if (number==1) {
     g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
-    gg <- ggraph(g, layout="manual", x=x, y=y)+
-      geom_node_rect(fill=fill_color, aes(filter=cp))+
+    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
+      geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
       overlay_raw_map()+theme_void()
   } else {
     g <- pathway(pid)
@@ -255,8 +255,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         how=how, pid=pid))
     }
     V(g)$space <- V(g)$width/number
-    gg <- ggraph(g, layout="manual", x=x, y=y)
-    nds <- g |> activate(nodes) |> data.frame()
+    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
+    nds <- g |> activate("nodes") |> data.frame()
     for (i in seq_len(number)) {
       # tmp_col <- sym(paste0("cp",i))
       gg <- gg + geom_node_rect(

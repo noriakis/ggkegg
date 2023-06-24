@@ -148,8 +148,8 @@ highlight_module <- function(graph, kmo,
     if (attributes(kmo)$class[1]!="kegg_module") {
       stop("Please provide kegg_module class object")}
 
-    edge_df <- graph |> activate(edges) |> data.frame()
-    node_df <- graph |> activate(nodes) |> data.frame()
+    edge_df <- graph |> activate("edges") |> data.frame()
+    node_df <- graph |> activate("nodes") |> data.frame()
 
     ## First identify edges of reaction
     einds <- rep(FALSE, E(graph) |> length())
@@ -239,9 +239,9 @@ highlight_module <- function(graph, kmo,
     ninds[unique(as.numeric(nind))] <- TRUE
 
     graph |>
-      activate(edges) |>
+      activate("edges") |>
       mutate(!!kmo@ID := einds) |>
-      activate(nodes) |>
+      activate("nodes") |>
       mutate(!!kmo@ID := ninds)
 }
 

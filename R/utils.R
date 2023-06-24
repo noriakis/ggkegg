@@ -80,8 +80,8 @@ append_label_position <- function(g) {
 #' gm_test <- tbl_graph(gm_test)
 #' test <- process_line(gm_test) |> return_line_compounds(1)
 return_line_compounds <- function(g, orig) {
-  ndf <- g |> activate(nodes) |> data.frame()
-  edf <- g |> activate(edges) |> data.frame()
+  ndf <- g |> activate("nodes") |> data.frame()
+  edf <- g |> activate("edges") |> data.frame()
   highl <- ndf[edf[edf$to %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
     row.names()),]$from,]$orig.id
   highl2 <- ndf[edf[edf$from %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
@@ -245,7 +245,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     for (xx in seq_along(x)) {
       if (x[xx]=="undefined") {val[[xx]] <- NA; next}
       vals <- strsplit(x[xx], " ") |> unlist() |> unique()
-      subset_conv <- convert_df |> filter(converted %in% vals) |> data.frame()
+      subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
       if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
       if (dim(subset_conv)[1]==1) {
         val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
@@ -255,7 +255,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     binded
   }
 
-  node_df <- graph |> activate(nodes) |> data.frame()
+  node_df <- graph |> activate("nodes") |> data.frame()
   node_name <- node_df$name
   if (gene_type!="ENTREZID") {
     convert_df <- mat |> row.names() |> select(x=org_db,
@@ -267,7 +267,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
   }
   
   convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
-  new_edges <- graph |> activate(edges) |> data.frame()
+  new_edges <- graph |> activate("edges") |> data.frame()
   summed <- data.frame(get_value(node_df$name))
   new_nodes <- cbind(node_df, summed)
   appended <- tbl_graph(nodes=new_nodes, edges=new_edges)

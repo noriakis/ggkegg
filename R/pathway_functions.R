@@ -340,9 +340,11 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
     `colnames<-`(name_col_edge)
 
   df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
-  df_add |> activate(nodes) |>
-    mutate(original_name=vapply(seq_len(length(original_name)),
-     function(x){ if(is.na(original_name[x])) name[x] else original_name[x]},
+  df_add |> activate("nodes") |>
+    mutate(original_name=vapply(seq_len(length(.data$original_name)),
+      function(x){ 
+        if(is.na(.data$original_name[x])) .data$name[x] else .data$original_name[x]
+      },
      FUN.VALUE="character"))
 }
 
@@ -380,10 +382,10 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 process_reaction <- function(g) {
 
   ## Obtain raw nodes
-  nds <- g |> activate(nodes) |> data.frame()
+  nds <- g |> activate("nodes") |> data.frame()
 
   ## Obtain raw edges
-  eds <- g |> activate(edges) |> data.frame()
+  eds <- g |> activate("edges") |> data.frame()
 
   ## Prepare new edges
   new_eds <- NULL
