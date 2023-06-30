@@ -361,6 +361,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' if the reaction is reversible.
 #' 
 #' @param g graph
+#' @param single_edge discard one edge when edge type is `reversible`
 #' @importFrom tidygraph bind_nodes bind_edges
 #' @export
 #' @return tbl_graph
@@ -379,7 +380,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' gm_test <- tbl_graph(gm_test, gm_test_edges)
 #' test <- process_reaction(gm_test)
 #' 
-process_reaction <- function(g) {
+process_reaction <- function(g, single_edge=FALSE) {
   ## [TODO] Dirty ways to obtain edges, perhaps directly
   ## parsing substrate -> product would be reasonable
 
@@ -430,15 +431,17 @@ process_reaction <- function(g) {
                                       # tmp$orig.id |> unique())
                     k <- k + 1
                 }
-            } 
-            for (ctos in tos) {
-                for (cfs in fs) {
-                    new_eds[[k]] <- c(ctos, cfs, "reversible",
-                      tmp$reaction |> unique(), konm, reac_info$bgcolor |> unique(),
-                      reac_info$fgcolor |> unique())
-                    k <- k + 1
-                }
-            }    
+            }
+            if (!single_edge) {
+              for (ctos in tos) {
+                  for (cfs in fs) {
+                      new_eds[[k]] <- c(ctos, cfs, "reversible",
+                        tmp$reaction |> unique(), konm, reac_info$bgcolor |> unique(),
+                        reac_info$fgcolor |> unique())
+                      k <- k + 1
+                  }
+              }              
+            }
         }
       }
   }

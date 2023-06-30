@@ -4,10 +4,12 @@
 \alias{process_reaction}
 \title{process_reaction}
 \usage{
-process_reaction(g)
+process_reaction(g, single_edge = FALSE)
 }
 \arguments{
 \item{g}{graph}
+
+\item{single_edge}{discard one edge when edge type is `reversible`}
 }
 \value{
 tbl_graph
