@@ -380,6 +380,8 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' test <- process_reaction(gm_test)
 #' 
 process_reaction <- function(g) {
+  ## [TODO] Dirty ways to obtain edges, perhaps directly
+  ## parsing substrate -> product would be reasonable
 
   ## Obtain raw nodes
   nds <- g |> activate("nodes") |> data.frame()
@@ -393,43 +395,56 @@ process_reaction <- function(g) {
   for (i in eds$reaction |> unique()) {
       konm <- nds[nds$reaction %in% i,]$name
       konm <- ifelse(is.null(konm),NA,konm)
-      tmp <- eds[eds$reaction %in% i,]
-      if (tmp$type |> unique()=="irreversible") {
-          fs <- tmp[tmp$subtype_name=="substrate",]$from
-          tos <- tmp[tmp$subtype_name=="product",]$to
-          for (cfs in fs) {
-              for (ctos in tos) {
-                  new_eds[[k]] <- c(cfs, ctos, "irreversible",
-                    tmp$reaction |> unique(), konm)
-                  k <- k + 1
-              }
-          }
-      } else {
-          fs <- tmp[tmp$subtype_name=="substrate",]$from
-          tos <- tmp[tmp$subtype_name=="product",]$to
-          for (cfs in fs) {
-              for (ctos in tos) {
-                  new_eds[[k]] <- c(cfs, ctos, "reversible",
-                    tmp$reaction |> unique(), konm)
-                                    # tmp$pathway_id |> unique(), tmp$name |> unique(),
-                                    # tmp$bgcolor |> unique(),
-                                    # tmp$fgcolor |> unique(),
-                                    # tmp$orig.id |> unique())
-                  k <- k + 1
-              }
-          } 
-          for (ctos in tos) {
-              for (cfs in fs) {
-                  new_eds[[k]] <- c(ctos, cfs, "reversible",
-                    tmp$reaction |> unique(), konm)
-                  k <- k + 1
-              }
-          }    
+      in_reacs <- eds[eds$reaction %in% i,]
+
+      row.names(in_reacs) <- seq_len(nrow(in_reacs))
+      for (block in seq(1,nrow(in_reacs),2)) {
+
+        tmp <- in_reacs[c(block, block+1),]
+        fs <- tmp[tmp$subtype_name=="substrate",]$from
+        tos <- tmp[tmp$subtype_name=="product",]$to
+        reac_info <- nds[tmp[tmp$subtype_name=="substrate",]$to,]
+        
+        # if (length(reac_info$fgcolor |> unique())>1) {stop(i)}
+
+        if (tmp$type |> unique()=="irreversible") {
+            fs <- tmp[tmp$subtype_name=="substrate",]$from
+            tos <- tmp[tmp$subtype_name=="product",]$to
+            for (cfs in fs) {
+                for (ctos in tos) {
+                    new_eds[[k]] <- c(cfs, ctos, "irreversible",
+                      tmp$reaction |> unique(), konm,
+                      reac_info$bgcolor |> unique(), reac_info$fgcolor |> unique())
+                    k <- k + 1
+                }
+            }
+        } else {
+            for (cfs in fs) {
+                for (ctos in tos) {
+                    new_eds[[k]] <- c(cfs, ctos, "reversible",
+                      tmp$reaction |> unique(), konm,
+                      reac_info$bgcolor |> unique(), reac_info$fgcolor |> unique())
+                                      # tmp$pathway_id |> unique(), tmp$name |> unique(),
+                                      # tmp$bgcolor |> unique(),
+                                      # tmp$fgcolor |> unique(),
+                                      # tmp$orig.id |> unique())
+                    k <- k + 1
+                }
+            } 
+            for (ctos in tos) {
+                for (cfs in fs) {
+                    new_eds[[k]] <- c(ctos, cfs, "reversible",
+                      tmp$reaction |> unique(), konm, reac_info$bgcolor |> unique(),
+                      reac_info$fgcolor |> unique())
+                    k <- k + 1
+                }
+            }    
+        }
       }
   }
 
   new_eds <- do.call(rbind, new_eds) |> data.frame() |>
-  `colnames<-`(c("from","to","type","reaction","name"))
+  `colnames<-`(c("from","to","type","reaction","name","bgcolor","fgcolor"))
 
   new_eds <- new_eds[!duplicated(new_eds),]
   new_eds$from <- as.integer(new_eds$from)
