@@ -274,3 +274,80 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     gg
   }
 }
+
+
+
+#' rawValue
+#' 
+#' given named vector of quantitative values,
+#' return the ggplot object with raw KEGG map overlaid.
+#' Colors can be changed afterwards.
+#' 
+#' @param values named vector, or list of them
+#' @param pid pathway id
+#' @param column column name on node table of the graph
+#' @param white_background fill background color white
+#' @param how how to match the node IDs with the queries 'any' or 'all'
+#' @param auto_add automatically add prefix based on pathway prefix
+#' @param man_graph provide manual tbl_graph
+#' @export
+#' @examples
+#' rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
+#'         man_graph=return_pathway_example())
+#' @return ggraph with overlaid KEGG map
+#' 
+rawValue <- function(values, pid=NULL, column="name",
+  how="any", white_background=TRUE, auto_add=FALSE, man_graph=NULL) {
+  if (is.list(values)) {
+    number <- length(values)
+    if (auto_add) {
+      pref <- gsub("[^a-zA-Z]", "", pid)
+      for (i in seq_along(values)) {
+        names(values[[i]]) <- paste0(pref, ":", names(values[[i]]))
+      }
+    }
+  } else {
+    number <- 1
+    if (auto_add) {
+      pref <- gsub("[^a-zA-Z]", "", pid)
+      names(values) <- paste0(pref, ":", names(values))
+    }
+  }
+  if (!is.null(man_graph)) {
+    pgraph <- man_graph
+  } else {
+    pgraph <- pathway(pid)
+  }
+  if (number==1) {
+    g <- pgraph |> mutate(value=node_numeric(values,
+      name=column,how=how))
+    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
+      geom_node_rect(aes(fill=.data$value))+
+      overlay_raw_map()+theme_void()
+  } else {
+    ## [TODO] Add new scales like ggh4x
+    g <- pgraph
+    for (i in seq_len(number)) {
+      g <- g  |> mutate(!!paste0("value",i) :=node_numeric(values[[i]],
+        name=column,how=how))
+    }
+    V(g)$space <- V(g)$width/number
+    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
+    nds <- g |> activate("nodes") |> data.frame()
+    for (i in seq_len(number)) {
+      nudge <- i-1
+      # tmp_col <- sym(paste0("cp",i))
+      gg <- gg + geom_node_rect(
+        aes(fill=!!sym(paste0("value",i))),
+        xmin=nds$xmin+nds$space*nudge,
+        )
+    }
+    gg <- gg + overlay_raw_map()+theme_void()
+  }
+  if (white_background) {
+    gg + theme(panel.background = element_rect(fill = 'white',
+      colour = 'white'))
+  } else {
+    gg
+  }
+}
