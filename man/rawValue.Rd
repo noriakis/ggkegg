@@ -8,6 +8,7 @@ rawValue(
   values,
   pid = NULL,
   column = "name",
+  show_type = "gene",
   how = "any",
   white_background = TRUE,
   auto_add = FALSE,
@@ -20,6 +21,8 @@ rawValue(
 \item{pid}{pathway id}
 
 \item{column}{column name on node table of the graph}
+
+\item{show_type}{type to be shown, typically, "gene", "ortholog", or "compound"}
 
 \item{how}{how to match the node IDs with the queries 'any' or 'all'}
 

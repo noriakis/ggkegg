@@ -290,13 +290,14 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @param auto_add automatically add prefix based on pathway prefix
 #' @param man_graph provide manual tbl_graph
+#' @param show_type type to be shown, typically, "gene", "ortholog", or "compound"
 #' @export
 #' @examples
 #' rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
 #'         man_graph=return_pathway_example())
 #' @return ggraph with overlaid KEGG map
 #' 
-rawValue <- function(values, pid=NULL, column="name",
+rawValue <- function(values, pid=NULL, column="name", show_type="gene",
   how="any", white_background=TRUE, auto_add=FALSE, man_graph=NULL) {
   if (is.list(values)) {
     number <- length(values)
@@ -322,7 +323,7 @@ rawValue <- function(values, pid=NULL, column="name",
     g <- pgraph |> mutate(value=node_numeric(values,
       name=column,how=how))
     gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
-      geom_node_rect(aes(fill=.data$value))+
+      geom_node_rect(aes(fill=.data$value, filter=.data$type %in% show_type))+
       overlay_raw_map()+theme_void()
   } else {
     ## [TODO] Add new scales like ggh4x
@@ -338,7 +339,8 @@ rawValue <- function(values, pid=NULL, column="name",
       nudge <- i-1
       # tmp_col <- sym(paste0("cp",i))
       gg <- gg + geom_node_rect(
-        aes(fill=!!sym(paste0("value",i))),
+        aes(fill=!!sym(paste0("value",i)),
+          filter=.data$type %in% show_type),
         xmin=nds$xmin+nds$space*nudge,
         )
     }
