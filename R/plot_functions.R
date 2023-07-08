@@ -257,24 +257,26 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' plot the output of network_graph
 #' 
 #' @param g graph object returned by `network()`
+#' @param layout layout to be used, default to nicely
 #' @return ggplot2 object
 #' @export
 #' @examples
 #' ne <- create_test_network()
 #' neg <- network_graph(ne)
 #' plt <- plot_kegg_network(neg)
-plot_kegg_network <- function(g) {
+plot_kegg_network <- function(g, layout="nicely") {
   ## [TODO] Presuming G***** and CS***** is not in the symbol
   gg <- g |> as_tbl_graph() |> activate("nodes") |>
     mutate(splitn=strsplit(.data$name,"_") |> vapply("[",1,FUN.VALUE="character")) |>
     mutate(group=startsWith(.data$splitn,"manual_G"),
       and_group=startsWith(.data$splitn,"manual_CS"))
-  ggraph(gg, layout="kk") +
+  ggraph(gg, layout=layout) +
     geom_edge_link(aes(label=.data$type,
                        filter=!startsWith(.data$type,"in")),
                    angle_calc="along", force_flip=FALSE,
                    label_dodge = unit(2, 'mm')) +
     geom_edge_link(aes(filter=startsWith(.data$type,"in_and")))+ 
+    geom_edge_link(aes(filter=startsWith(.data$type,"in_block")), linetype=2)+ 
     geom_node_point(size=4, aes(filter=!startsWith(.data$name,"manual_BLOCK") &
                                   !(.data$group)&
                                   !(.data$and_group))) + 
@@ -282,10 +284,8 @@ plot_kegg_network <- function(g) {
     geom_node_point(size=2, shape=21, aes(filter=(.data$group) |
                                             (.data$and_group))) + 
     geom_node_text(aes(label=.data$name,
-                       filter=!(.data$and_group) &
-                        !(.data$group) &
-                         !startsWith(.data$name,"manual_BLOCK")),
-                   repel=TRUE, size=4, bg.colour="white")+
+                     filter=!startsWith(.data$name,"manual_")),
+                 repel=TRUE, size=4, bg.colour="white")+
     theme_void()
 }
 
