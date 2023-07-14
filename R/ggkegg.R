@@ -335,6 +335,8 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
     V(g)$space <- V(g)$width/number
     gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
     nds <- g |> activate("nodes") |> data.frame()
+    nds <- nds[nds$type %in% show_type,]
+
     for (i in seq_len(number)) {
       nudge <- i-1
       # tmp_col <- sym(paste0("cp",i))
