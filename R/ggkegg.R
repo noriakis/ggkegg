@@ -344,6 +344,7 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
         aes(fill=!!sym(paste0("value",i)),
           filter=.data$type %in% show_type),
         xmin=nds$xmin+nds$space*nudge,
+          xmax=nds$xmin+i*nds$space
         )
     }
     gg <- gg + overlay_raw_map()+theme_void()
