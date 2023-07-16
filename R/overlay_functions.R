@@ -6,7 +6,7 @@
 #' @param directory directory to store images if not use cache
 #' @param transparent_colors make these colors transparent to overlay
 #' Typical choice of colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
-#' "#ADADAD","#838383"
+#' "#ADADAD","#838383","#B3B3B3"
 #' @param clip clip the both end of x- and y-axis by one dot
 #' @param adjust adjust the x-axis location by 0.5 in data coordinates
 #' @param use_cache whether to use BiocFileCache()
