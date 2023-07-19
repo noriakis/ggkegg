@@ -9,8 +9,7 @@
 <!-- badges: end -->
 
 A set of functions to analyse and plot the KEGG information using
-`tidygraph`, `ggraph` and `ggplot2`. Will split to `tidykegg` and
-`ggkegg`.
+`tidygraph`, `ggraph` and `ggplot2`.
 
 The detailed documentation is
 [here](https://noriakis.github.io/software/ggkegg) using `bookdown`.
