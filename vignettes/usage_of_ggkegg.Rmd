@@ -25,7 +25,7 @@ This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY a
 
 ## Pathway
 
-Here we prepare an example `tbl_graph` representing pathway information. Typically one can obtain a real KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directroy with `directory` argument.
+Here we prepare an example `tbl_graph` representing pathway information. Typically one can obtain a real KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory with `directory` argument.
 
 ```{r pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 library(ggkegg)
@@ -82,7 +82,7 @@ One can pipe the functions to convert `name` column consisting of `hsa` KEGG gen
 ```{r highlight, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 graph |>
   activate(nodes) |>
-  mutate(ident=highlight_set_nodes("hsa:6737"),) |>
+  mutate(ident=highlight_set_nodes("hsa:6737")) |>
   ggraph(layout="manual", x=x, y=y)+
   geom_node_rect(aes(fill=I(bgcolor)), color="black")+
   geom_node_rect(aes(fill="tomato", filter=ident), color="black")+

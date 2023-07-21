@@ -32,6 +32,14 @@ The detailed documentation is [here](https://noriakis.github.io/software/ggkegg)
 
 ## Installation
 
+Using `BiocManager`:
+
+```{r, eval=FALSE}
+BiocManager::install("ggkegg")
+```
+
+Using `devtools`:
+
 ```{r, eval=FALSE}
 devtools::install_github("noriakis/ggkegg")
 ```
