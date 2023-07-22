@@ -294,7 +294,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' @export
 #' @examples
 #' rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
-#'         man_graph=return_pathway_example())
+#'         man_graph=create_test_pathway())
 #' @return ggraph with overlaid KEGG map
 #' 
 rawValue <- function(values, pid=NULL, column="name", show_type="gene",

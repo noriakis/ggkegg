@@ -42,5 +42,5 @@ Colors can be changed afterwards.
 }
 \examples{
 rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
-        man_graph=return_pathway_example())
+        man_graph=create_test_pathway())
 }

@@ -29,7 +29,7 @@ Here we prepare an example `tbl_graph` representing pathway information. Typical
 
 ```{r pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 library(ggkegg)
-graph <- return_pathway_example()
+graph <- create_test_pathway()
 graph
 ```
 
@@ -45,14 +45,13 @@ The parsed `tbl_graph` can be used to plot the information by `ggraph`.
 
 ```{r plot_pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 ggraph(graph, layout="manual", x=x, y=y)+
-  geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-  geom_node_text(aes(label=graphics_name))+
-  geom_edge_parallel(aes(linetype=subtype_name),
-                   arrow=arrow(length=unit(1,"mm"),
-                               type="closed"),
-                   end_cap=circle(1.5,"cm"),
-                   start_cap=circle(1.5,"cm"))+
-  theme_void()
+    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+    geom_node_text(aes(label=graphics_name))+
+    geom_edge_parallel(aes(linetype=subtype_name),
+                    arrow=arrow(length=unit(1,"mm"), type="closed"),
+                    end_cap=circle(1.5,"cm"),
+                    start_cap=circle(1.5,"cm"))+
+    theme_void()
 ```
 
 ## Converting identifiers

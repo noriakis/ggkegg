@@ -27,15 +27,7 @@ the same as KEGG mapper. For instance, `R04293` involved in `M00912`
 is not included in KGML of `ko01100`.
 }
 \examples{
-nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-                   x=c(1,1),
-                   xmin=c(-1,-1),
-                   xmax=c(2,2),
-                   y=c(1,1),
-                   ymin=c(-1,-1),
-                   ymax=c(2,2))
-edges <- data.frame(from=1, to=2)
-graph <- tbl_graph(nodes, edges)
+graph <- create_test_pathway()
 mo <- create_test_module()
 graph <- graph |> highlight_module(mo)
 

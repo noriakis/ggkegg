@@ -23,16 +23,16 @@
 #' @examples \dontrun{pathway("hsa04110")}
 #' @export
 pathway <- function(pid,
-           directory=NULL,
-           use_cache=FALSE,
-           group_rect_nudge=2,
-           node_rect_nudge=0,
-           invert_y=TRUE,
-           add_pathway_id=TRUE,
-           return_tbl_graph=TRUE,
-           return_image=FALSE) {
-  ## Specification of KGML format
-  ## https://www.genome.jp/kegg/xml/docs/
+    directory=NULL,
+    use_cache=FALSE,
+    group_rect_nudge=2,
+    node_rect_nudge=0,
+    invert_y=TRUE,
+    add_pathway_id=TRUE,
+    return_tbl_graph=TRUE,
+    return_image=FALSE) {
+    ## Specification of KGML format is available at:
+    ## https://www.genome.jp/kegg/xml/docs/
 
   file_name <- paste0(pid,".xml")
   if (!is.null(directory)) {
@@ -245,6 +245,8 @@ parse_kgml <- pathway
 #' global maps e.g. ko01100. Recursively add nodes and edges 
 #' connecting them based on `coords` properties in KGML.
 #' 
+#' We cannot show directed arrows, as coords are not ordered to show direction.
+#' 
 #' @param g graph
 #' @param invert_y whether to invert the position, default to TRUE
 #' should match with `pathway` function
@@ -253,17 +255,15 @@ parse_kgml <- pathway
 #' @export
 #' @return tbl_graph
 #' @examples 
-#' ## For those containing nodes with the graphic type of `line`
+#' ## For those containing nodes with the graphic type of `line`,
+#' ## parse the coords attributes to edges.
 #' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
 #'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
 #'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
 #' gm_test <- tbl_graph(gm_test)
 #' test <- process_line(gm_test)
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
-  ## [TODO] speed up
-  ## [TODO] add verbose
-  ## [TODO] add positional argument to coords to show arrow
-  ## We cannot do this, as coords are not ordered to show direction
+
   df <- as_tbl_graph(g)
 
   cos <- list()
@@ -521,86 +521,86 @@ get_reaction <- function(xml) {
 #' @return list of orthology and module contained in the pathway
 #' @export
 pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
-  if (!is.null(directory)){
-    dest <- paste0(directory, "/", pid)
-  } else {
-    dest <- pid
-  }
-  if (!file.exists(pid)) {
-    if (use_cache) {
-      bfc <- BiocFileCache()
-      dest <- bfcrpath(bfc, paste0("https://rest.kegg.jp/get/",pid))  
+    if (!is.null(directory)){
+        dest <- paste0(directory, "/", pid)
     } else {
-      download.file(paste0("https://rest.kegg.jp/get/",pid),
-                    destfile=dest)      
+        dest <- pid
     }
-  }
-  pway <- list()
-  con <- file(dest, "r")
-  content_list <- list()
-  while ( TRUE ) {
-    line <- readLines(con, n = 1)
-    if ( length(line) == 0 ) {
-      break
+    if (!file.exists(pid)) {
+        if (use_cache) {
+            bfc <- BiocFileCache()
+            dest <- bfcrpath(bfc, paste0("https://rest.kegg.jp/get/",pid))  
+        } else {
+            download.file(paste0("https://rest.kegg.jp/get/",pid),
+                destfile=dest)      
+        }
     }
-    if (!startsWith(line, " ")) {
-      current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
+    pway <- list()
+    con <- file(dest, "r")
+    content_list <- list()
+    while ( TRUE ) {
+        line <- readLines(con, n = 1)
+        if ( length(line) == 0 ) {
+            break
+        }
+        if (!startsWith(line, " ")) {
+            current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
+        }
+        if (!current_id %in% c("REFERENCE","///")) {
+            content <- substr(line, 13, nchar(line))
+            content_list[[current_id]] <- c(content_list[[current_id]], content) 
+        }
     }
-    if (!current_id %in% c("REFERENCE","///")) {
-      content <- substr(line, 13, nchar(line))
-      content_list[[current_id]] <- c(content_list[[current_id]], content) 
-    }
-  }
-  close(con)
-  content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |> vapply("[", 1,
-    FUN.VALUE="character")
-  content_list
+    close(con)
+    content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |>
+        vapply("[", 1, FUN.VALUE="character")
+    content_list
 }
 
 
 
-#' return_pathway_example
+#' create_test_pathway
 #' 
 #' As downloading from KEGG API is not desirable
 #' in vignettes or examples, return the `tbl_graph`
 #' with two nodes and two edges.
-#' @examples return_pathway_example
+#' @examples create_test_pathway()
 #' @export
 #' @return tbl_graph
-return_pathway_example <- function() {
-  ddx <- data.frame(
-    name="hsa:51428",
-    type="gene",
-    reaction=NA,
-    graphics_name="DDX41",
-    x=500, y=-400,
-    width=20,height=9,
-    bgcolor="#BFFFBF",
-    pathway_id="test"
-  )
+create_test_pathway <- function() {
+    ddx <- data.frame(
+        name="hsa:51428",
+        type="gene",
+        reaction=NA,
+        graphics_name="DDX41",
+        x=500, y=-400,
+        width=20,height=9,
+        bgcolor="#BFFFBF",
+        pathway_id="test"
+    )
   
-  trim <- data.frame(
-    name="hsa:6737",
-    type="gene",
-    reaction=NA,
-    graphics_name="TRIM21",
-    x=560, y=-400,
-    width=20,height=9,
-    bgcolor="#BFFFBF",
-    pathway_id="test"
-  )
+    trim <- data.frame(
+        name="hsa:6737",
+        type="gene",
+        reaction=NA,
+        graphics_name="TRIM21",
+        x=560, y=-400,
+        width=20,height=9,
+        bgcolor="#BFFFBF",
+        pathway_id="test"
+    )
   
-  nodes <- rbind(trim, ddx)
-  nodes$xmin <- nodes$x-nodes$width/2
-  nodes$ymin <- nodes$y-nodes$height/2
-  nodes$xmax <- nodes$x+nodes$width/2
-  nodes$ymax <- nodes$y+nodes$height/2
+    nodes <- rbind(trim, ddx)
+    nodes$xmin <- nodes$x-nodes$width/2
+    nodes$ymin <- nodes$y-nodes$height/2
+    nodes$xmax <- nodes$x+nodes$width/2
+    nodes$ymax <- nodes$y+nodes$height/2
   
-  edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
-                 c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
-    data.frame()
-  edges$from <- as.integer(edges$from)
-  edges$to <- as.integer(edges$to)
-  tbl_graph(nodes, edges)
+    edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
+                   c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
+        data.frame()
+    edges$from <- as.integer(edges$from)
+    edges$to <- as.integer(edges$to)
+    tbl_graph(nodes, edges)
 }
 
