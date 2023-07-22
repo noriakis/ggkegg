@@ -44,7 +44,9 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
 }
 
 #' plot_module_text
+#' 
 #' plot the text representation of KEGG modules
+#' 
 #' @param plot_list the result of `module_text()`
 #' @param show_name name column to be plotted
 #' @importFrom tidygraph tbl_graph
@@ -56,20 +58,19 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
 #' tex <- module_text(mo)
 #' plt <- plot_module_text(tex)
 plot_module_text <- function(plot_list, show_name="name") {
-  panel_list <- list()
-  for (concat in seq_along(plot_list)) {
-    plot_list[[concat]]$name <- plot_list[[concat]][[show_name]]
-    g <- tbl_graph(nodes=plot_list[[concat]])
-    panel_list[[concat]] <- ggraph(g, x=.data$x, y=1) +
-     geom_node_rect(aes(filter=.data$koflag),
-      fill=plot_list[[concat]][plot_list[[concat]]$koflag,]$color,
-      alpha=0.5, color="black")+
-     geom_node_rect(aes(filter=!.data$koflag & !.data$conflag),
-      fill="transparent", color="black")+
-     geom_node_text(aes(label=.data$name,filter=.data$koflag | .data$conflag))+
-     theme_void()
-  }
-  wrap_plots(panel_list, ncol=1)
+	panel_list <- lapply(seq_along(plot_list), function(concat) {
+	    plot_list[[concat]]$name <- plot_list[[concat]][[show_name]]
+	    g <- tbl_graph(nodes=plot_list[[concat]])
+	    ggraph(g, x=.data$x, y=1) +
+	     geom_node_rect(aes(filter=.data$koflag),
+	      fill=plot_list[[concat]][plot_list[[concat]]$koflag,]$color,
+	      alpha=0.5, color="black")+
+	     geom_node_rect(aes(filter=!.data$koflag & !.data$conflag),
+	      fill="transparent", color="black")+
+	     geom_node_text(aes(label=.data$name,filter=.data$koflag | .data$conflag))+
+	     theme_void()    	
+    })
+    wrap_plots(panel_list, ncol=1)
 }
 
 
