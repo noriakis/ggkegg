@@ -1,27 +1,55 @@
 #' find_parenthesis_pairs
 #' find pairs of parenthesis
 #' @noRd
+#' 
 find_parenthesis_pairs <- function(s) {
-  stack <- list()
-  pairs <- list()
+  stack <- integer(nchar(s))
+  pairs <- vector(mode="list", length=nchar(s)/2)
+  j <- 1
   for (i in seq_len(nchar(s))) {
     c <- substr(s, i, i)
     if (c == "(") {
-      stack <- c(stack, i)
+      stack[i] <- 1
     } else if (c == ")") {
-      if (length(stack) == 0) {
+      if (length(which(stack==1)) == 0) {
         stop("Mismatched parenthesis")
       }
-      open <- tail(stack, 1)
-      stack <- head(stack, -1)
-      pairs <- c(pairs, list(c(open, i)))
+      open <- tail(which(stack==1), 1)
+      stack <- head(which(stack==1), -1)
+      pairs[[j]] <- c(open, i)
+      j <- j + 1
+      # pairs <- c(pairs, list(c(open, i)))
     }
   }
-  if (length(stack) > 0) {
+  if (length(which(stack==1)) > 0) {
     stop("Mismatched parenthesis")
   }
+  pairs[sapply(pairs, is.null)] <- NULL
   pairs
 }
+
+## Old version initializing empty list
+# find_parenthesis_pairs <- function(s) {
+#   stack <- list()
+#   pairs <- list()
+#   for (i in seq_len(nchar(s))) {
+#     c <- substr(s, i, i)
+#     if (c == "(") {
+#       stack <- c(stack, i)
+#     } else if (c == ")") {
+#       if (length(stack) == 0) {
+#         stop("Mismatched parenthesis")
+#       }
+#       open <- tail(stack, 1)
+#       stack <- head(stack, -1)
+#       pairs <- c(pairs, list(c(open, i)))
+#     }
+#   }
+#   if (length(stack) > 0) {
+#     stop("Mismatched parenthesis")
+#   }
+#   pairs
+# }
 
 
 #' append_label_position

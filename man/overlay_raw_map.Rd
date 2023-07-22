@@ -20,7 +20,7 @@ overlay_raw_map(
 
 \item{transparent_colors}{make these colors transparent to overlay
 Typical choice of colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
-"#ADADAD","#838383"}
+"#ADADAD","#838383","#B3B3B3"}
 
 \item{adjust}{adjust the x-axis location by 0.5 in data coordinates}
 
