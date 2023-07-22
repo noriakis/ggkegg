@@ -1,6 +1,6 @@
 setOldClass("tbl_graph")
 setClass("kegg_network",
-  slots=list(
+    slots=list(
         ID="character",
         name="character",
         definition="character",
@@ -10,20 +10,23 @@ setClass("kegg_network",
         network_class="character",
         gene="character",
         metabolite="character"
-        ))
+    )
+)
 
 #' @importFrom GetoptLong qqcat
 setMethod("show",
-  signature(object="kegg_network"),
-  function(object) {
-    qqcat("@{object@ID}\n")
-    qqcat("@{object@name}\n")
-  })
+    signature(object="kegg_network"),
+    function(object) {
+        qqcat("@{object@ID}\n")
+        qqcat("@{object@name}\n")
+    }
+)
 
 
 #' KEGG network parsing function
-#' network
+#' 
 #' parsing the network elements starting with N
+#' 
 #' @param nid KEGG NETWORK ID
 #' @param use_cache use cache
 #' @param directory directory to save raw files
@@ -31,52 +34,54 @@ setMethod("show",
 #' @examples \dontrun{network("N00002")}
 #' @export
 network <- function(nid, use_cache=FALSE, directory=NULL) {
-  if (!startsWith(nid, "N")) {stop("Please provide a string that starts with N.")}
-  kne <- new("kegg_network")
-  kne@ID <- nid
-  if (!is.null(directory)) {
-    dest <- paste0(directory,"/",nid)
-  } else {
-    dest <- nid
-  }
-  if (!file.exists(dest)) {
-    if (use_cache) {
-      bfc <- BiocFileCache()
-      dest <- bfcrpath(bfc,
-        paste0("https://rest.kegg.jp/get/",nid))
+	if (!startsWith(nid, "N")) {
+  		stop("Please provide a string that starts with N.")
+  	}
+    kne <- new("kegg_network")
+    kne@ID <- nid
+    if (!is.null(directory)) {
+        dest <- paste0(directory,"/",nid)
     } else {
-      download.file(paste0("https://rest.kegg.jp/get/",nid),
-                  destfile=dest)
+        dest <- nid
     }
-  }
-  con <- file(dest, "r")
+    if (!file.exists(dest)) {
+        if (use_cache) {
+            bfc <- BiocFileCache()
+            dest <- bfcrpath(bfc,
+            paste0("https://rest.kegg.jp/get/",nid))
+        } else {
+            download.file(paste0("https://rest.kegg.jp/get/",nid),
+                    destfile=dest)
+        }
+    }
+    con <- file(dest, "r")
 
-  while ( TRUE ) {
-    line <- readLines(con, n = 1)
-    if ( length(line) == 0 ) {
-      break
+    while ( TRUE ) {
+        line <- readLines(con, n = 1)
+        if ( length(line) == 0 ) {
+            break
+        }
+        if (grepl("NAME", line)) {
+            name <- unlist(strsplit(line, "        "))[2]
+            kne@name <- name
+        }
+	    if (grepl("DEFINITION", line)) {
+            definition <- unlist(strsplit(line, "  "))[2]
+            kne@definition <- definition
+        }
+	    if (grepl("EXPANDED", line)) {
+            expanded <- unlist(strsplit(line, "  "))[3]
+            kne@expanded <- expanded
+        }
+        if (grepl("CLASS", line)) {
+            network_class <- unlist(strsplit(line, "  "))[2]
+            kne@network_class <- network_class
+        }
     }
-    if (grepl("NAME", line)) {
-      name <- unlist(strsplit(line, "        "))[2]
-      kne@name <- name
-    }
-    if (grepl("DEFINITION", line)) {
-      definition <- unlist(strsplit(line, "  "))[2]
-      kne@definition <- definition
-    }
-    if (grepl("EXPANDED", line)) {
-      expanded <- unlist(strsplit(line, "  "))[3]
-      kne@expanded <- expanded
-    }
-    if (grepl("CLASS", line)) {
-      network_class <- unlist(strsplit(line, "  "))[2]
-      kne@network_class <- network_class
-    }  
-  }
-  close(con)
-  kne@expanded_graph <- convert_expanded_to_graph(kne)
-  kne@definition_graph <- convert_definition_to_graph(kne)
-  kne
+    close(con)
+    kne@expanded_graph <- convert_expanded_to_graph(kne)
+    kne@definition_graph <- convert_definition_to_graph(kne)
+    kne
 }
 
 #' @noRd

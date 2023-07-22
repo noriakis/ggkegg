@@ -63,7 +63,8 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
       		break
     	}
 	    if (!startsWith(line, " ")) {
-    		current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
+    		current_id <- strsplit(line, " ") |>
+    		    vapply("[", 1, FUN.VALUE="character")
 	    }
 	    if (!current_id %in% c("REFERENCE","///")) {
 	      content <- substr(line, 13, nchar(line))
@@ -96,7 +97,8 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
     	kmo@rmodule <- content_list$RMODULE
   	}
 	pattern <- "K\\d{5}"
-	kos <- paste0("ko:",unlist(str_extract_all(kmo@definition_raw |> unlist(), pattern)))
+	kos <- paste0("ko:",
+		unlist(str_extract_all(kmo@definition_raw |> unlist(), pattern)))
 	pattern <- "C\\d{5}"
 	cos <- paste0("cpd:",unlist(str_extract_all(kmo@reaction, pattern)))
 	pattern <- "R\\d{5}"
@@ -120,7 +122,8 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
 #' mo <- create_test_module()
 #' tex <- module_text(mo)
 #' @return textual description of module definitions
-module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato", convert=NULL) {
+module_text <- function(kmo, name="1", candidate_ko=NULL,
+	paint_colour="tomato", convert=NULL) {
     kmo <- kmo@definitions[[name]]
     plot_list <- lapply(seq_along(kmo$definition_block),
         function(x) {
@@ -136,13 +139,18 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
                   dfs <- data.frame(posmat)
                 }
                 posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
-                posmat$name <- paste0("manual_G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
+                posmat$name <- paste0("manual_G",
+                	str_pad(seq_len(nrow(posmat)),5,pad="0"))
                 ul <- sort(unique(posmat$length))
                 he <- (seq_len(length(ul)))+1
                 names(he) <- ul
                 posmat$height <- he[as.character(posmat$length)]/2
-                posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
-                posmat$rawtext <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
+                posmat$text <- apply(posmat, 1,
+                	function(row)
+                		substr(input_string, row["xmin"], row["xmax"]))
+                posmat$rawtext <- apply(posmat, 1,
+                	function(row)
+                		substr(input_string, row["xmin"], row["xmax"]))
                 posmat$size <- posmat$length
                 posmat$x <- (as.numeric(posmat$xmin)+as.numeric(posmat$xmax))/2
             }
@@ -170,7 +178,8 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
                 findx <- str_locate_all(input_string, loc)
                 for (pos in findx) {
                   for (rn in seq_len(nrow(pos))) {
-                    concat <- rbind(concat, c(put, pos[rn, 1], pos[rn, 1], pos[rn, 1], 0.5, 1))
+                    concat <- rbind(concat,
+                    	c(put, pos[rn, 1], pos[rn, 1], pos[rn, 1], 0.5, 1))
                   }
                 }
               }
@@ -178,7 +187,9 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
             }
 
             if (!is.null(ppos)) {
-              concat <- rbind(posmat[,c("name","xmin","xmax","x","height","size")], kopos)
+              concat <- rbind(
+              		posmat[,c("name","xmin","xmax","x","height","size")], kopos
+              	)
             } else {
               concat <- kopos
             }
@@ -196,7 +207,6 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
             concat$ymin <- 1 - concat$height
             concat$ymax <- 1 + concat$height
 
-            print(concat)
             concat$color <- lapply(concat$name, function(k) {
                 if (k %in% candidate_ko) {
                   paint_colour
@@ -239,10 +249,11 @@ module_text <- function(kmo, name="1", candidate_ko=NULL, paint_colour="tomato",
 #' @export
 #' @return tibble
 module_completeness <- function(kmo, query, name="1") {
-	if (length(kmo@definitions)>1) {message("Multiple definitions found, taking specified definition");
+	if (length(kmo@definitions)>1) {
+		message("Multiple definitions found, taking specified definition");
     	message(paste0("  number of definitions: ",length(kmo@definitions)));
   	}
-	kmo <- kmo@definitions[[name]] ## Take first definition
+	kmo <- kmo@definitions[[name]] ## Take first definition by default
   	results <- lapply(seq_along(kmo$definition_ko_in_block), function (i) {
   		if (sum(identical(kmo$definition_ko_in_block[[i]], character(0)))!=0) {
   			message("No KO found in definition block. Returning NULL")
@@ -251,7 +262,8 @@ module_completeness <- function(kmo, query, name="1") {
   		}
 	    present <- kmo$definition_ko_in_block[[i]] %in% query
 	    names(present) <- kmo$definition_ko_in_block[[i]]
-	    bool <- gsub("\\+","&",gsub(" ", "&", gsub(",", "|", kmo$definition_block[i])))
+	    bool <- gsub("\\+","&",
+	    	gsub(" ", "&", gsub(",", "|", kmo$definition_block[i])))
 	    for (j in names(present)) {
 	      bool <- gsub(j, present[j], bool)
 	    }
@@ -300,7 +312,10 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 		}
 	})
 
-	all_steps <- do.call(rbind, all_steps) |> data.frame() |> `colnames<-`(c("from","to","type"))
+	all_steps <- do.call(rbind, all_steps) |>
+		data.frame() |>
+		`colnames<-`(c("from","to","type"))
+	
   	plotg <- lapply(seq_along(cand_step), function(i) {
 		plotg <- as_data_frame(module_graph(kmo$definition_block[i]))  		
 		## Need to change naming
@@ -348,7 +363,6 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 #' @return igraph object
 #' @noRd
 module_graph <- function(input_string, skip_minus=FALSE) {
-	## [TODO] need verbose to identify what this function does
 	ppos <- lapply(find_parenthesis_pairs(input_string), function (i) {
 		return(c(i[1], i[2], i[2]-i[1]))
   	})
@@ -359,19 +373,28 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 	    	dfs <- data.frame(posmat)
 	    }
 	    posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
-	    posmat$name <- paste0("manual_G",str_pad(seq_len(nrow(posmat)),5,pad="0"))
+	    posmat$name <- paste0("manual_G",
+	    	str_pad(seq_len(nrow(posmat)),5,pad="0"))
 	    ul <- sort(unique(posmat$length))
 	    he <- (seq_len(length(ul)))+1
 	    names(he) <- ul
 	    posmat$height <- he[as.character(posmat$length)]/2
-	    posmat$text <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
-	    posmat$rawtext <- apply(posmat, 1, function(row) substr(input_string, row["xmin"], row["xmax"]))
+	    posmat$text <- apply(posmat, 1,
+	    	function(row) substr(input_string, row["xmin"], row["xmax"]))
+	    posmat$rawtext <- apply(posmat, 1,
+	    	function(row) substr(input_string, row["xmin"], row["xmax"]))
 	    
 	    converted_string <- input_string
 	    for (i in seq_along(posmat$text)) {
 	    	if (i < nrow(posmat)) {
-	        	converted_string <- gsub(posmat$text[i], posmat$name[i], converted_string, fixed = TRUE)
-	        	posmat$text[(i+1):nrow(posmat)] <- gsub(posmat$text[i], posmat$name[i], posmat$text[(i+1):nrow(posmat)], fixed=TRUE)
+	        	converted_string <- gsub(posmat$text[i],
+	        		posmat$name[i],
+	        		converted_string,
+	        		fixed = TRUE)
+	        	posmat$text[(i+1):nrow(posmat)] <- gsub(posmat$text[i],
+	        		posmat$name[i],
+	        		posmat$text[(i+1):nrow(posmat)],
+	        		fixed=TRUE)
 	      	}
 	    }
 	} else {
@@ -383,7 +406,8 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 	# Need css number not to be reset, so preallocate
     cssnum <- 1
     retcss <- function(converted_string, cssnum) {
-    	alloc <- gsub("\\)","",gsub("\\(","",unlist(strsplit(converted_string, ","))))
+    	alloc <- gsub("\\)","",
+    		gsub("\\(","",unlist(strsplit(converted_string, ","))))
     	css <- vector(mode="list", length=length(alloc))
     	j <- 1
     	for (i in alloc) {
@@ -410,7 +434,10 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 			css <- retcss1$css
 			cssnum <- retcss1$num
 			for (i in seq_along(css$text)) {
-				converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+				converted_string <- gsub(css$text[i],
+					css$name[i],
+					converted_string,
+					fixed = TRUE)
 			}
 		}
 	} else {
@@ -422,13 +449,17 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 			cssnum <- retcss1$num
 	  
 			for (i in seq_along(css$text)) {
-				converted_string <- gsub(css$text[i], css$name[i], converted_string, fixed = TRUE)
+				converted_string <- gsub(css$text[i],
+					css$name[i],
+					converted_string,
+					fixed = TRUE)
 			}
 		}
 	}
 	
 
-	altnodes <- gsub("\\)","",gsub("\\(","",unlist(strsplit(converted_string,","))))
+	altnodes <- gsub("\\)","",
+		gsub("\\(","",unlist(strsplit(converted_string,","))))
 	rels <- lapply(altnodes, function(x) {
 		ret1 <- lapply(altnodes, function(y) {
 			if (x!=y) {
@@ -472,7 +503,10 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 		        cssnum <- tmpcss$num
 
 		        for (j in seq_along(css2$text)) {
-					noparentmp <- gsub(css2$text[j], css2$name[j], noparentmp, fixed=TRUE)
+					noparentmp <- gsub(css2$text[j],
+						css2$name[j],
+						noparentmp,
+						fixed=TRUE)
 		        }
 
 		        commas <- unlist(strsplit(noparentmp, ","))
@@ -492,8 +526,10 @@ module_graph <- function(input_string, skip_minus=FALSE) {
         		}##CSS		    	
 		    }
 	        tmp_g <- data.frame(tmpg) |> `colnames<-`(c("from","to","type"))      
-	        el <- simplify(graph_from_data_frame(tmpg, directed=FALSE), edge.attr.comb = "first")
-	        tmp_g <- data.frame(as_data_frame(el)) |> `colnames<-`(c("from","to","type"))
+	        el <- simplify(graph_from_data_frame(tmpg, directed=FALSE),
+	        			    edge.attr.comb = "first")
+	        tmp_g <- data.frame(as_data_frame(el)) |>
+	            `colnames<-`(c("from","to","type"))
 	        list(tmp_g, css)
     	})
 	    all_g <- as_data_frame(g) |> `colnames<-`(c("from","to","type"))
@@ -580,14 +616,18 @@ module_graph <- function(input_string, skip_minus=FALSE) {
   
     if (!is.null(rels)) {
 	    if (!is.null(cssparsed)) {
-    	    plotg <- simplify(graph_from_data_frame(rbind(all_g, cssparsed), directed = FALSE),
+    	    plotg <- simplify(graph_from_data_frame(rbind(all_g, cssparsed),
+    	    			directed = FALSE),
                         edge.attr.comb = "first")
     	} else {
-      		plotg <- simplify(graph_from_data_frame(rbind(all_g), directed = FALSE),edge.attr.comb = "first")
+      		plotg <- simplify(graph_from_data_frame(rbind(all_g),
+      					directed = FALSE),
+      					edge.attr.comb = "first")
     	}
     } else {
   	    if (!is.null(cssparsed)) {
-      		plotg <- simplify(graph_from_data_frame(rbind(cssparsed), directed = FALSE),
+      		plotg <- simplify(graph_from_data_frame(rbind(cssparsed),
+      					directed = FALSE),
                         edge.attr.comb = "first")
     	} else {
       		plotg <- input_string

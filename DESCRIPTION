@@ -11,9 +11,16 @@ Depends:
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
     org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices
-Suggests: knitr, clusterProfiler, bnlearn, rmarkdown, BiocStyle
+Suggests: 
+    knitr,
+    clusterProfiler,
+    bnlearn,
+    rmarkdown,
+    BiocStyle,
+    testthat (>= 3.0.0)
 RoxygenNote: 7.2.3
 biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr
 URL: https://github.com/noriakis/ggkegg
 BugReport: https://github.com/noriakis/ggkegg/issues
+Config/testthat/edition: 3
