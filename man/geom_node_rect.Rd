@@ -27,7 +27,8 @@ geom_node_rect(
 geom
 }
 \description{
-add rectangular shapes to ggplot2 using GeomRect
+add rectangular shapes to ggplot2 using GeomRect,
+using StatFilter in ggraph
 }
 \examples{
 nodes <- data.frame(name=c("hsa:1029","hsa:4171"),

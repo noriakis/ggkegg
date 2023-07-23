@@ -114,7 +114,7 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 
 #' geom_node_shadowtext
 #' 
-#' Plot shadowtext at node position
+#' Plot shadowtext at node position, use StatFilter in ggraph
 #' 
 #' @export
 #' @param mapping aes mapping
@@ -139,21 +139,23 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 geom_node_shadowtext <- function(mapping = NULL, data = NULL,
                            position = 'identity',
                            show.legend = NA, ...) {
-  params <- list(na.rm = FALSE, ...)
+    params <- list(na.rm = FALSE, ...)
 
-  mapping <- c(mapping, aes(x=.data$x, y=.data$y))
-  class(mapping) <- "uneval"
+    mapping <- c(mapping, aes(x=.data$x, y=.data$y))
+    class(mapping) <- "uneval"
 
-  layer(
-    data = data, mapping = mapping, stat = StatFilter, geom = GeomShadowText,
-    position = position, show.legend = show.legend, inherit.aes = FALSE,
-    params = params
-  )
+    layer(
+        data = data, mapping = mapping, stat = StatFilter, geom = GeomShadowText,
+        position = position, show.legend = show.legend, inherit.aes = FALSE,
+        params = params
+    )
 }
 
 #' geom_node_rect
 #' 
-#' add rectangular shapes to ggplot2 using GeomRect
+#' add rectangular shapes to ggplot2 using GeomRect,
+#' using StatFilter in ggraph
+#' 
 #' @param mapping aes mapping
 #' @param data data to plot
 #' @param position positional argument
@@ -175,15 +177,15 @@ geom_node_shadowtext <- function(mapping = NULL, data = NULL,
 #'  geom_node_rect()
 geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
                             show.legend = NA, ...) {
-  mapping <- c(mapping, aes(xmin = .data$xmin,
+    mapping <- c(mapping, aes(xmin = .data$xmin,
                             ymin = .data$ymin,
                             xmax = .data$xmax,
                             ymax = .data$ymax))
-  class(mapping) <- "uneval"
-  layer(
-    data = data, mapping = mapping, stat = StatFilter, geom = GeomRect,
-    position = position, show.legend = show.legend, inherit.aes = FALSE,
-    params = list(na.rm = FALSE, ...)
+    class(mapping) <- "uneval"
+    layer(
+        data = data, mapping = mapping, stat = StatFilter, geom = GeomRect,
+        position = position, show.legend = show.legend, inherit.aes = FALSE,
+        params = list(na.rm = FALSE, ...)
   )
 }
 

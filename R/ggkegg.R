@@ -42,70 +42,75 @@
 #' @export
 #' @return ggplot2 object
 ggkegg <- function(pid,
-                   layout="native",
-                   return_igraph=FALSE,
-                   return_tbl_graph=FALSE,
-                   pathway_number=1,
-                   convert_org=NULL,
-                   convert_first=TRUE,
-                   convert_collapse=NULL,
-                   convert_reaction=FALSE,
-                   delete_undefined=FALSE,
-                   delete_zero_degree=FALSE,
-                   numeric_attribute=NULL,
-                   node_rect_nudge=0,
-                   group_rect_nudge=2,
-                   module_type="definition",
-                   module_definition_type="text") {
-  enrich_attribute <- NULL
-  if (!is.character(pid)) {
-    if (attributes(pid)$class=="enrichResult") {
-      org <- attributes(pid)$organism
-      res <- attributes(pid)$result
-      if (org!="UNKNOWN") {
-        enrich_attribute <- paste0(org, ":", unlist(strsplit(
-          res[pathway_number,]$geneID, "/")))
-      } else {
-        enrich_attribute <- unlist(strsplit(
-          res[pathway_number,]$geneID, "/"))     
-      }
-      pid <- res[pathway_number,]$ID
-    }
-  }
-
-  if (is.character(pid)) {
-    if (startsWith(pid, "M")) {
-      mod <- module(pid)
-      if (module_type=="definition") {
-        if (module_definition_type=="text") {
-          plot_list <- module_text(mod, candidate_ko = enrich_attribute)
-          return(plot_module_text(plot_list))
-        } else if (module_definition_type=="network") {
-          return(obtain_sequential_module_definition(mod))
-        } else {
-          stop("Please specify `network` or `text` to module_definition_type")
+    layout="native",
+    return_igraph=FALSE,
+    return_tbl_graph=FALSE,
+    pathway_number=1,
+    convert_org=NULL,
+    convert_first=TRUE,
+    convert_collapse=NULL,
+    convert_reaction=FALSE,
+    delete_undefined=FALSE,
+    delete_zero_degree=FALSE,
+    numeric_attribute=NULL,
+    node_rect_nudge=0,
+    group_rect_nudge=2,
+    module_type="definition",
+    module_definition_type="text") {
+    
+    if (!is.character(pid)) {
+        if (attributes(pid)$class=="enrichResult") {
+            org <- attributes(pid)$organism
+            res <- attributes(pid)$result
+            if (org!="UNKNOWN") {
+                enrich_attribute <- paste0(org,
+                    ":",
+                    unlist(strsplit(res[pathway_number,]$geneID, "/"))
+                )
+            } else {
+                enrich_attribute <- unlist(
+                    strsplit(res[pathway_number,]$geneID, "/")
+                )     
+            }
+            pid <- res[pathway_number,]$ID
         }
-      } else if (module_type=="reaction") {
-        return(mod@reaction_graph)
-      } else {
-        stop("Please specify `reaction` or `definition` to module_type")
-      }
+    } else {
+        enrich_attribute <- NULL
     }
-  }
+    
 
-  g <- pathway(pid=pid,
+    if (is.character(pid)) {
+        if (startsWith(pid, "M")) {
+            mod <- module(pid)
+            if (module_type=="definition") {
+                if (module_definition_type=="text") {
+                    plot_list <- module_text(mod, candidate_ko = enrich_attribute)
+                    return(plot_module_text(plot_list))
+                } else if (module_definition_type=="network") {
+                    return(obtain_sequential_module_definition(mod))
+                } else {
+                  stop("Please specify `network` or `text` to module_definition_type")
+                }
+            } else if (module_type=="reaction") {
+                return(mod@reaction_graph)
+            } else {
+                stop("Please specify `reaction` or `definition` to module_type")
+            }
+        }
+    }
+    ## If not module or enrichResult, return pathway
+    g <- pathway(pid=pid,
                 node_rect_nudge=node_rect_nudge,
                 group_rect_nudge=group_rect_nudge,
                 return_tbl_graph=FALSE)
   
-  # This part may be redundant, use `convert_id`
-  convert_vec <- NULL
-  if (!is.null(convert_org)) {
-    for (co in convert_org) {
-      convert_vec <- c(convert_vec,
-                       obtain_map_and_cache(co, pid))
-    }
-    V(g)$converted_name <- unlist(lapply(V(g)$name,
+    ## This part may be redundant, use `convert_id`
+    if (!is.null(convert_org)) {
+        convert_vec <- lapply(convert_org, function(co) {
+               obtain_map_and_cache(co, pid)                
+        }) |> unlist()
+    
+        V(g)$converted_name <- unlist(lapply(V(g)$name,
                                function(x) {
                                  inc_genes <- unlist(strsplit(x, " "))
                                  conv_genes <- NULL
@@ -193,7 +198,8 @@ ggkegg <- function(pid,
 #' 
 #' given enrichResult class object,
 #' return the ggplot object with raw KEGG map overlaid on
-#' enriched pathway
+#' enriched pathway. Can be used with the function such as 
+#' `clusterProfiler::enrichKEGG` and `MicrobiomeProfiler::enrichKO()`
 #' 
 #' @param enrich enrichResult or gseaResult class object, or list of them
 #' @param pathway_number pathway number sorted by p-values
@@ -210,69 +216,66 @@ ggkegg <- function(pid,
 #' @return ggraph with overlaid KEGG map
 #' 
 rawMap <- function(enrich, pathway_number=1, pid=NULL,
-  fill_color="red", how="any", white_background=TRUE) {
-  ## [TODO] support for MicrobiomeProfiler
-  number <- length(enrich)
-  if (length(fill_color)!=number) {
-    qqcat("Length of fill_color and enrich mismatches, taking first color\n")
-    fill_color <- rep(fill_color[1], number)
-  }
-  if (is.list(enrich)) {
-    # if (length(enrich)!=length(fill_color)) {
-    #   stop("Enrich results and fill_color length must be same.")
-    # }
-    if (is.null(pid)) {stop("Please specify pathway id.")}
-  } else {
-    if (attributes(enrich)$class=="enrichResult") {
-      res <- attributes(enrich)$result
-      if (is.null(pid)) {
-        pid <- res[pathway_number,]$ID
-      }
-    } else if (attributes(enrich)$class=="gseaResult") {
-      res <- attributes(enrich)$result
-      if (is.null(pid)) {
-        pid <- res[pathway_number,]$ID
-      }      
+    fill_color="red", how="any", white_background=TRUE) {
+    
+    number <- length(enrich)
+    if (length(fill_color)!=number) {
+        qqcat("Length of fill_color and enrich mismatches, taking first color\n")
+        fill_color <- rep(fill_color[1], number)
+    }
+    if (is.list(enrich)) {
+        if (is.null(pid)) {stop("Please specify pathway id.")}
     } else {
-      stop("Please provide enrichResult")      
+        if (attributes(enrich)$class=="enrichResult") {
+            res <- attributes(enrich)$result
+            if (is.null(pid)) {
+                pid <- res[pathway_number,]$ID
+            }
+        } else if (attributes(enrich)$class=="gseaResult") {
+            res <- attributes(enrich)$result
+            if (is.null(pid)) {
+                pid <- res[pathway_number,]$ID
+            }         
+        } else {
+            stop("Please provide enrichResult")      
+        }
     }
-  }
-  ## For MicrobiomeProfiler
-  if (startsWith(pid, "map")) {
-    qqcat("Changing prefix of pathway ID from map to ko\n")
-    pid <- gsub("map","ko",pid)
-  }
+    ## For MicrobiomeProfiler
+    if (startsWith(pid, "map")) {
+        qqcat("Changing prefix of pathway ID from map to ko\n")
+        pid <- gsub("map","ko",pid)
+    }
 
-  if (number==1) {
-    g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
-    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
-      geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
-      overlay_raw_map()+theme_void()
-  } else {
-    g <- pathway(pid)
-    for (i in seq_len(number)) {
-      g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
-        how=how, pid=pid))
+    if (number==1) {
+        g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
+        gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
+            geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
+            overlay_raw_map()+theme_void()
+    } else {
+        g <- pathway(pid)
+        for (i in seq_len(number)) {
+            g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
+                how=how, pid=pid))
+        }
+        V(g)$space <- V(g)$width/number
+        gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
+        nds <- g |> activate("nodes") |> data.frame()
+        for (i in seq_len(number)) {
+            gg <- gg +
+                geom_node_rect(fill=fill_color[i],
+                    data=nds[nds[[paste0("cp",i)]],],
+                    xmin=nds[nds[[paste0("cp",i)]],]$xmin+
+                        nds[nds[[paste0("cp",i)]],]$space*(i-1)
+                )
+        }
+        gg <- gg + overlay_raw_map()+theme_void()
     }
-    V(g)$space <- V(g)$width/number
-    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
-    nds <- g |> activate("nodes") |> data.frame()
-    for (i in seq_len(number)) {
-      # tmp_col <- sym(paste0("cp",i))
-      gg <- gg + geom_node_rect(
-        fill=fill_color[i], data=nds[nds[[paste0("cp",i)]],],
-        xmin=nds[nds[[paste0("cp",i)]],]$xmin+
-        nds[nds[[paste0("cp",i)]],]$space*(i-1)
-        )
+    if (white_background) {
+        gg + theme(panel.background = element_rect(fill = 'white',
+            colour = 'white'))
+    } else {
+        gg
     }
-    gg <- gg + overlay_raw_map()+theme_void()
-  }
-  if (white_background) {
-    gg + theme(panel.background = element_rect(fill = 'white',
-      colour = 'white'))
-  } else {
-    gg
-  }
 }
 
 

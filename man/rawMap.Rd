@@ -32,7 +32,8 @@ ggraph with overlaid KEGG map
 \description{
 given enrichResult class object,
 return the ggplot object with raw KEGG map overlaid on
-enriched pathway
+enriched pathway. Can be used with the function such as 
+`clusterProfiler::enrichKEGG` and `MicrobiomeProfiler::enrichKO()`
 }
 \examples{
 if (require("clusterProfiler")) {
