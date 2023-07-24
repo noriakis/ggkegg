@@ -110,87 +110,89 @@ ggkegg <- function(pid,
                obtain_map_and_cache(co, pid)                
         }) |> unlist()
     
-        V(g)$converted_name <- unlist(lapply(V(g)$name,
-                               function(x) {
-                                 inc_genes <- unlist(strsplit(x, " "))
-                                 conv_genes <- NULL
-                                 for (inc in inc_genes) {
-                                   convs <- convert_vec[inc]
-                                   if (is.na(convs)) {
-                                     conv_genes <- c(conv_genes, x)
-                                   } else {
-                                     conv_genes <- c(conv_genes, convs)
-                                   }
-                                 }
-                                 if (convert_first) {
-                                   conv_genes[1]
-                                 } else {
-                                   paste(conv_genes, collapse=convert_collapse)
-                                 }
-                               }))
-  }
-
-  if (!is.null(numeric_attribute)){
-    V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
-  }
-
-  if (!is.null(enrich_attribute)) {
-    bools <- NULL
-    for (xx in V(g)$name) {
-      in_node <- strsplit(xx, " ") |> unlist() |> unique()
-      if (length(intersect(in_node, enrich_attribute))>=1) { ## Only `any`
-        bools <- c(bools, TRUE)
-      } else {
-        bools <- c(bools, FALSE)
-      }
+        V(g)$converted_name <- unlist(apply(V(g)$name,
+            function(x) {
+            	inc_genes <- unlist(strsplit(x, " "))
+            	conv_genes <- NULL
+            	for (inc in inc_genes) {
+            		convs <- convert_vec[inc]
+               		if (is.na(convs)) {
+                 		conv_genes <- c(conv_genes, x)
+                	} else {
+                 		conv_genes <- c(conv_genes, convs)
+               		}
+             	}
+             	if (convert_first) {
+               		conv_genes[1]
+             	} else {
+               		paste(conv_genes, collapse=convert_collapse)
+             	}
+            }
+        ))
     }
-    V(g)$enrich_attribute <- bools
-  }
 
-  if (delete_undefined) {
-    g <- induced.subgraph(g, !V(g)$name %in% "undefined")
-  } else {
-    V(g)$undefined <- V(g)$name %in% "undefined"
-  }
-  if (delete_zero_degree) {
-    g <- induced.subgraph(g, degree(g)!=0)
-  }
+    if (!is.null(numeric_attribute)){
+    	V(g)$numeric_attribute <- numeric_attribute[V(g)$name]
+  	}
 
-  if (convert_reaction) {
-    convert_vec <- obtain_map_and_cache("reaction",NULL)
-    V(g)$converted_reaction <- unlist(lapply(V(g)$reaction,
-                               function(x) {
-                                 inc_genes <- unlist(strsplit(x, " "))
-                                 conv_genes <- NULL
-                                 for (inc in inc_genes) {
-                                   convs <- convert_vec[inc]
-                                   if (is.na(convs)) {
-                                     conv_genes <- c(conv_genes, x)
-                                   } else {
-                                     conv_genes <- c(conv_genes, convs)
-                                   }
-                                 }
-                                 if (convert_first) {
-                                   conv_genes[1]
-                                 } else {
-                                   paste(conv_genes, collapse=convert_collapse)
-                                 }
-                               }))
+    if (!is.null(enrich_attribute)) {
+    	bools <- NULL
+    	for (xx in V(g)$name) {
+      		in_node <- strsplit(xx, " ") |> unlist() |> unique()
+      		if (length(intersect(in_node, enrich_attribute))>=1) { ## Only `any`
+        		bools <- c(bools, TRUE)
+      		} else {
+       		 	bools <- c(bools, FALSE)
+      		}
+    	}
+	    V(g)$enrich_attribute <- bools
+  	}
 
-  }
-  if (return_tbl_graph) {
-    return(as_tbl_graph(g))
-  }
-  if (return_igraph) {
-    return(g)
-  }
-  if (layout=="native") {
-    ggraph(g, layout="manual", x=.data$x, y=.data$y)
-  } else {
-    g <- delete_vertex_attr(g, "x")
-    g <- delete_vertex_attr(g, "y")
-    ggraph(g, layout=layout)
-  }
+    if (delete_undefined) {
+  	    g <- induced.subgraph(g, !V(g)$name %in% "undefined")
+  	} else {
+    	V(g)$undefined <- V(g)$name %in% "undefined"
+  	}
+  	if (delete_zero_degree) {
+    	g <- induced.subgraph(g, degree(g)!=0)
+  	}
+
+    if (convert_reaction) {
+    	convert_vec <- obtain_map_and_cache("reaction",NULL)
+    	V(g)$converted_reaction <- unlist(lapply(V(g)$reaction,
+            function(x) {
+                inc_genes <- unlist(strsplit(x, " "))
+                conv_genes <- NULL
+                for (inc in inc_genes) {
+                    convs <- convert_vec[inc]
+                    if (is.na(convs)) {
+                    	conv_genes <- c(conv_genes, x)
+                    } else {
+                    	conv_genes <- c(conv_genes, convs)
+                    }
+                }
+                if (convert_first) {
+                    conv_genes[1]
+                } else {
+                    paste(conv_genes, collapse=convert_collapse)
+                }
+            }
+        ))
+    }
+    
+    if (return_tbl_graph) {
+  	    return(as_tbl_graph(g))
+  	}
+    if (return_igraph) {
+    	return(g)
+    }
+    if (layout=="native") {
+  	    ggraph(g, layout="manual", x=.data$x, y=.data$y)
+    } else {
+    	g <- delete_vertex_attr(g, "x")
+    	g <- delete_vertex_attr(g, "y")
+    	ggraph(g, layout=layout)
+    }
 }
 
 
@@ -301,61 +303,62 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' @return ggraph with overlaid KEGG map
 #' 
 rawValue <- function(values, pid=NULL, column="name", show_type="gene",
-  how="any", white_background=TRUE, auto_add=FALSE, man_graph=NULL) {
-  if (is.list(values)) {
-    number <- length(values)
-    if (auto_add) {
-      pref <- gsub("[^a-zA-Z]", "", pid)
-      for (i in seq_along(values)) {
-        names(values[[i]]) <- paste0(pref, ":", names(values[[i]]))
-      }
+    how="any", white_background=TRUE, auto_add=FALSE, man_graph=NULL) {
+    if (is.list(values)) {
+    	number <- length(values)
+    	if (auto_add) {
+      		pref <- gsub("[^a-zA-Z]", "", pid)
+      		for (i in seq_along(values)) {
+        		names(values[[i]]) <- paste0(pref, ":", names(values[[i]]))
+      		}
+    	}
+  	} else {
+    	number <- 1
+    	if (auto_add) {
+      		pref <- gsub("[^a-zA-Z]", "", pid)
+      		names(values) <- paste0(pref, ":", names(values))
+    	}
+  	}
+  	if (!is.null(man_graph)) {
+    	pgraph <- man_graph
+    } else {
+    	pgraph <- pathway(pid)
     }
-  } else {
-    number <- 1
-    if (auto_add) {
-      pref <- gsub("[^a-zA-Z]", "", pid)
-      names(values) <- paste0(pref, ":", names(values))
-    }
-  }
-  if (!is.null(man_graph)) {
-    pgraph <- man_graph
-  } else {
-    pgraph <- pathway(pid)
-  }
-  if (number==1) {
-    g <- pgraph |> mutate(value=node_numeric(values,
-      name=column,how=how))
-    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
-      geom_node_rect(aes(fill=.data$value, filter=.data$type %in% show_type))+
-      overlay_raw_map()+theme_void()
-  } else {
-    ## [TODO] Add new scales like ggh4x
-    g <- pgraph
-    for (i in seq_len(number)) {
-      g <- g  |> mutate(!!paste0("value",i) :=node_numeric(values[[i]],
-        name=column,how=how))
-    }
-    V(g)$space <- V(g)$width/number
-    gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
-    nds <- g |> activate("nodes") |> data.frame()
-    nds <- nds[nds$type %in% show_type,]
+    if (number==1) {
+    	g <- pgraph |> mutate(value=node_numeric(values,
+      		name=column, how=how))
+    	gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
+      		geom_node_rect(aes(fill=.data$value,
+      						    filter=.data$type %in% show_type))+
+      		overlay_raw_map()+theme_void()
+    } else {
+    	## Add new scales like ggh4x
+    	g <- pgraph
+    	for (i in seq_len(number)) {
+      		g <- g  |> mutate(!!paste0("value",i) :=node_numeric(values[[i]],
+        		name=column,how=how))
+    	}
+    	V(g)$space <- V(g)$width/number
+    	gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
+    	nds <- g |> activate("nodes") |> data.frame()
+    	nds <- nds[nds$type %in% show_type,]
 
-    for (i in seq_len(number)) {
-      nudge <- i-1
-      # tmp_col <- sym(paste0("cp",i))
-      gg <- gg + geom_node_rect(
-        aes(fill=!!sym(paste0("value",i)),
-          filter=.data$type %in% show_type),
-        xmin=nds$xmin+nds$space*nudge,
-          xmax=nds$xmin+i*nds$space
-        )
-    }
-    gg <- gg + overlay_raw_map()+theme_void()
-  }
-  if (white_background) {
-    gg + theme(panel.background = element_rect(fill = 'white',
-      colour = 'white'))
-  } else {
-    gg
-  }
+	    for (i in seq_len(number)) {
+    		nudge <- i-1
+      
+      		gg <- gg + geom_node_rect(
+        		aes(fill=!!sym(paste0("value",i)),
+          			filter=.data$type %in% show_type),
+        			xmin=nds$xmin+nds$space*nudge,
+          			xmax=nds$xmin+i*nds$space
+        		)
+    	}
+	    gg <- gg + overlay_raw_map()+theme_void()
+  	}
+  	if (white_background) {
+    	gg + theme(panel.background = element_rect(fill = 'white',
+      		colour = 'white'))
+  	} else {
+    	gg
+  	}
 }

@@ -24,7 +24,7 @@ find_parenthesis_pairs <- function(s) {
     if (length(which(stack==1)) > 0) {
         stop("Mismatched parenthesis")
     }
-    pairs[sapply(pairs, is.null)] <- NULL
+    pairs[vapply(pairs, is.null, TRUE)] <- NULL
     pairs
 }
 
