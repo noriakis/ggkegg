@@ -130,7 +130,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
             input_string <- kmo$definition_block[x]
             ppos_list <- lapply(find_parenthesis_pairs(input_string),
                 function(y) {
-                    c(y[1], y[2], y[2]-y[1]) 
+                    c(y[[1]], y[[2]], y[[2]]-y[[1]]) 
                 })
             ppos <- do.call(rbind, ppos_list)
             if (!is.null(ppos)) {
@@ -363,8 +363,8 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 #' @return igraph object
 #' @noRd
 module_graph <- function(input_string, skip_minus=FALSE) {
-	ppos <- lapply(find_parenthesis_pairs(input_string), function (i) {
-		return(c(i[1], i[2], i[2]-i[1]))
+	ppos <- lapply(find_parenthesis_pairs(input_string), function (y) {
+		return(c(y[[1]], y[[2]], y[[2]]-y[[1]]))
   	})
 	ppos <- do.call(rbind, ppos)
 	if (!is.null(ppos)) {

@@ -27,7 +27,7 @@ highlight_set_nodes <- function(set, how="all",
         } else {
             nn <- unlist(strsplit(x[xn], sep))
         }
-        if (how=="all") {
+        if (how == "all") {
             if (length(intersect(nn, set))==length(nn)) {
         		return(TRUE)
       	    } else {
@@ -76,7 +76,7 @@ highlight_set_edges <- function(set, how="all",
         } else {
             nn <- unlist(strsplit(x[xn], sep))
         }
-        if (how=="all") {
+        if (how == "all") {
             if (length(intersect(nn, set))==length(nn)) {
         		return(TRUE)
       	    } else {

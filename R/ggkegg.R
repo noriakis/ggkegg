@@ -110,7 +110,7 @@ ggkegg <- function(pid,
                obtain_map_and_cache(co, pid)                
         }) |> unlist()
     
-        V(g)$converted_name <- unlist(apply(V(g)$name,
+        V(g)$converted_name <- unlist(lapply(V(g)$name,
             function(x) {
             	inc_genes <- unlist(strsplit(x, " "))
             	conv_genes <- NULL

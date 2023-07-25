@@ -31,31 +31,31 @@ pathway <- function(pid,
     add_pathway_id=TRUE,
     return_tbl_graph=TRUE,
     return_image=FALSE) {
-	
+    
     ## Specification of KGML format is available at:
     ## https://www.genome.jp/kegg/xml/docs/
 
     file_name <- paste0(pid,".xml")
     if (!is.null(directory)) {
-    	file_name <- paste0(directory,"/",file_name)
+        file_name <- paste0(directory,"/",file_name)
     }
     if (!file.exists(file_name)) {
-    	if (use_cache) {
-      		bfc <- BiocFileCache()
-      		file_name <- bfcrpath(bfc,
-        		paste0("https://rest.kegg.jp/get/",pid,"/kgml"))
-    	} else {
-      		download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
-                			destfile=file_name)
-    	}
-  	}
+        if (use_cache) {
+            bfc <- BiocFileCache()
+            file_name <- bfcrpath(bfc,
+                paste0("https://rest.kegg.jp/get/",pid,"/kgml"))
+        } else {
+            download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
+                            destfile=file_name)
+        }
+    }
 
     xml <- xmlParse(file_name)
-  	node_sets <- getNodeSet(xml, "//entry")
-  	
-  	all_nodes <- list()
-  	grs <- list()
-  	rev_grs <- list()
+    node_sets <- getNodeSet(xml, "//entry")
+    
+    all_nodes <- list()
+    grs <- list()
+    rev_grs <- list()
 
     node_names <- c("id","name","type","reaction",
                    "graphics_name",
@@ -64,69 +64,69 @@ pathway <- function(pid,
 
     pwy <- getNodeSet(xml, "//pathway")[[1]]
 
-	pwy_name <- xmlAttrs(pwy)["name"]
+    pwy_name <- xmlAttrs(pwy)["name"]
     pwy_org <- xmlAttrs(pwy)["org"]
     pwy_number <- xmlAttrs(pwy)["number"]
     pwy_title <- xmlAttrs(pwy)["title"]
     pwy_image <- xmlAttrs(pwy)["image"]
     pwy_link <- xmlAttrs(pwy)["link"]
 
-  	if (return_image) return(pwy_image)
-  	
+    if (return_image) return(pwy_image)
+    
     ni <- 1
     for (node in node_sets) {
-    	id <- xmlAttrs(node)["id"]
-    	name <- xmlAttrs(node)["name"]
-    	type <- xmlAttrs(node)["type"]
-    	reac <- xmlAttrs(node)["reaction"]
+        id <- xmlAttrs(node)["id"]
+        name <- xmlAttrs(node)["name"]
+        type <- xmlAttrs(node)["type"]
+        reac <- xmlAttrs(node)["reaction"]
 
-	    gls <- getNodeSet(node, "graphics")
-    	mult_coords <- NULL
-	    for (gl in gls) {
-    		glname <- xmlAttrs(gl)["name"]
-      		gltype <- xmlAttrs(gl)["type"]
+        gls <- getNodeSet(node, "graphics")
+        mult_coords <- NULL
+        for (gl in gls) {
+            glname <- xmlAttrs(gl)["name"]
+            gltype <- xmlAttrs(gl)["type"]
 
-	        ## If multiple graphics, take the last
-	        ## parameters and append only the multiple coordinates
-	        ## Otherwise graph will have duplicate 'original' ID
-	        
+            ## If multiple graphics, take the last
+            ## parameters and append only the multiple coordinates
+            ## Otherwise graph will have duplicate 'original' ID
+            
             glcoords <- xmlAttrs(gl)["coords"]
-      		mult_coords <- c(mult_coords, glcoords)
+            mult_coords <- c(mult_coords, glcoords)
 
-	        x <- as.numeric(xmlAttrs(gl)["x"])
-      		if (invert_y) {
-        		y <- -1*as.numeric(xmlAttrs(gl)["y"])
-      		} else {
-        		y <- as.numeric(xmlAttrs(gl)["y"])
-      		}
-      		
-	        w <- as.numeric(xmlAttrs(gl)["width"])
-      		h <- as.numeric(xmlAttrs(gl)["height"])
-      		fg <- xmlAttrs(gl)["fgcolor"]
-      		bg <- xmlAttrs(gl)["bgcolor"]
-      		
-	        if (type=="group") {
-        		for (comp in xmlElementsByTagName(node,"component")) {
-          			grs[[as.character(id)]] <- 
-            			c(grs[[as.character(id)]],
-            				as.character(xmlAttrs(comp)["id"]))
-          			rev_grs[[as.character(xmlAttrs(comp)["id"])]] <- 
-            			c(rev_grs[[as.character(xmlAttrs(comp)["id"])]],
-            				as.character(id))
-        		}
-      		}	
-    	}
-    	all_nodes[[ni]] <- c(id, name, type, reac,
+            x <- as.numeric(xmlAttrs(gl)["x"])
+            if (invert_y) {
+                y <- -1*as.numeric(xmlAttrs(gl)["y"])
+            } else {
+                y <- as.numeric(xmlAttrs(gl)["y"])
+            }
+            
+            w <- as.numeric(xmlAttrs(gl)["width"])
+            h <- as.numeric(xmlAttrs(gl)["height"])
+            fg <- xmlAttrs(gl)["fgcolor"]
+            bg <- xmlAttrs(gl)["bgcolor"]
+            
+            if (type=="group") {
+                for (comp in xmlElementsByTagName(node,"component")) {
+                    grs[[as.character(id)]] <- 
+                        c(grs[[as.character(id)]],
+                            as.character(xmlAttrs(comp)["id"]))
+                    rev_grs[[as.character(xmlAttrs(comp)["id"])]] <- 
+                        c(rev_grs[[as.character(xmlAttrs(comp)["id"])]],
+                            as.character(id))
+                }
+            }   
+        }
+        all_nodes[[ni]] <- c(id, name, type, reac,
                         glname, x, y, w, h, fg, bg, gltype,
                         paste0(mult_coords, collapse="|")) |>
                         setNames(node_names)
-    	ni <- ni + 1
-  	}
-  	
-  	kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
-    	`colnames<-`(node_names)
+        ni <- ni + 1
+    }
+    
+    kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
+        `colnames<-`(node_names)
 
-	kegg_nodes$x <- as.numeric(kegg_nodes$x)
+    kegg_nodes$x <- as.numeric(kegg_nodes$x)
     kegg_nodes$y <- as.numeric(kegg_nodes$y)
     kegg_nodes$width <- as.numeric(kegg_nodes$width)
     kegg_nodes$height <- as.numeric(kegg_nodes$height)
@@ -147,68 +147,68 @@ pathway <- function(pid,
     all_rels <- NULL
     ei <- 1
     for (rel in rel_sets) {
-    	entry1 <- xmlAttrs(rel)["entry1"]
-    	entry2 <- xmlAttrs(rel)["entry2"]
-    	rel_type <- xmlAttrs(rel)["type"]
-    	# rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
-    	rel_subtypes <- xmlElementsByTagName(rel,"subtype")
-    	for (rs in rel_subtypes) {
-      		all_rels[[ei]] <- c(entry1, entry2, rel_type,
-        		xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
-      		setNames(c("entry1","entry2","type","subtype_name","subtype_value"))
-      	ei <- ei + 1
-    	}
-  	}
-  	
+        entry1 <- xmlAttrs(rel)["entry1"]
+        entry2 <- xmlAttrs(rel)["entry2"]
+        rel_type <- xmlAttrs(rel)["type"]
+        # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
+        rel_subtypes <- xmlElementsByTagName(rel,"subtype")
+        for (rs in rel_subtypes) {
+            all_rels[[ei]] <- c(entry1, entry2, rel_type,
+                xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
+            setNames(c("entry1","entry2","type","subtype_name","subtype_value"))
+        ei <- ei + 1
+        }
+    }
+    
     if (!is.null(all_rels)) {
-    	kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
-        	`colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value"))
-  	} else {
-    	kegg_edges <- NULL
-  	}
+        kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
+            `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value"))
+    } else {
+        kegg_edges <- NULL
+    }
 
     gr_rels <- NULL
-  	for (gr_name in names(grs)) {
-    	for (comp_name in grs[[gr_name]]) {
-      		## Pad other values by `in_group`
-      		gr_rels <- rbind(gr_rels, 
-        		c(gr_name, comp_name, "in_group", "in_group", "in_group"))
-    	}
-  	}
+    for (gr_name in names(grs)) {
+        for (comp_name in grs[[gr_name]]) {
+            ## Pad other values by `in_group`
+            gr_rels <- rbind(gr_rels, 
+                c(gr_name, comp_name, "in_group", "in_group", "in_group"))
+        }
+    }
 
     if (length(getNodeSet(xml, "//reaction"))!=0) {
-  	    kegg_reac <- get_reaction(xml)
-    	if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA}
-    	kegg_edges <- rbind(kegg_edges, kegg_reac)
-  	}
+        kegg_reac <- get_reaction(xml)
+        if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA}
+        kegg_edges <- rbind(kegg_edges, kegg_reac)
+    }
 
     ## Append grouping
-  	if (!is.null(kegg_edges)) {
-    	if (!is.null(gr_rels)) {
-      		gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type",
-        		"subtype_name","subtype_value"))
-      		if ("reaction" %in% colnames(kegg_edges)) {
-        		gr_rels$reaction <- "in_group"
-      		}
-      		kegg_edges <- rbind(kegg_edges, gr_rels)
-    	}
-  	}
+    if (!is.null(kegg_edges)) {
+        if (!is.null(gr_rels)) {
+            gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type",
+                "subtype_name","subtype_value"))
+            if ("reaction" %in% colnames(kegg_edges)) {
+                gr_rels$reaction <- "in_group"
+            }
+            kegg_edges <- rbind(kegg_edges, gr_rels)
+        }
+    }
 
     if (!is.null(kegg_edges)) {
-    	g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
-  	} else {
-    	g <- tbl_graph(nodes=kegg_nodes)
+        g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
+    } else {
+        g <- tbl_graph(nodes=kegg_nodes)
     }
 
 
     if (add_pathway_id) {
-    	V(g)$pathway_id <- pid
-    	E(g)$pathway_id <- pid
+        V(g)$pathway_id <- pid
+        E(g)$pathway_id <- pid
     }
     if (return_tbl_graph) {
-    	return(as_tbl_graph(g))
-  	} else {
-    	return(g)
+        return(as_tbl_graph(g))
+    } else {
+        return(g)
     }
 }
 parse_kgml <- pathway
