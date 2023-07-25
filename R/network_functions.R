@@ -128,83 +128,82 @@ convert_definition_to_graph <- function(kne) {
 #' ne <- create_test_network()
 #' neg <- network_graph(ne)
 #' @export
+#' 
 network_graph <- function (kne, type="definition") {
-    if (type=="definition") {
-        raw_nodes <- kne@definition_graph |> activate("nodes") |> data.frame()
-        raw_edges <- kne@definition_graph |> activate("edges") |> data.frame()
+  if (type=="definition") {
+    raw_nodes <- kne@definition_graph |> activate("nodes") |> data.frame()
+    raw_edges <- kne@definition_graph |> activate("edges") |> data.frame()
+  } else {
+    raw_nodes <- kne@expanded_graph |> activate("nodes") |> data.frame()
+    raw_edges <- kne@expanded_graph |> activate("edges") |> data.frame()
+
+  }
+
+  blocks <- NULL
+  edges <- NULL
+  name_change <- NULL
+  nns <- NULL
+  for (nn in seq_along(raw_nodes$name)) {
+    bln <- paste0("manual_BLOCK",nn,"_",kne@ID)
+    ## In NETWORK definition, "-" is included in gene symbol
+    ## Also, names like `Ca2+` is present, manually curate them
+    input_string <- gsub("Ca2\\+","Ca",raw_nodes$name[nn])
+    gra <- module_graph(input_string, skip_minus=TRUE)
+    if (is.character(gra)) {
+      # blocks <- rbind(blocks, c(gra, bln))
     } else {
-        raw_nodes <- kne@expanded_graph |> activate("nodes") |> data.frame()
-        raw_edges <- kne@expanded_graph |> activate("edges") |> data.frame()
+      es <- as_data_frame(gra)
+      es[,1] <- ifelse(startsWith(es[,1],"manual_CS"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
+      es[,2] <- ifelse(startsWith(es[,2],"manual_CS"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
+      es[,1] <- ifelse(startsWith(es[,1],"manual_G"), paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
+      es[,2] <- ifelse(startsWith(es[,2],"manual_G"), paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
+      edges <- rbind(edges, es)
+
+      vs <- data.frame(V(gra)$name, bln)
+      vs[,1] <- ifelse(startsWith(vs[,1],"manual_CS"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
+      vs[,1] <- ifelse(startsWith(vs[,1],"manual_G"), paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
+      for (j in vs[,1]) {
+        edges <- rbind(edges, c(j,bln,"in_block"))
+      }
+
+      name_change <- c(name_change, nn)
+      nns <- c(nns, nn)
     }
-  
-    results <- lapply(seq_along(raw_nodes$name), function(nn) {
-	    bln <- paste0("manual_BLOCK",nn,"_",kne@ID)
-	    ## In NETWORK definition, "-" is included in gene symbol
-	    ## Also, names like `Ca2+` is present, manually curate them    	
-        input_string <- gsub("Ca2\\+","Ca",raw_nodes$name[nn])
-	    gra <- module_graph(input_string, skip_minus=TRUE)
-	    
-        if (is.character(gra)) {es <- NULL; vs <- NULL;} else {
-			es <- as_data_frame(gra)
-			es[,1] <- ifelse(startsWith(es[,1],"manual_CS"),
-				paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
-			es[,2] <- ifelse(startsWith(es[,2],"manual_CS"),
-				paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
-			es[,1] <- ifelse(startsWith(es[,1],"manual_G"),
-				paste0(es[,1],"_",nn,"_",kne@ID) ,es[,1])
-			es[,2] <- ifelse(startsWith(es[,2],"manual_G"),
-				paste0(es[,2],"_",nn,"_",kne@ID) ,es[,2])
-			
-			vs <- data.frame(V(gra)$name, bln)
-			vs[,1] <- ifelse(startsWith(vs[,1],"manual_CS"),
-				paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
-			vs[,1] <- ifelse(startsWith(vs[,1],"manual_G"),
-				paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
-			vs <- do.call(rbind,
-				lapply(vs[,1], function(j) {c(j, bln, "in_block")}))
-        }
-        
-      
-        list("name_change"=nn,
-        	"nns"=nn,
-        	"es"=rbind(es,vs))
-    })
+  }
+  name_change <- paste0("manual_BLOCK",name_change,"_",kne@ID)
+  names(name_change) <- as.character(nns)
+  new_edges_from <- NULL
+  new_edges_to <- NULL
+  for (i in raw_edges$from) {
+    if (i %in% names(name_change)) {
+      new_edges_from <- c(new_edges_from, as.character(name_change[as.character(i)]))
+    } else {
+      new_edges_from <- c(new_edges_from, raw_nodes$name[i])
+    }
+  }
+  for (i in raw_edges$to) {
+    if (i %in% names(name_change)) {
+      new_edges_to <- c(new_edges_to, as.character(name_change[as.character(i)]))
+    } else {
+      new_edges_to <- c(new_edges_to, raw_nodes$name[i])
+    }
+  }
 
-    edges <- do.call(rbind, lapply(results, function(x) x[["es"]]))
-	name_change <- paste0("manual_BLOCK",results[["name_change"]],"_",kne@ID)
-    names(name_change) <- as.character(results[["nns"]])
-    
-    new_edges_from <- lapply(raw_edges$from, function(i) {
-    	if (i %in% names(name_change)) {
-            return(as.character(name_change[as.character(i)]))
-        } else {
-            return(raw_nodes$name[i])
-        }
-    }) |> unlist()
-
-    new_edges_to <- lapply(raw_edges$to, function(i) {
-        if (i %in% names(name_change)) {
-            return(as.character(name_change[as.character(i)]))
-        } else {
-            return(raw_nodes$name[i])
-        } 
-    }) |> unlist()
-  
-	raw_edges$from <- new_edges_from
-	raw_edges$to <- new_edges_to
-	raw_edges$subtype <- "reference"
-	if (!is.null(edges)) {
-    	edges$subtype <- "manual"
-  	}
-	all_edges <- rbind(
-		raw_edges |> `colnames<-`(c("from","to","type","subtype")),
-        edges
-    )
-    g <- as_tbl_graph(all_edges, directed = TRUE)
-    g <- g |> activate("nodes") |>   mutate(network_name=kne@name,
-        network_ID=kne@ID)
-    g
+  raw_edges$from <- new_edges_from
+  raw_edges$to <- new_edges_to
+  raw_edges$subtype <- "reference"
+  if (!is.null(edges)) {
+    edges$subtype <- "manual"
+  }
+  all_edges <- rbind(raw_edges |> `colnames<-`(c("from","to","type","subtype")),
+        edges)
+  g <- as_tbl_graph(all_edges, directed = TRUE)
+  g <- g |> activate("nodes") |>   mutate(network_name=kne@name,
+    network_ID=kne@ID)
+  g
 }
+
+
 
 
 #' create_test_network
