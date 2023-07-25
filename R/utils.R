@@ -46,20 +46,21 @@ find_parenthesis_pairs <- function(s) {
 #' test <- process_line(gm_test) |> append_label_position()
 #' @export
 append_label_position <- function(g) {
-  pos <- g |>
-    activate(edges) |> 
-    data.frame() |>
-    filter(.data$type=="line") |>
-    group_by(.data$orig.id) |> 
-    summarise(n=n()) |> 
-    mutate(n2=n/2) |> 
-    mutate(n3=as.integer(.data$n2+1))
-  posvec <- pos$n3 |> setNames(pos$orig.id)
-  g |> activate(edges) |> group_by(.data$orig.id) |> 
-    mutate(rn=row_number()) |> ungroup() |>
-    mutate(showpos=edge_numeric(name="orig.id", posvec)) |>
-    mutate(center=.data$rn==.data$showpos) |>
-    mutate(rn=NULL, showpos=NULL)
+    pos <- g |>
+        activate(edges) |> 
+        data.frame() |>
+        filter(.data$type=="line") |>
+        group_by(.data$orig.id) |> 
+        summarise(n=n()) |> 
+        mutate(n2=n/2) |> 
+        mutate(n3=as.integer(.data$n2+1))
+
+    posvec <- pos$n3 |> setNames(pos$orig.id)
+    g |> activate(edges) |> group_by(.data$orig.id) |> 
+        mutate(rn=row_number()) |> ungroup() |>
+        mutate(showpos=edge_numeric(name="orig.id", posvec)) |>
+        mutate(center=.data$rn==.data$showpos) |>
+        mutate(rn=NULL, showpos=NULL)
 }
 
 #' return_line_compounds
@@ -82,13 +83,13 @@ append_label_position <- function(g) {
 #' gm_test <- tbl_graph(gm_test)
 #' test <- process_line(gm_test) |> return_line_compounds(1)
 return_line_compounds <- function(g, orig) {
-  ndf <- g |> activate("nodes") |> data.frame()
-  edf <- g |> activate("edges") |> data.frame()
-  highl <- ndf[edf[edf$to %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
-    row.names()),]$from,]$orig.id
-  highl2 <- ndf[edf[edf$from %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
-    row.names()),]$to,]$orig.id
-  c(highl, highl2)
+    ndf <- g |> activate("nodes") |> data.frame()
+    edf <- g |> activate("edges") |> data.frame()
+    highl <- ndf[edf[edf$to %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
+        row.names()),]$from,]$orig.id
+    highl2 <- ndf[edf[edf$from %in% as.integer(ndf[ndf$orig.id %in% orig,] |> 
+        row.names()),]$to,]$orig.id
+    c(highl, highl2)
 }
 
 #' edge_numeric
@@ -105,49 +106,42 @@ return_line_compounds <- function(g, orig) {
 #' @importFrom tibble is_tibble
 #' @importFrom tidygraph activate
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                     x=c(1,1),
-#'                     xmin=c(-1,-1),
-#'                     xmax=c(2,2),
-#'                     y=c(1,1),
-#'                     ymin=c(-1,-1),
-#'                     ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2, name="K00112")
-#' graph <- tbl_graph(nodes, edges)
+#' graph <- create_test_pathway()
 #' graph <- graph |> activate("edges") |>
-#'    mutate(num=edge_numeric(c(1.1) |> setNames("K00112")))
-#' 
+#'         mutate(num=edge_numeric(c(1.1) |> setNames("degradation"),
+#'             name="subtype_name"))
 #' 
 edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
-  graph <- .G()
-  if (!is_tibble(num) & !is.vector(num)) {
-    stop("Please provide tibble or named vector")}
-  if (is_tibble(num)) {
-    if (duplicated(num$id) |> unique() |> length() > 1) {
-      stop("Duplicate ID found")}
-    changer <- num$value
-    names(changer) <- num$id
-  } else {
-    if (duplicated(names(num)) |> unique() |> length() > 1) {
-      stop("Duplicate ID found")}
-    changer <- num
-  }
-  x <- get.edge.attribute(graph, name)
-
-  final_attribute <- NULL
-  for (xx in x) {
-    in_node <- strsplit(xx, " ") |> unlist() |> unique()
-    thresh <- ifelse(how=="any", 1, length(in_node))
-    if (length(intersect(names(changer), in_node)) >= thresh) {
-      summed <- do.call(num_combine,
-        list(x=changer[intersect(names(changer), in_node)]))
-    } else {
-      summed <- NA
+    graph <- .G()
+    if (!is_tibble(num) & !is.vector(num)) {
+        stop("Please provide tibble or named vector")
     }
-    final_attribute <- c(final_attribute,
-                         summed)
-  }
-  final_attribute
+    if (is_tibble(num)) {
+        if (duplicated(num$id) |> unique() |> length() > 1) {
+            stop("Duplicate ID found")
+        }
+        changer <- num$value
+        names(changer) <- num$id
+    } else {
+        if (duplicated(names(num)) |> unique() |> length() > 1) {
+            stop("Duplicate ID found")
+        }
+        changer <- num
+    }
+
+    x <- get.edge.attribute(graph, name)
+
+    lapply(x, function(xx) {
+        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        thresh <- ifelse(how == "any", 1, length(in_node))
+        if (length(intersect(names(changer), in_node)) >= thresh) {
+            summed <- do.call(num_combine,
+                list(x=changer[intersect(names(changer), in_node)]))
+        } else {
+            summed <- NA
+        }
+        return(summed)
+    }) |> unlist()
 }
 
 #' node_numeric
@@ -592,20 +586,6 @@ convert_id <- function(org, name="name",
     }
   }
   convs
-  # if (divide_semicolon) {
-  #   new_convs <- NULL
-  #   for (i in convs) {
-  #     app <- NULL
-  #     for (j in strsplit(i, " ") |> unlist()) {
-  #       app <- c(app, sapply(strsplit(j, ";"),"[", 1))
-  #     }
-  #     new_convs <- c(new_convs,
-  #       paste0(app, collapse=sep))
-  #   }
-  #   return(new_convs)
-  # } else {
-  #   return(convs)
-  # }
 }
 
 

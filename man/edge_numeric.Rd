@@ -23,17 +23,9 @@ add numeric attribute to edge of tbl_graph
 for matrix input, use `append_node_value`
 }
 \examples{
-nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-                    x=c(1,1),
-                    xmin=c(-1,-1),
-                    xmax=c(2,2),
-                    y=c(1,1),
-                    ymin=c(-1,-1),
-                    ymax=c(2,2))
-edges <- data.frame(from=1, to=2, name="K00112")
-graph <- tbl_graph(nodes, edges)
+graph <- create_test_pathway()
 graph <- graph |> activate("edges") |>
-   mutate(num=edge_numeric(c(1.1) |> setNames("K00112")))
-
+        mutate(num=edge_numeric(c(1.1) |> setNames("degradation"),
+            name="subtype_name"))
 
 }
