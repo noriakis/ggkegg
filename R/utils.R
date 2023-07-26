@@ -221,12 +221,12 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
-        	if (x[xx]=="undefined") {return(NA); next}
+        	if (x[xx]=="undefined") {return(NA)}
         	vals <- strsplit(x[xx], " ") |> unlist() |> unique()
             subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
-            if (dim(subset_conv)[1]==0) {return(NA); next}
+            if (dim(subset_conv)[1]==0) {return(NA)}
             if (dim(subset_conv)[1]==1) {
-                return(mat[subset_conv[[gene_type]],]); next
+                return(mat[subset_conv[[gene_type]],])
             }
             return(apply(mat[ subset_conv[[gene_type]],], 2, num_combine))
         })
