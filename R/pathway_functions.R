@@ -17,7 +17,7 @@
 #' @importFrom igraph graph_from_data_frame
 #' @import igraph
 #' @importFrom tidygraph .G
-#' @importFrom XML xmlParse
+#' @importFrom XML xmlParse xmlApply
 #' @importFrom tibble as_tibble
 #' @importFrom utils download.file head tail
 #' @examples \dontrun{pathway("hsa04110")}
