@@ -25,23 +25,16 @@ This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY a
 
 ## Pathway
 
-Here we prepare an example `tbl_graph` representing pathway information. Typically one can obtain a real KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory with `directory` argument.
+The users can obtain a KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory with `directory` argument. Here, we obtain `Cell cycle` pathway (`hsa04110`).
 
 ```{r pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 library(ggkegg)
-graph <- create_test_pathway()
+graph <- ggkegg::pathway("hsa04110", use_cache=TRUE)
 graph
 ```
-
-```{r pathway2, eval=FALSE}
-# graph <- pathway("hsa04110")
-# graph <- pathway("hsa04110", directory="path/to/xml")
-# graph <- pathway("hsa04110", use_cache=TRUE)
-```
-
 ### Plot using `ggraph`
 
-The parsed `tbl_graph` can be used to plot the information by `ggraph`.
+The parsed `tbl_graph` can be used to plot the information by `ggraph`. The nodes, edges, and text are plotted in the below example.
 
 ```{r plot_pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 ggraph(graph, layout="manual", x=x, y=y)+
@@ -56,22 +49,21 @@ ggraph(graph, layout="manual", x=x, y=y)+
 
 ## Converting identifiers
 
-The user can convert identifiers using `convert_id` function to be used in `mutate`.
-One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them (not run because it downloads converting table).
+In the above example, `graphics_name` column in the node table were used, which are available in the default KGML file. The user can convert identifiers using `convert_id` function to be used in `mutate`. One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them (not run because it downloads converting table).
 
 ```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1, eval=FALSE}
-# graph |>
-#   activate(nodes) |>
-#   mutate(hsa=convert_id("hsa")) |>
-#   ggraph(layout="manual", x=x, y=y)+
-#   geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-#   geom_node_text(aes(label=hsa))+ ## specify converted column in node table
-#   geom_edge_parallel(aes(linetype=subtype_name),
-#                    arrow=arrow(length=unit(1,"mm"),
-#                                type="closed"),
-#                    end_cap=circle(1.5,"cm"),
-#                    start_cap=circle(1.5,"cm"))+
-#   theme_void()
+graph |>
+    activate(nodes) |>
+    mutate(hsa=convert_id("hsa")) |>
+    ggraph(layout="manual", x=x, y=y)+
+    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+    geom_node_text(aes(label=hsa))+ ## specify converted column in node table
+    geom_edge_parallel(aes(linetype=subtype_name),
+                    arrow=arrow(length=unit(1,"mm"),
+                               type="closed"),
+                    end_cap=circle(1.5,"cm"),
+                    start_cap=circle(1.5,"cm"))+
+    theme_void()
 ```
 
 ### Highlighting set of nodes and edges
@@ -108,13 +100,11 @@ The code below creates nodes using default parsed background color and just over
 #   overlay_raw_map()
 ```
 
-
 ### Use with the other omics packages
 
 The package supports direct importing and visualization, and investigation of the results of the other packages such as enrichment analysis results from `clusterProfiler` and differential expression analysis results from `DESeq2`. As this involves downloading the pathway information, please refer to [use cases](https://noriakis.github.io/software/ggkegg/usecases.html) in the documentation.
 
 ## Module
-
 
 ### Parsing module
 
@@ -159,7 +149,7 @@ ggraph()+
 ## plot_module_blocks() can be used for module containing definitions with multiple blocks
 ```
 
-We can assess module completeness, user-defined module abundances. Please refer to [the module section of documentation](https://noriakis.github.io/software/ggkegg/module.html).
+We can assess module completeness, as well as user-defined module abundances. Please refer to [the module section of documentation](https://noriakis.github.io/software/ggkegg/module.html).
 
 ```{r}
 sessionInfo()
