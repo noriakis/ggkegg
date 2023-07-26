@@ -28,15 +28,17 @@
 #'
 overlay_raw_map <- function(pid=NULL, directory=NULL,
                             transparent_colors=c("#FFFFFF",
-                              "#BFBFFF","#BFFFBF","#7F7F7F",
-                              "#808080"),
-                            adjust=TRUE, clip=FALSE, use_cache=TRUE) {
-  structure(list(pid=pid,
-                 transparent_colors=transparent_colors,
-                 adjust=adjust,
-                 clip=clip,
-                 directory=directory,
-                 use_cache=use_cache),
+                                "#BFBFFF","#BFFFBF","#7F7F7F",
+                                "#808080"),
+                            adjust=TRUE,
+                            clip=FALSE,
+                            use_cache=TRUE) {
+    structure(list(pid=pid,
+                    transparent_colors=transparent_colors,
+                    adjust=adjust,
+                    clip=clip,
+                    directory=directory,
+                    use_cache=use_cache),
             class = "overlay_raw_map")
 }
 
@@ -62,61 +64,62 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
 #' \dontrun{ggraph(graph) + overlay_raw_map()}
 #'
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
-  if (is.null(object$pid)) {
-    infer <- plot$data$pathway_id |> unique()
-    object$pid <- infer[!is.na(infer)]
-  }
-  if (!grepl("[[:digit:]]", object$pid)) {
-    warning("Looks like not KEGG ID for pathway")
-    return(1)
-  }
-  ## Return the image URL, download and cache
-  url <- paste0(as.character(pathway(object$pid,
-                                     use_cache=object$use_cache,
-                                     directory=object$directory,
-                                     return_image=TRUE)))
-  if (object$use_cache) {
-    bfc <- BiocFileCache()
-    path <- bfcrpath(bfc, url)    
-  } else {
-    path <- paste0(object$pid, ".png")
-    if (!is.null(object$directory)) {
-      path <- paste0(object$directory,"/",path)
+    if (is.null(object$pid)) {
+        infer <- plot$data$pathway_id |> unique()
+        object$pid <- infer[!is.na(infer)]
     }
-    download.file(url=url, destfile=path, mode = 'wb')
-  }
+    if (!grepl("[[:digit:]]", object$pid)) {
+        warning("Looks like not KEGG ID for pathway")
+        return(1)
+    }
+    ## Return the image URL, download and cache
+    url <- paste0(as.character(pathway(object$pid,
+                                    use_cache=object$use_cache,
+                                    directory=object$directory,
+                                    return_image=TRUE)))
+    if (object$use_cache) {
+        bfc <- BiocFileCache()
+        path <- bfcrpath(bfc, url)    
+    } else {
+        path <- paste0(object$pid, ".png")
+        if (!is.null(object$directory)) {
+            path <- paste0(object$directory,"/",path)
+        }
+        download.file(url=url, destfile=path, mode = 'wb')
+    }
   
-  ## Load, transparent and rasterize
-  magick_image <- image_read(path)
-  img_info <- image_info(magick_image)
-  w <- img_info$width
-  h <- img_info$height
+    ## Load, transparent and rasterize
+    magick_image <- image_read(path)
+    img_info <- image_info(magick_image)
+    w <- img_info$width
+    h <- img_info$height
   
-  for (col in object$transparent_colors) {
-    magick_image <- magick_image |> 
-      image_transparent(col)
-  }
+    for (col in object$transparent_colors) {
+        magick_image <- magick_image |> 
+            image_transparent(col)
+    }
   
-  ras <- as.raster(magick_image)
+    ras <- as.raster(magick_image)
 
 
-  xmin <- 0
-  xmax <- w
-  ymin <- -1*h
-  ymax <- 0
+    xmin <- 0
+    xmax <- w
+    ymin <- -1*h
+    ymax <- 0
 
-  if (object$clip) {
-    ras <- ras[seq_len(nrow(ras)-1),
-    seq_len(ncol(ras)-1)]
-  }
-  if (object$adjust) {
-    xmin <- xmin - 0.5
-    xmax <- xmax - 0.5
-    ymin <- ymin - 0.5
-    ymax <- ymax - 0.5
-  }
-  plot + 
-    annotation_raster(ras, xmin=xmin, ymin=ymin,
-      xmax=xmax, ymax=ymax, interpolate = TRUE)+
-    coord_fixed(xlim = c(xmin,xmax), ylim=c(ymin,ymax))
+    if (object$clip) {
+        ras <- ras[seq_len(nrow(ras)-1),
+                    seq_len(ncol(ras)-1)]
+    }
+
+    if (object$adjust) {
+        xmin <- xmin - 0.5
+        xmax <- xmax - 0.5
+        ymin <- ymin - 0.5
+        ymax <- ymax - 0.5
+    }
+    plot + 
+        annotation_raster(ras, xmin=xmin, ymin=ymin,
+            xmax=xmax, ymax=ymax, interpolate = TRUE)+
+        coord_fixed(xlim = c(xmin,xmax), ylim=c(ymin,ymax))
 }

@@ -157,49 +157,39 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' @return numeric vector
 #' @importFrom tibble is_tibble
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' graph <- graph |> 
-#'            mutate(num=node_numeric(c(1.1) |> setNames("hsa:1029")))
-#' 
+#' graph <- create_test_pathway()
+#' graph <- graph |>
+#'     mutate(num=node_numeric(c(1.1) |> setNames("hsa:6737"))) 
 #' 
 node_numeric <- function(num, num_combine=mean, name="name", how="any") {
-  graph <- .G()
-  if (!is_tibble(num) & !is.vector(num)) {
-    stop("Please provide tibble or named vector")}
-  if (is_tibble(num)) {
-    if (duplicated(num$id) |> unique() |> length() > 1) {
-      stop("Duplicate ID found")}
-    changer <- num$value
-    names(changer) <- num$id
-  } else {
-    if (duplicated(names(num)) |> unique() |> length() > 1) {
-      stop("Duplicate ID found")}
-    changer <- num
-  }
-  x <- get.vertex.attribute(graph, name)
-
-  final_attribute <- NULL
-  for (xx in x) {
-    in_node <- strsplit(xx, " ") |> unlist() |> unique()
-    thresh <- ifelse(how=="any", 1, length(in_node))
-    if (length(intersect(names(changer), in_node)) >= thresh) {
-      summed <- do.call(num_combine,
-        list(x=changer[intersect(names(changer), in_node)]))
-    } else {
-      summed <- NA
+    graph <- .G()
+    if (!is_tibble(num) & !is.vector(num)) {
+        stop("Please provide tibble or named vector")
     }
-    final_attribute <- c(final_attribute,
-                         summed)
-  }
-  final_attribute
+    if (is_tibble(num)) {
+        if (duplicated(num$id) |> unique() |> length() > 1) {
+            stop("Duplicate ID found")
+        }
+        changer <- num$value
+        names(changer) <- num$id
+    } else {
+        if (duplicated(names(num)) |> unique() |> length() > 1) {
+            stop("Duplicate ID found")
+        }
+        changer <- num
+    }
+    x <- get.vertex.attribute(graph, name)
+
+    lapply(x, function(xx) {
+        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        thresh <- ifelse(how=="any", 1, length(in_node))
+        if (length(intersect(names(changer), in_node)) >= thresh) {
+            summed <- do.call(num_combine,
+                        list(x=changer[intersect(names(changer), in_node)]))
+        } else {
+            summed <- NA
+        }        
+    }) |> unlist()
 }
 
 
@@ -235,21 +225,24 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' graph <- graph |> node_matrix(num_df, gene_type = "ENTREZID")
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
-  
-  get_value <- function(x) {
-    val <- list()
-    for (xx in seq_along(x)) {
-      if (x[xx]=="undefined") {val[[xx]] <- NA; next}
-      vals <- strsplit(x[xx], " ") |> unlist() |> unique()
-      subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
-      if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
-      if (dim(subset_conv)[1]==1) {
-        val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
-      val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
+
+    get_value <- function(x) {
+        val <- list()
+        for (xx in seq_along(x)) {
+            if (x[xx]=="undefined") {val[[xx]] <- NA; next}
+            
+            vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+            subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
+            
+            if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
+            if (dim(subset_conv)[1]==1) {
+                val[[xx]]<-mat[subset_conv[[gene_type]],]; next
+            }
+            val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
+        }
+        binded <- do.call(rbind, val)
+        binded
     }
-    binded <- do.call(rbind, val)
-    binded
-  }
 
   node_df <- graph |> activate("nodes") |> data.frame()
   node_name <- node_df$name
@@ -369,48 +362,48 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
 #' @export
 append_cp <- function(res, how="any", name="name", pid=NULL) {
-  if (!attributes(res)$class %in% c("enrichResult","gseaResult")) {
-    stop("Please provide enrichResult or gseaResult class object") }
-  if (attributes(res)$class=="gseaResult") {
-    gene_col <- "core_enrichment"
-  } else {
-    gene_col <- "geneID"
-  }
-  graph <- .G()
-  if (is.null(pid)) {
-    pid <- unique(V(graph)$pathway_id)
-  }
-  x <- get.vertex.attribute(graph, name)
-
-  org <- attributes(res)$organism
-  res <- attributes(res)$result
-
-  if (org!="UNKNOWN") {
-    if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
-    enrich_attribute <- paste0(org, ":", unlist(strsplit(
-      res[pid,][[gene_col]], "/")))
-  } else {
-    enrich_attribute <- unlist(strsplit(
-      res[pid,][[gene_col]], "/"))     
-  }
-  bools <- NULL
-  for (xx in x) {
-    in_node <- strsplit(xx, " ") |> unlist() |> unique()
-    if (how=="any") {
-      if (length(intersect(in_node, enrich_attribute))>=1) {
-        bools <- c(bools, TRUE)
-      } else {
-        bools <- c(bools, FALSE)
-      }
-    } else {
-      if (length(intersect(in_node, enrich_attribute))==length(in_node)) {
-        bools <- c(bools, TRUE)
-      } else {
-        bools <- c(bools, FALSE)
-      }      
+    if (!attributes(res)$class %in% c("enrichResult","gseaResult")) {
+        stop("Please provide enrichResult or gseaResult class object")
     }
-  }
-  bools
+    if (attributes(res)$class=="gseaResult") {
+        gene_col <- "core_enrichment"
+    } else {
+        gene_col <- "geneID"
+    }
+    graph <- .G()
+    if (is.null(pid)) {
+        pid <- unique(V(graph)$pathway_id)
+    }
+    x <- get.vertex.attribute(graph, name)
+
+    org <- attributes(res)$organism
+    res <- attributes(res)$result
+
+    if (org!="UNKNOWN") {
+        if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
+        enrich_attribute <- paste0(org, ":", unlist(strsplit(
+                                                res[pid,][[gene_col]], "/")))
+    } else {
+        enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))  
+    }
+    bools <- NULL
+    for (xx in x) {
+        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        if (how=="any") {
+            if (length(intersect(in_node, enrich_attribute))>=1) {
+                bools <- c(bools, TRUE)
+            } else {
+                bools <- c(bools, FALSE)
+            }
+        } else {
+            if (length(intersect(in_node, enrich_attribute))==length(in_node)) {
+                bools <- c(bools, TRUE)
+            } else {
+                bools <- c(bools, FALSE)
+            }      
+        }
+    }
+    bools
 }
 
 
@@ -674,72 +667,72 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' }
 #' 
 combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
-  if (requireNamespace("bnlearn", quietly = TRUE)) {
-    ## Make igraph with strength from bnlearn
-    el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
-      `colnames<-`(c("from","to"))
-    g <- str |> merge(el) |> mutate(from=paste0(prefix,.data$from),
-                                                 to=paste0(prefix,.data$to)) |>
-                                data.frame() |> graph_from_data_frame()
+    if (requireNamespace("bnlearn", quietly = TRUE)) {
+        ## Make igraph with strength from bnlearn
+        el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
+            `colnames<-`(c("from","to"))
+        g <- str |> merge(el) |> mutate(from=paste0(prefix,.data$from),
+                                        to=paste0(prefix,.data$to)) |>
+                                    data.frame() |> graph_from_data_frame()
 
-    ## Merge node names with reference
-    js <- NULL
-    for (i in V(pg)$name) {
-      if (grepl(" ",i)) {
-        ref_node <- strsplit(i, " ") |> unlist()
-        for (j in V(g)$name) {
-          if (how=="any") {
-            if (length(intersect(ref_node, j))>0) {
-              js <- rbind(js, c(j, i))
+        ## Merge node names with reference
+        js <- NULL
+        for (i in V(pg)$name) {
+            if (grepl(" ",i)) {
+                ref_node <- strsplit(i, " ") |> unlist()
+                for (j in V(g)$name) {
+                    if (how=="any") {
+                        if (length(intersect(ref_node, j))>0) {
+                            js <- rbind(js, c(j, i))
+                        }
+                    } else {
+                        if (length(intersect(ref_node, j))==length(ref_node)) {
+                            js <- rbind(js, c(j, i))
+                        }          
+                    }
+                }
+            } else {
+                js <- rbind(js, c(i, i))
             }
-          } else {
-            if (length(intersect(ref_node, j))==length(ref_node)) {
-              js <- rbind(js, c(j, i))
-            }          
-          }
         }
-      } else {
-        js <- rbind(js, c(i, i))
-      }
-    }
 
-    js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
-    gdf <- as_data_frame(g)
+        js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
+        gdf <- as_data_frame(g)
 
-    new_df <- NULL
-    for (i in seq_len(nrow(gdf))) {
-      if (gdf[i,"from"] %in% js$raw){
-        new_from <- js[js[,1]==gdf[i,"from"],]$reference
-        new_df <- rbind(new_df,
-                        c(new_from, gdf[i,"to"], 
-                          gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
-      } else {
-        stop("no `from` included in raw node name")
-      }
-    }
+        new_df <- NULL
+        for (i in seq_len(nrow(gdf))) {
+            if (gdf[i,"from"] %in% js$raw){
+                new_from <- js[js[,1]==gdf[i,"from"],]$reference
+                new_df <- rbind(new_df, c(new_from, gdf[i,"to"], 
+                            gdf[i,"strength"], gdf[i,"direction"])) |>
+                            data.frame()
+            } else {
+                stop("no `from` included in raw node name")
+            }
+        }
 
-    gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
+        gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
 
-    new_df <- NULL
-    for (i in seq_len(nrow(gdf))) {
-      if (gdf[i,"to"] %in% js$raw){
-        new_to <- js[js[,1]==gdf[i,"to"],]$reference
-        new_df <- rbind(new_df,
-                        c(gdf[i,"from"], new_to, 
-                          gdf[i,"strength"], gdf[i,"direction"])) |> data.frame()
-      } else {
-        stop("no `to` included in raw node name")    
-      }
-    }
-    gdf <- new_df |> `colnames<-`(colnames(gdf))
+        new_df <- NULL
+        for (i in seq_len(nrow(gdf))) {
+            if (gdf[i,"to"] %in% js$raw){
+                new_to <- js[js[,1]==gdf[i,"to"],]$reference
+                new_df <- rbind(new_df, c(gdf[i,"from"], new_to, 
+                            gdf[i,"strength"], gdf[i,"direction"])) |>
+                            data.frame()
+            } else {
+                stop("no `to` included in raw node name")    
+            }
+        }
+        gdf <- new_df |> `colnames<-`(colnames(gdf))
     
-    gdf$strength <- as.numeric(gdf$strength)
-    gdf$direction <- as.numeric(gdf$direction)
+        gdf$strength <- as.numeric(gdf$strength)
+        gdf$direction <- as.numeric(gdf$direction)
     
-    ## Drop duplicates
-    gdf <- gdf |> distinct(.data$from, .data$to, .data$strength, .data$direction)
+        ## Drop duplicates
+        gdf <- gdf |> distinct(.data$from, .data$to, .data$strength, .data$direction)
 
-    joined <- graph_join(pg, gdf, by="name")
-    joined    
-  }
+        joined <- graph_join(pg, gdf, by="name")
+        joined    
+    }
 }

@@ -53,9 +53,10 @@ pathway <- function(pid,
     xml <- xmlParse(file_name)
     node_sets <- getNodeSet(xml, "//entry")
     
-    all_nodes <- list()
-    grs <- list()
-    rev_grs <- list()
+    ## Preallocate
+    all_nodes <- vector(mode="list", length=length(node_sets))
+    grs <- vector(mode="list", length=length(node_sets))
+    rev_grs <- vector(mode="list", length=length(node_sets))
 
     node_names <- c("id","name","type","reaction",
                    "graphics_name",
@@ -81,7 +82,10 @@ pathway <- function(pid,
         reac <- xmlAttrs(node)["reaction"]
 
         gls <- getNodeSet(node, "graphics")
-        mult_coords <- NULL
+
+        ## Preallocate
+        mult_coords <- vector(mode="list",
+            length=length(xmlApply(gls, function(x) xmlAttrs(x)["coords"])))
         for (gl in gls) {
             glname <- xmlAttrs(gl)["name"]
             gltype <- xmlAttrs(gl)["type"]
@@ -118,11 +122,15 @@ pathway <- function(pid,
         }
         all_nodes[[ni]] <- c(id, name, type, reac,
                         glname, x, y, w, h, fg, bg, gltype,
-                        paste0(mult_coords, collapse="|")) |>
+                        paste0(mult_coords |> unlist(), collapse="|")) |>
                         setNames(node_names)
         ni <- ni + 1
     }
     
+    all_nodes[vapply(all_nodes, is.null, TRUE)] <- NULL
+    grs[vapply(grs, is.null, TRUE)] <- NULL
+    rev_grs[vapply(rev_grs, is.null, TRUE)] <- NULL
+
     kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
         `colnames<-`(node_names)
 
@@ -144,7 +152,8 @@ pathway <- function(pid,
     kegg_nodes$orig.id <- kegg_nodes$id ## Store ID as orig.id
   
     rel_sets <- getNodeSet(xml, "//relation")
-    all_rels <- NULL
+    ## Preallocate
+    all_rels <- vector(mode="list", length=length(rel_sets))
     ei <- 1
     for (rel in rel_sets) {
         entry1 <- xmlAttrs(rel)["entry1"]
@@ -160,21 +169,22 @@ pathway <- function(pid,
         }
     }
     
-    if (!is.null(all_rels)) {
+    if (length(all_rels) != 0) {
         kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
             `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value"))
     } else {
         kegg_edges <- NULL
     }
 
-    gr_rels <- NULL
-    for (gr_name in names(grs)) {
-        for (comp_name in grs[[gr_name]]) {
+    gr_rels <- lapply(names(grs), function(gr_name) {
+        tmp_rel <- lapply(grs[[gr_name]], function(comp_name) {
             ## Pad other values by `in_group`
-            gr_rels <- rbind(gr_rels, 
-                c(gr_name, comp_name, "in_group", "in_group", "in_group"))
-        }
-    }
+            return(c(gr_name, comp_name, "in_group", "in_group", "in_group"))         
+        })
+        do.call(rbind, tmp_rel)
+    })
+    gr_rels <- do.call(rbind, gr_rels)
+    
 
     if (length(getNodeSet(xml, "//reaction"))!=0) {
         kegg_reac <- get_reaction(xml)
@@ -499,7 +509,7 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
                 destfile=dest)      
         }
     }
-    pway <- list()
+
     con <- file(dest, "r")
     content_list <- list()
     while ( TRUE ) {
