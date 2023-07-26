@@ -209,58 +209,46 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2, name="K00112")
-#' graph <- tbl_graph(nodes, edges)
-#' num_df <- data.frame(row.names=c("1029","4171"),
-#'                      "sample1"=c(1.1,1.2),
-#'                      "sample2"=c(1.1,1.2),
-#'                      check.names=FALSE)
+#' graph <- create_test_pathway()
+#' num_df <- data.frame(row.names=c("6737","51428"),
+#'                     "sample1"=c(1.1,1.2),
+#'                     "sample2"=c(1.5,2.2),
+#'                     check.names=FALSE)
 #' graph <- graph |> node_matrix(num_df, gene_type = "ENTREZID")
+#' 
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
 
     get_value <- function(x) {
-        val <- list()
-        for (xx in seq_along(x)) {
-            if (x[xx]=="undefined") {val[[xx]] <- NA; next}
-            
-            vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+        val <- lapply(seq_along(x), function(xx) {
+        	if (x[xx]=="undefined") {return(NA); next}
+        	vals <- strsplit(x[xx], " ") |> unlist() |> unique()
             subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
-            
-            if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
+            if (dim(subset_conv)[1]==0) {return(NA); next}
             if (dim(subset_conv)[1]==1) {
-                val[[xx]]<-mat[subset_conv[[gene_type]],]; next
+                return(mat[subset_conv[[gene_type]],]); next
             }
-            val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
-        }
+            return(apply(mat[ subset_conv[[gene_type]],], 2, num_combine))
+        })
         binded <- do.call(rbind, val)
         binded
     }
 
-  node_df <- graph |> activate("nodes") |> data.frame()
-  node_name <- node_df$name
-  if (gene_type!="ENTREZID") {
-    convert_df <- mat |> row.names() |> select(x=org_db,
-                                          keys=_,
-                                          columns="ENTREZID",
-                                          keytype=gene_type)
-  } else {
-    convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
-  }
+    node_df <- graph |> activate("nodes") |> data.frame()
+    node_name <- node_df$name
+    if (gene_type!="ENTREZID") {
+    	convert_df <- mat |> row.names() |> 
+    		select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+  	} else {
+    	convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
+    }
   
-  convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
-  new_edges <- graph |> activate("edges") |> data.frame()
-  summed <- data.frame(get_value(node_df$name))
-  new_nodes <- cbind(node_df, summed)
-  appended <- tbl_graph(nodes=new_nodes, edges=new_edges)
-  appended
+    convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
+    new_edges <- graph |> activate("edges") |> data.frame()
+    summed <- data.frame(get_value(node_df$name))
+    new_nodes <- cbind(node_df, summed)
+    appended <- tbl_graph(nodes=new_nodes, edges=new_edges)
+    appended
 }
 
 #' edge_matrix
@@ -345,22 +333,16 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @param pid pathway ID, if NULL, try to infer from graph attribute
 #' @return enrich_attribute column in node
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
+#' graph <- create_test_pathway()
+#' nodes <- graph |> data.frame()
 #' if (require("clusterProfiler")) {
-#'   cp <- enrichKEGG(nodes$name |>
-#'                   strsplit(":") |> 
-#'                   vapply("[",2,FUN.VALUE="character"))
+#'     cp <- enrichKEGG(nodes$name |>
+#'             strsplit(":") |>
+#'             vapply("[",2,FUN.VALUE="character"))
 #' }
-#' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa04110"))
+#' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa05322"))
 #' @export
+#' 
 append_cp <- function(res, how="any", name="name", pid=NULL) {
     if (!attributes(res)$class %in% c("enrichResult","gseaResult")) {
         stop("Please provide enrichResult or gseaResult class object")
@@ -386,23 +368,22 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
     } else {
         enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))  
     }
-    bools <- NULL
-    for (xx in x) {
+    bools <- vapply(x, function(xx) {
         in_node <- strsplit(xx, " ") |> unlist() |> unique()
         if (how=="any") {
             if (length(intersect(in_node, enrich_attribute))>=1) {
-                bools <- c(bools, TRUE)
+                return(TRUE)
             } else {
-                bools <- c(bools, FALSE)
+                return(FALSE)
             }
         } else {
             if (length(intersect(in_node, enrich_attribute))==length(in_node)) {
-                bools <- c(bools, TRUE)
+                return(TRUE)
             } else {
-                bools <- c(bools, FALSE)
+                return(FALSE)
             }      
-        }
-    }
+        } 
+    }, FUN.VALUE=TRUE)
     bools
 }
 
