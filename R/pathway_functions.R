@@ -249,7 +249,7 @@ parse_kgml <- pathway
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 
     df <- as_tbl_graph(g)
-    name_col_node <- c("name","x","y","type","original_name")
+    name_col_node <- c("name","x","y","type","original_name","node.orig.id")
     name_col_edge <- c("from","to","type","name",
     	"bgcolor","fgcolor","reaction","orig.id")
   	results <- lapply(seq_along(V(g)$name), function(i) {
@@ -277,9 +277,9 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
         			if (h %% 2 == 0) {return(NULL)}
           			## Assign unique identifiers each node
           			list(
-          					c(paste0(raw_name,"_",i,"_",rc,"_",h), co[h], co[h+1], "line", raw_name) |>
+          					c(paste0(raw_name,"_",i,"_",rc,"_",h), co[h], co[h+1], "line", raw_name, origid) |>
 				                setNames(name_col_node),
-				            c(paste0(raw_name,"_",i,"_",rc,"_",h+1), co[h+2], co[h+3], "line", raw_name)|>
+				            c(paste0(raw_name,"_",i,"_",rc,"_",h+1), co[h+2], co[h+3], "line", raw_name, origid)|>
 					            setNames(name_col_node),
 				            c(paste0(raw_name,"_",i,"_",rc,"_",h),
 				                paste0(raw_name,"_",i,"_",rc,"_",h+1),
