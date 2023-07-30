@@ -32,7 +32,8 @@ tbl_graph
 \description{
 given the matrix representing gene as row and sample as column,
 append the edge value (sum of values of connecting nodes) to edge matrix and
-return tbl_graph object
+return tbl_graph object. The implementation is based on the paper by
+Adnan et al. 2020 (https://doi.org/10.1186/s12859-020-03692-2).
 }
 \examples{
 nodes <- data.frame(name=c("hsa:1029","hsa:4171"),

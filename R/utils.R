@@ -218,7 +218,6 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' 
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
-
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
         	if (x[xx]=="undefined") {return(NA)}
@@ -255,7 +254,8 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' 
 #' given the matrix representing gene as row and sample as column,
 #' append the edge value (sum of values of connecting nodes) to edge matrix and
-#' return tbl_graph object
+#' return tbl_graph object. The implementation is based on the paper by
+#' Adnan et al. 2020 (https://doi.org/10.1186/s12859-020-03692-2).
 #' 
 #' @param graph tbl_graph to append values to
 #' @param mat matrix representing gene as row and sample as column
@@ -284,43 +284,43 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                               org_db=org.Hs.eg.db,
                               num_combine=mean) {
-  
-  get_value <- function(x) {
-    val <- list()
-    for (xx in seq_along(x)) {
-      if (x[xx]=="undefined") {val[[xx]] <- NA; next}
-      vals <- strsplit(x[xx], " ") |> unlist() |> unique()
-      subset_conv <- convert_df |> filter(.data$converted %in% vals) |> 
-                      data.frame()
-      if (dim(subset_conv)[1]==0) {val[[xx]]<- NA; next}
-      if (dim(subset_conv)[1]==1) {
-        val[[xx]]<-mat[subset_conv[[gene_type]],]; next}
-      val[[xx]] <- apply(mat[ subset_conv[[gene_type]],], 2, num_combine)
+    get_value <- function(x) {
+        val <- lapply(seq_along(x), function(xx) {
+            if (x[xx]=="undefined") {return(NA)}
+            vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+            subset_conv <- convert_df |> filter(.data$converted %in% vals) |> 
+                            data.frame()
+            if (dim(subset_conv)[1]==0) {
+                return(NA)
+            }
+            if (dim(subset_conv)[1]==1) {
+                return(mat[subset_conv[[gene_type]],])
+            }
+            return(apply(mat[ subset_conv[[gene_type]],], 2, num_combine))
+        })
+        binded <- do.call(rbind, val)
+        binded
     }
-    binded <- do.call(rbind, val)
-    binded
-  }
   
-  node_df <- graph |> activate("nodes") |> data.frame()
-  node_name <- node_df$name
-  if (gene_type!="ENTREZID") {
-    convert_df <- mat |> row.names() |> select(x=org_db,
-                                                          keys=_,
-                                                          columns="ENTREZID",
-                                                          keytype=gene_type)
-} else {
-    convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
-  }
+    node_df <- graph |> activate("nodes") |> data.frame()
+    node_name <- node_df$name
+    if (gene_type!="ENTREZID") {
+        convert_df <- mat |> 
+                row.names() |>
+                select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+    } else {
+        convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
+    }
   
-  convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
-  new_graph <- graph |> activate(edges) |>
-    mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |> 
-    data.frame()
-  summed <- data.frame(
-    get_value(new_graph$from_nd) + get_value(new_graph$to_nd))
-  new_edges <- cbind(new_graph, summed)
-  appended <- tbl_graph(nodes=node_df, edges=new_edges)
-  appended
+    convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
+    new_graph <- graph |> activate(edges) |>
+        mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |> 
+        data.frame()
+    summed <- data.frame(
+        get_value(new_graph$from_nd) + get_value(new_graph$to_nd))
+    new_edges <- cbind(new_graph, summed)
+    appended <- tbl_graph(nodes=node_df, edges=new_edges)
+    appended
 }
 
 #' append_cp
@@ -421,31 +421,26 @@ assign_deseq2 <- function(res, column="log2FoldChange",
                           org_db=org.Hs.eg.db, org="hsa",
                           numeric_combine=mean,
                           name="name") {
-  graph <- .G()
-  if (gene_type!="ENTREZID") {
-    convert_df <- res |> row.names() |> select(x=org_db,
-                                                keys=_,
-                                                columns="ENTREZID",
-                                                keytype=gene_type)
-    
-    nums <- data.frame(row.names(res), res[[column]]) |> 
-    `colnames<-`(c(gene_type, column))
-    merged <- merge(nums, convert_df, by=gene_type)
-  } else {
-    merged <- data.frame(row.names(res), res[[column]]) |> 
-    `colnames<-`(c("ENTREZID", column))
-  }
-  merged$converted <- paste0(org, ":", merged[["ENTREZID"]])
-  changer <- merged[[column]] |> `names<-`(merged[["converted"]])
-  x <- get.vertex.attribute(graph, name)
-  final_attribute <- NULL
-  for (xx in x) {
-    in_node <- strsplit(xx, " ") |> unlist() |> unique()
-    final_attribute <- c(final_attribute,
-                 do.call(numeric_combine,
-                         list(x=changer[intersect(in_node, names(changer))])))
-  }
-  final_attribute
+    graph <- .G()
+    if (gene_type!="ENTREZID") {
+        convert_df <- res |>
+            row.names() |>
+            select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+        nums <- data.frame(row.names(res), res[[column]]) |> 
+            `colnames<-`(c(gene_type, column))
+        merged <- merge(nums, convert_df, by=gene_type)
+    } else {
+        merged <- data.frame(row.names(res), res[[column]]) |> 
+            `colnames<-`(c("ENTREZID", column))
+    }
+    merged$converted <- paste0(org, ":", merged[["ENTREZID"]])
+    changer <- merged[[column]] |> `names<-`(merged[["converted"]])
+    x <- get.vertex.attribute(graph, name)
+    lapply(x, function(xx) {
+        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        do.call(numeric_combine,
+            list(x=changer[intersect(in_node, names(changer))]))       
+    }) |> unlist()
 }
 
 
@@ -484,82 +479,78 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' \dontrun{graph <- graph |> mutate(conv=convert_id("hsa"))}
 #' 
 convert_id <- function(org, name="name",
-  convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,
-  sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE, edge=FALSE) {
-  graph <- .G()
-  pid <- unique(V(graph)$pathway_id)
-  if (edge) {
-    x <- get.edge.attribute(graph, name)
-  } else {
-    x <- get.vertex.attribute(graph, name)
-  }
-  url <- paste0("https://rest.kegg.jp/list/",org)
-  bfc <- BiocFileCache()
-  path <- bfcrpath(bfc, url)
-  convert <- fread(path,
-                   header = FALSE,
-                   sep="\t") |>
-            data.frame()
-
-  if (is.null(convert_column)) {
-    if (org=="ko") {pref <- "ko:";convert_column <- 2}
-    else if (org=="compound") {pref <- "cpd:"; convert_column <- 2}  
-    else if (org=="glycan") {pref <- "gl:";convert_column <- 2}
-    else if (org=="enzyme") {pref <- "ec:"; convert_column <- 2}
-    else if (org=="reaction") {pref <- "rn:"; convert_column <- 2}
-    else if (org=="pathway") {
-      pref <- paste0("path:",gsub("[[:digit:]]","",pid));
-      convert_column <- 2
-      if (is.null(pid)) {stop("please specify pathway id")}
-
-    }
-    else {
-      pref <- ""
-      convert_column <- 4}
-  }
-  convert_vec <- convert[,convert_column]
-
-  if (org=="pathway") {
-    names(convert_vec) <- 
-      paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
-  } else {
-    names(convert_vec) <- 
-      paste0(pref,convert$V1)
-  }
-  if (!colon) {
-    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"),
-      "[", 2))
-  }
-  convs <- NULL
-  for (xn in seq_along(x)) {
-    if (grepl(sep,x[xn])) {
-      spaced <- NULL
-      for (qu in unlist(strsplit(x[xn], sep))) {
-
-        comma_test <- ifelse(first_arg_comma,
-            strsplit(convert_vec[qu], ",")[[1]][1],
-            paste0(convert_vec[qu]))
-
-        sc_test <- ifelse(divide_semicolon,
-          strsplit(comma_test, ";") |> vapply("[",1,FUN.VALUE="character"),
-          comma_test)
-
-        spaced <- c(spaced, sc_test)
-      }
-      spaced <- ifelse(first_arg_sep, spaced[1],
-        paste(spaced, collapse=sep))
-      convs <- c(convs, spaced)
+    convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,
+    sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE, edge=FALSE) {
+    
+    graph <- .G()
+    pid <- unique(V(graph)$pathway_id)
+    if (edge) {
+        x <- get.edge.attribute(graph, name)
     } else {
-      comma_test <- ifelse(first_arg_comma,
-        strsplit(convert_vec[x[xn]], ",")[[1]][1],
-        convert_vec[x[xn]])
-      sc_test <- ifelse(divide_semicolon,
-          strsplit(comma_test, ";") |> vapply("[",1,FUN.VALUE="character"),
-          comma_test)
-      convs <- c(convs, sc_test)
+        x <- get.vertex.attribute(graph, name)
     }
-  }
-  convs
+    url <- paste0("https://rest.kegg.jp/list/",org)
+    bfc <- BiocFileCache()
+    path <- bfcrpath(bfc, url)
+    convert <- fread(path,
+                header = FALSE,
+                sep="\t") |> data.frame()
+
+    if (is.null(convert_column)) {
+        if (org=="ko") {pref <- "ko:";convert_column <- 2}
+        else if (org=="compound") {pref <- "cpd:"; convert_column <- 2}  
+        else if (org=="glycan") {pref <- "gl:";convert_column <- 2}
+        else if (org=="enzyme") {pref <- "ec:"; convert_column <- 2}
+        else if (org=="reaction") {pref <- "rn:"; convert_column <- 2}
+        else if (org=="pathway") {
+            pref <- paste0("path:",gsub("[[:digit:]]","",pid));
+            convert_column <- 2
+            if (is.null(pid)) {stop("please specify pathway id")}
+        }
+        else {
+            pref <- ""
+            convert_column <- 4
+        }
+    }
+    convert_vec <- convert[,convert_column]
+
+    if (org=="pathway") {
+        names(convert_vec) <- paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
+    } else {
+        names(convert_vec) <- paste0(pref,convert$V1)
+    }
+    if (!colon) {
+        names(convert_vec) <- unlist(
+            lapply(strsplit(names(convert_vec), ":"), "[", 2)
+        )
+    }
+    convs <- lapply(seq_along(x), function(xn) {
+        if (grepl(sep,x[xn])) {
+            spaced <- lapply(unlist(strsplit(x[xn], sep)), function (qu) {
+                comma_test <- ifelse(first_arg_comma,
+                    strsplit(convert_vec[qu], ",")[[1]][1],
+                    paste0(convert_vec[qu]))
+                sc_test <- ifelse(divide_semicolon,
+                    strsplit(comma_test, ";") |>
+                    vapply("[",1,FUN.VALUE="character"),
+                    comma_test)
+                return(sc_test)
+            }) |> unlist()
+            spaced <- ifelse(first_arg_sep, spaced[1],
+                paste(spaced, collapse=sep))
+            return(spaced)
+        } else {
+            comma_test <- ifelse(first_arg_comma,
+                strsplit(convert_vec[x[xn]], ",")[[1]][1],
+                convert_vec[x[xn]])
+            sc_test <- ifelse(divide_semicolon,
+                strsplit(comma_test, ";") |>
+                vapply("[",1,FUN.VALUE="character"),
+                comma_test)
+            return(sc_test)
+        }
+    })  
+    convs |> unlist()
 }
 
 
@@ -572,44 +563,41 @@ convert_id <- function(org, name="name",
 #' @importFrom stringr str_extract str_extract_all str_pad str_locate_all
 #' @noRd
 obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
-  url <- paste0("https://rest.kegg.jp/list/",org)
-  bfc <- BiocFileCache()
-  path <- bfcrpath(bfc, url)
-  convert <- data.table::fread(path,
-                               header = FALSE,
-                               sep="\t")
-  if (org %in% c("ko","compound")) {## KO and compound
-    if (org=="compound") {pref <- "cpd"} 
-    else {pref <- "ko"}
-    convert_vec <- vapply(convert$V2, function(x) {
-      vapply(unlist(strsplit(x, ";"))[1],
-             function(x) unlist(strsplit(x,","))[1],
-             FUN.VALUE="character")
-      
-    }, FUN.VALUE="character")
-    names(convert_vec) <- paste0(pref,":",convert$V1)
-  } else if (org=="reaction") {## Reaction
-    pref <- "rn:"
-    convert_vec <- convert$V2
-    names(convert_vec) <- 
-      paste0(pref,convert$V1)
-  } else if (org=="pathway") {## Pathway
-    pref <- paste0("path:",gsub("[[:digit:]]","",pid))
-    convert_vec <- convert$V2
-    names(convert_vec) <- 
-      paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
-  } else {## Ordinary organisms
-    convert_vec <- vapply(convert$V4, function(x) {
-      vapply(unlist(strsplit(x, ";"))[1],
-             function(x) unlist(strsplit(x,","))[1],
-             FUN.VALUE="character")
-      
-    }, FUN.VALUE="character")
-    names(convert_vec) <- convert$V1
-  }
-  if (!colon) {
-    names(convert_vec) <- unlist(lapply(strsplit(names(convert_vec), ":"),
-      "[", 2))
+    url <- paste0("https://rest.kegg.jp/list/",org)
+    bfc <- BiocFileCache()
+    path <- bfcrpath(bfc, url)
+    convert <- data.table::fread(path,
+                            header = FALSE,
+                            sep="\t")
+    if (org %in% c("ko","compound")) {## KO and compound
+        if (org=="compound") {pref <- "cpd"} 
+        else {pref <- "ko"}
+        convert_vec <- vapply(convert$V2, function(x) {
+            vapply(unlist(strsplit(x, ";"))[1],
+                function(x) unlist(strsplit(x,","))[1],
+                FUN.VALUE="character")
+            }, FUN.VALUE="character")
+        names(convert_vec) <- paste0(pref,":",convert$V1)
+    } else if (org=="reaction") {## Reaction
+        pref <- "rn:"
+        convert_vec <- convert$V2
+        names(convert_vec) <- paste0(pref,convert$V1)
+    } else if (org=="pathway") {## Pathway
+        pref <- paste0("path:",gsub("[[:digit:]]","",pid))
+        convert_vec <- convert$V2
+        names(convert_vec) <- paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
+    } else {## Ordinary organisms
+        convert_vec <- vapply(convert$V4, function(x) {
+            vapply(unlist(strsplit(x, ";"))[1],
+                function(x) unlist(strsplit(x,","))[1],
+                FUN.VALUE="character")
+        }, FUN.VALUE="character")
+        names(convert_vec) <- convert$V1
+    }
+    if (!colon) {
+        names(convert_vec) <- unlist(
+            lapply(strsplit(names(convert_vec), ":"), "[", 2)
+        )
   }
   convert_vec
 }
