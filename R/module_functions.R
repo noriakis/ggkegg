@@ -130,7 +130,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
             input_string <- kmo$definition_block[x]
             ppos_list <- lapply(find_parenthesis_pairs(input_string),
                 function(y) {
-                    c(y[[1]], y[[2]], y[[2]]-y[[1]]) 
+                    c(y[1], y[2], y[2]-y[1]) 
                 })
             ppos <- do.call(rbind, ppos_list)
             if (!is.null(ppos)) {
@@ -364,7 +364,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 #' @noRd
 module_graph <- function(input_string, skip_minus=FALSE) {
 	ppos <- lapply(find_parenthesis_pairs(input_string), function (y) {
-		return(c(y[[1]], y[[2]], y[[2]]-y[[1]]))
+		return(c(y[1], y[2], y[2]-y[1]))
   	})
 	ppos <- do.call(rbind, ppos)
 	if (!is.null(ppos)) {
@@ -686,7 +686,7 @@ parse_module <- function(kmo) {
 			"reac"=reac)
     })
     reac <- as_tibble(do.call(rbind, lapply(reac_list, function(x) x[["reac"]])))
-    if (!is.null(reac)) {
+    if (dim(reac)[1] != 0) {
 	    each <- as_tibble(do.call(rbind, lapply(reac_list, function(x) x[["each_reacs"]])))
 	    names(each) <- c("left","reaction","right")
 	    eachraw <- as_tibble(do.call(rbind, lapply(reac_list, function(x) x[["each_reacs_raw"]])))

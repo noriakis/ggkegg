@@ -2,29 +2,33 @@
 #' find pairs of parenthesis
 #' @noRd
 #' 
+#' 
 find_parenthesis_pairs <- function(s) {
-  stack <- list()
-  pairs <- list()
-  j <- 1
-  for (i in seq_len(nchar(s))) {
-    c <- substr(s, i, i)
-    if (c == "(") {
-      stack <- c(stack, i)
-    } else if (c == ")") {
-      if (length(stack) == 0) {
-        stop("Mismatched parenthesis")
-      }
-      open <- tail(stack, 1)
-      stack <- head(stack, -1)
-      pairs[[j]] <- c(open, i)
-      j <- j+1
+    ## Preallocate
+    stack <- integer(nchar(s))
+    pairs <- vector(mode="list", length=nchar(s)/2)
+    j <- 1
+    for (i in seq_len(nchar(s))) {
+        c <- substr(s, i, i)
+        if (c == "(") {
+            stack[i] <- 1
+        } else if (c == ")") {
+            if (length(which(stack==1)) == 0) {
+                stop("Mismatched parenthesis")
+        }
+        open <- tail(which(stack==1), 1)
+        stack[open] <- 0
+        pairs[[j]] <- c(open, i)
+        j <- j+1
+        }
     }
-  }
-  if (length(stack) > 0) {
-    stop("Mismatched parenthesis")
-  }
-  pairs
+    if (length(which(stack==1)) > 0) {
+        stop("Mismatched parenthesis")
+    }
+    pairs[vapply(pairs, is.null, TRUE)] <- NULL
+    pairs
 }
+
 
 #' append_label_position
 #'
@@ -621,18 +625,11 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' @export
 #' @examples
 #' if (requireNamespace("bnlearn", quietly = TRUE)) {
-#'   av <- bnlearn::model2network("[1029|4171][4171]")
-#'   str <- data.frame(from="4171",to="1029",strength=0.8,direction=0.7)
-#'   nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                       x=c(1,1),
-#'                       xmin=c(-1,-1),
-#'                       xmax=c(2,2),
-#'                       y=c(1,1),
-#'                       ymin=c(-1,-1),
-#'                       ymax=c(2,2))
-#'   edges <- data.frame(from=1, to=2, name="K00112")
-#'   graph <- tbl_graph(nodes, edges)
-#'   combined <- combine_with_bnlearn(graph, str, av, prefix="hsa:")
+#'     ## Simulating boot.strength() results
+#'     av <- bnlearn::model2network("[6737|51428][51428]")
+#'     str <- data.frame(from="51428",to="6737",strength=0.8,direction=0.7)
+#'     graph <- create_test_pathway()
+#'     combined <- combine_with_bnlearn(graph, str, av, prefix="hsa:")
 #' }
 #' 
 combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
@@ -645,55 +642,51 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
                                     data.frame() |> graph_from_data_frame()
 
         ## Merge node names with reference
-        js <- NULL
-        for (i in V(pg)$name) {
+        js <- lapply(V(pg)$name, function(i) {
             if (grepl(" ",i)) {
                 ref_node <- strsplit(i, " ") |> unlist()
-                for (j in V(g)$name) {
+                ret <- lapply(V(g)$name, function(j) {
                     if (how=="any") {
                         if (length(intersect(ref_node, j))>0) {
-                            js <- rbind(js, c(j, i))
+                            return(c(j, i))
                         }
                     } else {
                         if (length(intersect(ref_node, j))==length(ref_node)) {
-                            js <- rbind(js, c(j, i))
+                            return(c(j, i))
                         }          
                     }
-                }
+                })
+                return(do.call(rbind, ret))
             } else {
-                js <- rbind(js, c(i, i))
+                return(c(i, i))
             }
-        }
+        })
 
-        js <- js |> data.frame() |> `colnames<-`(c("raw","reference"))
+        js <- do.call(rbind, js) |> data.frame() |> `colnames<-`(c("raw","reference"))
         gdf <- as_data_frame(g)
 
-        new_df <- NULL
-        for (i in seq_len(nrow(gdf))) {
+        new_df <- lapply(seq_len(nrow(gdf)), function(i) {
             if (gdf[i,"from"] %in% js$raw){
                 new_from <- js[js[,1]==gdf[i,"from"],]$reference
-                new_df <- rbind(new_df, c(new_from, gdf[i,"to"], 
-                            gdf[i,"strength"], gdf[i,"direction"])) |>
-                            data.frame()
+                return(c(new_from, gdf[i,"to"], 
+                    gdf[i,"strength"], gdf[i,"direction"]))
             } else {
                 stop("no `from` included in raw node name")
             }
-        }
+        })
 
-        gdf <- new_df |> data.frame() |> `colnames<-`(colnames(gdf))
+        gdf <- do.call(rbind, new_df) |> data.frame() |> `colnames<-`(colnames(gdf))
 
-        new_df <- NULL
-        for (i in seq_len(nrow(gdf))) {
+        new_df <- lapply(seq_len(nrow(gdf)), function(i) {
             if (gdf[i,"to"] %in% js$raw){
                 new_to <- js[js[,1]==gdf[i,"to"],]$reference
-                new_df <- rbind(new_df, c(gdf[i,"from"], new_to, 
-                            gdf[i,"strength"], gdf[i,"direction"])) |>
-                            data.frame()
+                new_df <- return(c(gdf[i,"from"], new_to, 
+                            gdf[i,"strength"], gdf[i,"direction"]))
             } else {
                 stop("no `to` included in raw node name")    
-            }
-        }
-        gdf <- new_df |> `colnames<-`(colnames(gdf))
+            }            
+        })
+        gdf <- do.call(rbind, new_df) |> data.frame() |> `colnames<-`(colnames(gdf))
     
         gdf$strength <- as.numeric(gdf$strength)
         gdf$direction <- as.numeric(gdf$direction)
