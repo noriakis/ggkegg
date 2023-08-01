@@ -17,9 +17,10 @@ module_completeness(kmo, query, name = "1")
 tibble
 }
 \description{
-This converts module definitions consisting of KO identifiers to the expression
-by converting `+` and ` ` to `AND`, and `,` to `OR`. After that, KO IDs specified
-by `query` is inserted to expression by `TRUE` or `FALSE`, and is evaluated.
+This converts module definitions consisting of KO identifiers 
+to the expression by converting `+` and ` ` to `AND`, and `,` to `OR`.
+After that, KO IDs specified by `query` is inserted to expression 
+by `TRUE` or `FALSE`, and is evaluated.
 Please feel free to contact the bug, or modules that cannot be calculated.
 (Module definitions consisting of module IDs [M*] cannot be calculated)
 }
@@ -31,5 +32,6 @@ is treated as an AND operator and a comma, used for alternatives, is treated as 
 A minus sign designates an optional item in the complex.`
 }
 \examples{
+## Assess completeness based on one KO input
 test_complete <- module_completeness(create_test_module(), c("K00112"))
 }

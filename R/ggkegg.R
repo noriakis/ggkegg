@@ -59,10 +59,10 @@ ggkegg <- function(pid,
     module_definition_type="text") {
     
     if (!is.character(pid)) {
-        if (attributes(pid)$class=="enrichResult") {
+        if (attributes(pid)$class == "enrichResult") {
             org <- attributes(pid)$organism
             res <- attributes(pid)$result
-            if (org!="UNKNOWN") {
+            if (org != "UNKNOWN") {
                 enrich_attribute <- paste0(org,
                     ":",
                     unlist(strsplit(res[pathway_number,]$geneID, "/"))
@@ -82,16 +82,16 @@ ggkegg <- function(pid,
     if (is.character(pid)) {
         if (startsWith(pid, "M")) {
             mod <- module(pid)
-            if (module_type=="definition") {
-                if (module_definition_type=="text") {
-                    plot_list <- module_text(mod, candidate_ko = enrich_attribute)
+            if (module_type == "definition") {
+                if (module_definition_type == "text") {
+                    plot_list <- module_text(mod, candidate_ko=enrich_attribute)
                     return(plot_module_text(plot_list))
-                } else if (module_definition_type=="network") {
+                } else if (module_definition_type == "network") {
                     return(obtain_sequential_module_definition(mod))
                 } else {
                   stop("Please specify `network` or `text` to module_definition_type")
                 }
-            } else if (module_type=="reaction") {
+            } else if (module_type == "reaction") {
                 return(mod@reaction_graph)
             } else {
                 stop("Please specify `reaction` or `definition` to module_type")
@@ -113,15 +113,14 @@ ggkegg <- function(pid,
         V(g)$converted_name <- unlist(lapply(V(g)$name,
             function(x) {
             	inc_genes <- unlist(strsplit(x, " "))
-            	conv_genes <- NULL
-            	for (inc in inc_genes) {
-            		convs <- convert_vec[inc]
-               		if (is.na(convs)) {
-                 		conv_genes <- c(conv_genes, x)
-                	} else {
-                 		conv_genes <- c(conv_genes, convs)
-               		}
-             	}
+            	conv_genes <- vapply(inc_genes, function(inc) {
+                    convs <- convert_vec[inc]
+                    if (is.na(convs)) {
+                        return(x)
+                    } else {
+                        return(convs)
+                    }
+                }, FUN.VALUE="a")
              	if (convert_first) {
                		conv_genes[1]
              	} else {
@@ -136,15 +135,14 @@ ggkegg <- function(pid,
   	}
 
     if (!is.null(enrich_attribute)) {
-    	bools <- NULL
-    	for (xx in V(g)$name) {
-      		in_node <- strsplit(xx, " ") |> unlist() |> unique()
-      		if (length(intersect(in_node, enrich_attribute))>=1) { ## Only `any`
-        		bools <- c(bools, TRUE)
-      		} else {
-       		 	bools <- c(bools, FALSE)
-      		}
-    	}
+    	bools <- vapply(V(g)$name, function(xx) {
+            in_node <- strsplit(xx, " ") |> unlist() |> unique()
+            if (length(intersect(in_node, enrich_attribute)) >= 1) { ## Only `any`
+                return(TRUE)
+            } else {
+                return(FALSE)
+            }
+        }, FUN.VALUE=TRUE)
 	    V(g)$enrich_attribute <- bools
   	}
 
@@ -162,15 +160,14 @@ ggkegg <- function(pid,
     	V(g)$converted_reaction <- unlist(lapply(V(g)$reaction,
             function(x) {
                 inc_genes <- unlist(strsplit(x, " "))
-                conv_genes <- NULL
-                for (inc in inc_genes) {
+                conv_genes <- vapply(inc_genes, function(inc) {
                     convs <- convert_vec[inc]
                     if (is.na(convs)) {
-                    	conv_genes <- c(conv_genes, x)
+                        return(x)
                     } else {
-                    	conv_genes <- c(conv_genes, convs)
+                        return(convs)
                     }
-                }
+                }, FUN.VALUE="a")
                 if (convert_first) {
                     conv_genes[1]
                 } else {
@@ -186,7 +183,7 @@ ggkegg <- function(pid,
     if (return_igraph) {
     	return(g)
     }
-    if (layout=="native") {
+    if (layout == "native") {
   	    ggraph(g, layout="manual", x=.data$x, y=.data$y)
     } else {
     	g <- delete_vertex_attr(g, "x")
@@ -221,22 +218,22 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     fill_color="red", how="any", white_background=TRUE) {
     
     number <- length(enrich)
-    if (length(fill_color)!=number) {
+    if (length(fill_color) != number) {
         qqcat("Length of fill_color and enrich mismatches, taking first color\n")
         fill_color <- rep(fill_color[1], number)
     }
     if (is.list(enrich)) {
         if (is.null(pid)) {stop("Please specify pathway id.")}
     } else {
-        if (attributes(enrich)$class=="enrichResult") {
+        if (attributes(enrich)$class == "enrichResult") {
             res <- attributes(enrich)$result
             if (is.null(pid)) {
-                pid <- res[pathway_number,]$ID
+                pid <- res[pathway_number, ]$ID
             }
-        } else if (attributes(enrich)$class=="gseaResult") {
+        } else if (attributes(enrich)$class == "gseaResult") {
             res <- attributes(enrich)$result
             if (is.null(pid)) {
-                pid <- res[pathway_number,]$ID
+                pid <- res[pathway_number, ]$ID
             }         
         } else {
             stop("Please provide enrichResult")      
@@ -248,7 +245,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         pid <- gsub("map","ko",pid)
     }
 
-    if (number==1) {
+    if (number == 1) {
         g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
             geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
@@ -265,9 +262,9 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         for (i in seq_len(number)) {
             gg <- gg +
                 geom_node_rect(fill=fill_color[i],
-                    data=nds[nds[[paste0("cp",i)]],],
-                    xmin=nds[nds[[paste0("cp",i)]],]$xmin+
-                        nds[nds[[paste0("cp",i)]],]$space*(i-1)
+                    data=nds[nds[[paste0("cp",i)]], ],
+                    xmin=nds[nds[[paste0("cp",i)]], ]$xmin+
+                        nds[nds[[paste0("cp",i)]], ]$space*(i-1)
                 )
         }
         gg <- gg + overlay_raw_map()+theme_void()
@@ -295,7 +292,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @param auto_add automatically add prefix based on pathway prefix
 #' @param man_graph provide manual tbl_graph
-#' @param show_type type to be shown, typically, "gene", "ortholog", or "compound"
+#' @param show_type type to be shown
+#' typically, "gene", "ortholog", or "compound"
 #' @export
 #' @examples
 #' rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
@@ -324,7 +322,7 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
     } else {
     	pgraph <- pathway(pid)
     }
-    if (number==1) {
+    if (number == 1) {
     	g <- pgraph |> mutate(value=node_numeric(values,
       		name=column, how=how))
     	gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
@@ -335,7 +333,7 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
     	## Add new scales like ggh4x
     	g <- pgraph
     	for (i in seq_len(number)) {
-      		g <- g  |> mutate(!!paste0("value",i) :=node_numeric(values[[i]],
+      		g <- g  |> mutate(!!paste0("value",i):=node_numeric(values[[i]],
         		name=column,how=how))
     	}
     	V(g)$space <- V(g)$width/number

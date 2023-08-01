@@ -229,9 +229,10 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
 
 #' module_completeness
 #' 
-#' This converts module definitions consisting of KO identifiers to the expression
-#' by converting `+` and ` ` to `AND`, and `,` to `OR`. After that, KO IDs specified
-#' by `query` is inserted to expression by `TRUE` or `FALSE`, and is evaluated.
+#' This converts module definitions consisting of KO identifiers 
+#' to the expression by converting `+` and ` ` to `AND`, and `,` to `OR`.
+#' After that, KO IDs specified by `query` is inserted to expression 
+#' by `TRUE` or `FALSE`, and is evaluated.
 #' Please feel free to contact the bug, or modules that cannot be calculated.
 #' (Module definitions consisting of module IDs [M*] cannot be calculated)
 #' 
@@ -245,6 +246,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
 #' @param query vector of KO
 #' @param name name of definitions when multiple definitions are present
 #' @examples
+#' ## Assess completeness based on one KO input
 #' test_complete <- module_completeness(create_test_module(), c("K00112"))
 #' @export
 #' @return tibble
@@ -301,8 +303,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 	} else {
 		cand_step <- block
 	}
-	all_steps <- NULL
-	orders <- NULL
+
 	all_steps <- lapply(seq_along(cand_step), function(i) {
 		if (kmo$definition_num_in_block[i]!=1) {
 			tmp <- lapply(kmo$definition_ko_in_block[[i]], function(ko) {

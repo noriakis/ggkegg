@@ -28,13 +28,13 @@ highlight_set_nodes <- function(set, how="all",
             nn <- unlist(strsplit(x[xn], sep))
         }
         if (how == "all") {
-            if (length(intersect(nn, set))==length(nn)) {
+            if (length(intersect(nn, set)) == length(nn)) {
         		return(TRUE)
       	    } else {
         		return(FALSE)
             }
         } else {
-            if (length(intersect(nn, set))>=1) {
+            if (length(intersect(nn, set)) >= 1) {
                 return(TRUE)
             } else {
                 return(FALSE)
@@ -77,13 +77,13 @@ highlight_set_edges <- function(set, how="all",
             nn <- unlist(strsplit(x[xn], sep))
         }
         if (how == "all") {
-            if (length(intersect(nn, set))==length(nn)) {
+            if (length(intersect(nn, set)) == length(nn)) {
         		return(TRUE)
       	    } else {
         		return(FALSE)
             }
         } else {
-            if (length(intersect(nn, set))>=1) {
+            if (length(intersect(nn, set)) >= 1) {
                 return(TRUE)
             } else {
                 return(FALSE)
@@ -118,7 +118,7 @@ highlight_module <- function(graph, kmo,
                             name="name",
                             sep=" ",
                             verbose=FALSE) {
-    if (attributes(kmo)$class[1]!="kegg_module") {
+    if (attributes(kmo)$class[1] != "kegg_module") {
         stop("Please provide kegg_module class object")
     }
 
@@ -135,7 +135,7 @@ highlight_module <- function(graph, kmo,
         left <- kmo@reaction_each[i,][1] |> 
           unlist() |> as.character() |> paste0("cpd:", ...=_)
         raw_reac_string <- rea[i,][2] |> 
-          unlist() |> as.character() #|> paste0("rn:", ...=_)       
+          unlist() |> as.character()       
         reac_list <- kmo@reaction_each[i,][2] |> unlist() |> as.character()
         right <- kmo@reaction_each[i,][3] |> 
           unlist() |> as.character() |> paste0("cpd:", ...=_)
@@ -149,9 +149,9 @@ highlight_module <- function(graph, kmo,
             names(rls) <- reac_list
             ## reactions associated with the edge
             edge_reac <- x[xn] |> strsplit(" ") |> unlist()
-            if (sum(is.na(edge_reac))!=length(edge_reac)) {
+            if (sum(is.na(edge_reac)) != length(edge_reac)) {
                 ## strip rn::
-                edge_reac <- edge_reac |> gsub("rn:","",x=_)
+                edge_reac <- edge_reac |> gsub("rn:", "", x=_)
                 for (ed in edge_reac) {
                     if (ed %in% names(rls)) {
                         rls[ed] <- TRUE
@@ -160,13 +160,13 @@ highlight_module <- function(graph, kmo,
                 for (r in names(rls)) {
                     reac <- gsub(r, rls[r], reac)
                 }
-                reac <- gsub(",","|",gsub("\\+","&",reac))
+                reac <- gsub(",", "|", gsub("\\+", "&", reac))
                 ## Eval boolean or length interpretation
                 if (eval(parse(text=reac))) {
                     cand_node_ids <- edge_df[xn,]$orig.id
                     cand_node_ids <- cand_node_ids[!is.na(cand_node_ids)] |> 
                                         unique()
-                    if (length(cand_node_ids)>=1) {
+                    if (length(cand_node_ids) >= 1) {
                         for (ni in cand_node_ids) {
                             edges_ind <- node_df[node_df$orig.id %in% ni,] |> 
                                         row.names()
@@ -181,22 +181,25 @@ highlight_module <- function(graph, kmo,
                             prod <- node_df[tmp_edge_df$to,]$name |> 
                                     strsplit(" ") |> unlist() |> unique()
                         
-                        ## reversible
-                            if ((length(intersect(subst, left))==length(left) &
-                                length(intersect(prod, right))==length(right)) | 
-                                (length(intersect(subst, right))==length(right) &
-                                length(intersect(prod, left))==length(left))) {
+                            ## reversible
+                            if ((length(intersect(subst,
+                                    left)) == length(left) &
+                                length(intersect(prod,
+                                    right)) == length(right)) | 
+                                (length(intersect(subst,
+                                    right)) == length(right) &
+                                length(intersect(prod, 
+                                    left)) == length(left))) {
                                     return(list("ind"=xn,
-                            	        "nind"=c(node1, node2)))                                            
+                            	        "nind"=c(node1, node2)))                             
+                            }
                         }
-                      }
                     }
                 } else {}
             } else {} ## if edge is reaction
         }) ## each edge
         list(lapply(ind, function(x) x[["ind"]]) |> unlist(),
             lapply(ind, function(x) x[["nind"]]) |> unlist())
-        
 	})
     
     all_inds <- lapply(results, function(x) x[[1]]) |> unlist()
@@ -207,7 +210,7 @@ highlight_module <- function(graph, kmo,
 
     graph |>
       activate("edges") |>
-      mutate(!!kmo@ID := einds) |>
+      mutate(!!kmo@ID:=einds) |>
       activate("nodes") |>
-      mutate(!!kmo@ID := ninds)
+      mutate(!!kmo@ID:=ninds)
 }
