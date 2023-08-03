@@ -20,7 +20,6 @@ numeric vector
 }
 \description{
 simply add numeric attribute to node of tbl_graph
-for matrix input, use `append_node_value`
 }
 \examples{
 graph <- create_test_pathway()

@@ -99,7 +99,6 @@ return_line_compounds <- function(g, orig) {
 #' edge_numeric
 #' 
 #' add numeric attribute to edge of tbl_graph
-#' for matrix input, use `append_node_value`
 #' 
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
@@ -148,10 +147,61 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
     }) |> unlist()
 }
 
+
+#' edge_numeric_sum
+#' 
+#' add numeric attribute to edge of tbl_graph based on node values
+#' The implementation is based on the paper by
+#' Adnan et al. 2020 (https://doi.org/10.1186/s12859-020-03692-2).
+#' 
+#' @param num named vector or tibble with id and value column
+#' @param num_combine how to combine number when multiple hit in the same node
+#' @param name name of column to match for
+#' @param how `any` or `all`
+#' @export
+#' @return numeric vector
+#' @importFrom tibble is_tibble
+#' @importFrom tidygraph activate
+#' @examples
+#' graph <- create_test_pathway()
+#' graph <- graph |> activate("edges") |>
+#'         mutate(num=edge_numeric_sum(c(1.2,-1.2) |>
+#'             setNames(c("TRIM21","DDX41")),
+#'             name="graphics_name"))
+#' 
+edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
+    graph <- .G()
+  
+    if (!is_tibble(num) & !is.vector(num)) {
+        stop("Please provide tibble or named vector")
+    }
+    if (is_tibble(num)) {
+        if (duplicated(num$id) |> unique() |> length() > 1) {
+            stop("Duplicate ID found")
+        }
+        changer <- num$value
+        names(changer) <- num$id
+    } else {
+        if (duplicated(names(num)) |> unique() |> length() > 1) {
+            stop("Duplicate ID found")
+        }
+        changer <- num
+    }
+  
+    node_df <- graph |> activate("nodes") |> data.frame()
+    node_name <- node_df[[name]]
+    new_graph <- graph |> activate(edges) |>
+        mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |>
+        mutate(summed=edge_numeric(num, num_combine, how, name="from_nd")+
+             edge_numeric(num, num_combine, how, name="to_nd")) |>
+        data.frame()
+    new_graph$summed
+}
+
+
 #' node_numeric
 #' 
 #' simply add numeric attribute to node of tbl_graph
-#' for matrix input, use `append_node_value`
 #' 
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
