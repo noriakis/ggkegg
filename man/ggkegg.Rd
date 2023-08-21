@@ -75,8 +75,3 @@ ggplot2 object
 main function parsing KEGG pathway data,
 making igraph object and passing it to ggraph.
 }
-\examples{
-## Use pathway ID to obtain `ggraph` object directly.
-g <- ggkegg("hsa04110")
-g + geom_node_rect()
-}
