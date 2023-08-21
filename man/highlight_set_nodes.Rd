@@ -30,5 +30,10 @@ only return TRUE if all the IDs are in the query.
 }
 \examples{
 graph <- create_test_pathway()
+## Highlight set of nodes by specifying ID
 graph <- graph |> mutate(hl=highlight_set_nodes(c("hsa:51428")))
+
+## node column can be specified by `name` argument
+graph <- graph |> 
+    mutate(hl=highlight_set_nodes(c("DDX41"), name="graphics_name"))
 }

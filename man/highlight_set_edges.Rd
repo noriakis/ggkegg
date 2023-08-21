@@ -30,6 +30,10 @@ only return TRUE if all the IDs are in the query.
 }
 \examples{
 graph <- create_test_pathway()
+
+## Specify edge column by `name`
+## In this example, edges having `degradation` value in
+## `subtype_name` column will be highlighted
 graph <- graph |> activate("edges") |>
     mutate(hl=highlight_set_edges(c("degradation"), name="subtype_name"))
 

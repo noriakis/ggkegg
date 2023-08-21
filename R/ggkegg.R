@@ -214,7 +214,8 @@ ggkegg <- function(pid,
 #' @examples
 #' if (require("clusterProfiler")) {
 #'     cp <- enrichKEGG(c("1029","4171"))
-#'     \dontrun{rawMap(list(cp,cp), pid="hsa04110")}
+#'     ## Multiple class object can be passed by list
+#'     rawMap(list(cp,cp), pid="hsa04110")
 #' }
 #' @return ggraph with overlaid KEGG map
 #' 
@@ -300,6 +301,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' typically, "gene", "ortholog", or "compound"
 #' @export
 #' @examples
+#' ## Colorize by passing the named vector of numeric values
 #' rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
 #'         man_graph=create_test_pathway())
 #' @return ggraph with overlaid KEGG map

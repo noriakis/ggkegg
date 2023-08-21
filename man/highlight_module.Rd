@@ -27,6 +27,7 @@ the same as KEGG mapper. For instance, `R04293` involved in `M00912`
 is not included in KGML of `ko01100`.
 }
 \examples{
+## Highlight module within the pathway
 graph <- create_test_pathway()
 mo <- create_test_module()
 graph <- graph |> highlight_module(mo)

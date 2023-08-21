@@ -16,7 +16,12 @@
 #' @return boolean vector
 #' @examples
 #' graph <- create_test_pathway()
+#' ## Highlight set of nodes by specifying ID
 #' graph <- graph |> mutate(hl=highlight_set_nodes(c("hsa:51428")))
+#' 
+#' ## node column can be specified by `name` argument
+#' graph <- graph |> 
+#'     mutate(hl=highlight_set_nodes(c("DDX41"), name="graphics_name"))
 highlight_set_nodes <- function(set, how="all",
     name="name", sep=" ", no_sep=FALSE) {
     graph <- .G()
@@ -63,6 +68,10 @@ highlight_set_nodes <- function(set, how="all",
 #' @return boolean vector
 #' @examples
 #' graph <- create_test_pathway()
+#' 
+#' ## Specify edge column by `name`
+#' ## In this example, edges having `degradation` value in
+#' ## `subtype_name` column will be highlighted
 #' graph <- graph |> activate("edges") |>
 #'     mutate(hl=highlight_set_edges(c("degradation"), name="subtype_name"))
 #' 
@@ -110,6 +119,7 @@ highlight_set_edges <- function(set, how="all",
 #' @export
 #' @return boolean vector
 #' @examples
+#' ## Highlight module within the pathway
 #' graph <- create_test_pathway()
 #' mo <- create_test_module()
 #' graph <- graph |> highlight_module(mo)
