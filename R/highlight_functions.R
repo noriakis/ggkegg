@@ -22,16 +22,16 @@ highlight_set_nodes <- function(set, how="all",
     graph <- .G()
     x <- get.vertex.attribute(graph, name)
     vec <- vapply(seq_along(x), function(xn) {
-	    if (no_sep) {
-    	    nn <- x[xn]
+        if (no_sep) {
+            nn <- x[xn]
         } else {
             nn <- unlist(strsplit(x[xn], sep))
         }
         if (how == "all") {
             if (length(intersect(nn, set)) == length(nn)) {
-        		return(TRUE)
-      	    } else {
-        		return(FALSE)
+                return(TRUE)
+            } else {
+                return(FALSE)
             }
         } else {
             if (length(intersect(nn, set)) >= 1) {
@@ -71,16 +71,16 @@ highlight_set_edges <- function(set, how="all",
     graph <- .G()
     x <- get.edge.attribute(graph, name)
     vec <- vapply(seq_along(x), function(xn) {
-	    if (no_sep) {
-    	    nn <- x[xn]
+        if (no_sep) {
+            nn <- x[xn]
         } else {
             nn <- unlist(strsplit(x[xn], sep))
         }
         if (how == "all") {
             if (length(intersect(nn, set)) == length(nn)) {
-        		return(TRUE)
-      	    } else {
-        		return(FALSE)
+                return(TRUE)
+            } else {
+                return(FALSE)
             }
         } else {
             if (length(intersect(nn, set)) >= 1) {
@@ -143,7 +143,7 @@ highlight_module <- function(graph, kmo,
 
         x <- get.edge.attribute(graph, "reaction")
         ## Store edge index that meet reaction
-		ind <- lapply(seq_along(x), function(xn) {
+        ind <- lapply(seq_along(x), function(xn) {
             reac <- raw_reac_string
             rls <- rep(FALSE, length(reac_list))
             names(rls) <- reac_list
@@ -191,7 +191,7 @@ highlight_module <- function(graph, kmo,
                                 length(intersect(prod, 
                                     left)) == length(left))) {
                                     return(list("ind"=xn,
-                            	        "nind"=c(node1, node2)))                             
+                                        "nind"=c(node1, node2)))                             
                             }
                         }
                     }
@@ -200,7 +200,7 @@ highlight_module <- function(graph, kmo,
         }) ## each edge
         list(lapply(ind, function(x) x[["ind"]]) |> unlist(),
             lapply(ind, function(x) x[["nind"]]) |> unlist())
-	})
+    })
     
     all_inds <- lapply(results, function(x) x[[1]]) |> unlist()
     nind <- lapply(results, function(x) x[[2]]) |> unlist()

@@ -274,8 +274,8 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
-        	if (x[xx]=="undefined") {return(NA)}
-        	vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+            if (x[xx]=="undefined") {return(NA)}
+            vals <- strsplit(x[xx], " ") |> unlist() |> unique()
             subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
             if (dim(subset_conv)[1]==0) {return(NA)}
             if (dim(subset_conv)[1]==1) {
@@ -290,10 +290,10 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     node_df <- graph |> activate("nodes") |> data.frame()
     node_name <- node_df$name
     if (gene_type!="ENTREZID") {
-    	convert_df <- mat |> row.names() |> 
-    		select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
-  	} else {
-    	convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
+        convert_df <- mat |> row.names() |> 
+            select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+    } else {
+        convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
     }
   
     convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])

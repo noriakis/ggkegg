@@ -33,9 +33,9 @@ setMethod("show",
 #' @examples \dontrun{network("N00002")}
 #' @export
 network <- function(nid, use_cache=FALSE, directory=NULL) {
-	if (!startsWith(nid, "N")) {
-  		stop("Please provide a string that starts with N.")
-  	}
+    if (!startsWith(nid, "N")) {
+        stop("Please provide a string that starts with N.")
+    }
     kne <- new("kegg_network")
     kne@ID <- nid
     if (!is.null(directory)) {
@@ -64,11 +64,11 @@ network <- function(nid, use_cache=FALSE, directory=NULL) {
             name <- unlist(strsplit(line, "        "))[2]
             kne@name <- name
         }
-	    if (grepl("DEFINITION", line)) {
+        if (grepl("DEFINITION", line)) {
             definition <- unlist(strsplit(line, "  "))[2]
             kne@definition <- definition
         }
-	    if (grepl("EXPANDED", line)) {
+        if (grepl("EXPANDED", line)) {
             expanded <- unlist(strsplit(line, "  "))[3]
             kne@expanded <- expanded
         }
@@ -92,7 +92,7 @@ convert_expanded_to_graph <- function(kne) {
             edge <- sp[i+1]
             right <- sp[i+2]
             return(c(left, right, edge))
-        } else {}    	
+        } else {}       
     })
     edges <- do.call(rbind, edges) |> data.frame() |>
         `colnames<-`(c("from","to","type"))
@@ -108,11 +108,11 @@ convert_definition_to_graph <- function(kne) {
             edge <- sp[i+1]
             right <- sp[i+2]
             return(c(left, right, edge))
-        } else {}    	
+        } else {}       
     })
-	edges <- do.call(rbind, edges) |> data.frame() |>
-		`colnames<-`(c("from","to","type"))
-	return(as_tbl_graph(edges))
+    edges <- do.call(rbind, edges) |> data.frame() |>
+        `colnames<-`(c("from","to","type"))
+    return(as_tbl_graph(edges))
 }
 
 

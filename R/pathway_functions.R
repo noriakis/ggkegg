@@ -251,72 +251,72 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
     df <- as_tbl_graph(g)
     name_col_node <- c("name","x","y","type","original_name","node.orig.id")
     name_col_edge <- c("from","to","type","name",
-    	"bgcolor","fgcolor","reaction","orig.id")
-  	results <- lapply(seq_along(V(g)$name), function(i) {
-  		if (V(g)$graphics_type[i]=="line") {
-        	raw_name <- V(g)$name[i]
-        	bgcol <- V(g)$bgcolor[i]
-        	fgcol <- V(g)$fgcolor[i]
-        	reac <- V(g)$reaction[i]
-        	origid <- V(g)$orig.id[i]
-        	rawco <- V(g)$coords[i]
-        	
-    	    if (grepl("\\|",rawco)) {
-        		rawcos <- strsplit(rawco, "\\|") |> unlist()
-      		} else {
-        		rawcos <- rawco
-      		}
-      		
-      		lapply(seq_along(rawcos), function(rc) {
-		        co <- unlist(strsplit(rawcos[rc], ","))
-        		if (verbose) {
-          			GetoptLong::qqcat("@{raw_name}, cooridnates components: @{length(co)}\n")
-        		}
-        		lapply(seq_len(length(co)), function(h) {
-        			if (is.na(co[h+2])) {return(NULL)}
-        			if (h %% 2 == 0) {return(NULL)}
-          			## Assign unique identifiers each node
-          			list(
-          					c(paste0(raw_name,"_",i,"_",rc,"_",h), co[h], co[h+1], "line", raw_name, origid) |>
-				                setNames(name_col_node),
-				            c(paste0(raw_name,"_",i,"_",rc,"_",h+1), co[h+2], co[h+3], "line", raw_name, origid)|>
-					            setNames(name_col_node),
-				            c(paste0(raw_name,"_",i,"_",rc,"_",h),
-				                paste0(raw_name,"_",i,"_",rc,"_",h+1),
+        "bgcolor","fgcolor","reaction","orig.id")
+    results <- lapply(seq_along(V(g)$name), function(i) {
+        if (V(g)$graphics_type[i]=="line") {
+            raw_name <- V(g)$name[i]
+            bgcol <- V(g)$bgcolor[i]
+            fgcol <- V(g)$fgcolor[i]
+            reac <- V(g)$reaction[i]
+            origid <- V(g)$orig.id[i]
+            rawco <- V(g)$coords[i]
+            
+            if (grepl("\\|",rawco)) {
+                rawcos <- strsplit(rawco, "\\|") |> unlist()
+            } else {
+                rawcos <- rawco
+            }
+            
+            lapply(seq_along(rawcos), function(rc) {
+                co <- unlist(strsplit(rawcos[rc], ","))
+                if (verbose) {
+                    GetoptLong::qqcat("@{raw_name}, cooridnates components: @{length(co)}\n")
+                }
+                lapply(seq_len(length(co)), function(h) {
+                    if (is.na(co[h+2])) {return(NULL)}
+                    if (h %% 2 == 0) {return(NULL)}
+                    ## Assign unique identifiers each node
+                    list(
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h), co[h], co[h+1], "line", raw_name, origid) |>
+                                setNames(name_col_node),
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h+1), co[h+2], co[h+3], "line", raw_name, origid)|>
+                                setNames(name_col_node),
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h),
+                                paste0(raw_name,"_",i,"_",rc,"_",h+1),
                                 "line", raw_name, bgcol, fgcol, reac, origid) |>
-					            setNames(name_col_edge)        
-          				)        			
-        		})
-      		})
-  		}
-  	})
+                                setNames(name_col_edge)        
+                        )                   
+                })
+            })
+        }
+    })
     
-	results <- results |> unlist(recursive = FALSE)
-	results <- results |> unlist(recursive = FALSE)
-	results[vapply(results, is.null, TRUE)] <- NULL
+    results <- results |> unlist(recursive = FALSE)
+    results <- results |> unlist(recursive = FALSE)
+    results[vapply(results, is.null, TRUE)] <- NULL
 
-	cos <- do.call(rbind, lapply(results, function(x) {
-  		rbind(x[[1]],x[[2]])
-	})) |> data.frame() |> `colnames<-`(name_col_node)
-	eds <- do.call(rbind, lapply(results, function(x) {
-  		x[[3]]
-	})) |> data.frame() |> `colnames<-`(name_col_edge)
+    cos <- do.call(rbind, lapply(results, function(x) {
+        rbind(x[[1]],x[[2]])
+    })) |> data.frame() |> `colnames<-`(name_col_node)
+    eds <- do.call(rbind, lapply(results, function(x) {
+        x[[3]]
+    })) |> data.frame() |> `colnames<-`(name_col_edge)
 
-	
+    
     cos$x <- as.numeric(cos$x);
-  	if (invert_y) {
-    	cos$y <- -1 * as.numeric(cos$y)
-  	} else {
-    	cos$y <- as.numeric(cos$y)
-  	}
-  	
+    if (invert_y) {
+        cos$y <- -1 * as.numeric(cos$y)
+    } else {
+        cos$y <- as.numeric(cos$y)
+    }
+    
     df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
     df_add |> activate("nodes") |>
-    	mutate(original_name=vapply(seq_len(length(.data$original_name)),
-      		function(x){ 
-        		if(is.na(.data$original_name[x])) .data$name[x] else .data$original_name[x]
-      		},
-     		FUN.VALUE="character"))
+        mutate(original_name=vapply(seq_len(length(.data$original_name)),
+            function(x){ 
+                if(is.na(.data$original_name[x])) .data$name[x] else .data$original_name[x]
+            },
+            FUN.VALUE="character"))
 }
 
 #' process_reaction
@@ -365,7 +365,7 @@ process_reaction <- function(g, single_edge=FALSE) {
   
     ## Prepare new edges
     new_eds <- lapply(seq_along(reacs), function(i) {
-    	tmp_reac <- reacs[i]
+        tmp_reac <- reacs[i]
         konm <- nds[nds$reaction %in% tmp_reac,]$name
         konm <- ifelse(is.null(konm),NA,konm)
         in_reacs <- eds[eds$reaction %in% tmp_reac, ]
@@ -373,55 +373,55 @@ process_reaction <- function(g, single_edge=FALSE) {
         
         lapply(seq(1, nrow(in_reacs), 2), function(block) {
 
-	        tmp <- in_reacs[c(block, block+1),]
-    	    fs <- tmp[tmp$subtype_name=="substrate",]$from
-        	tos <- tmp[tmp$subtype_name=="product",]$to
-        	reac_info <- nds[tmp[tmp$subtype_name=="substrate",]$to,]
-        	reac_type <- unique(tmp$type)
-        	
-	        fs <- tmp[tmp$subtype_name=="substrate",]$from
-    	    tos <- tmp[tmp$subtype_name=="product",]$to
-    	    
-    	    eds <- lapply(fs, function(cfs) {
-    			    	lapply(tos, function(ctos) {
-    			    		if (reac_type=="irreversible") {
-	        		    		return(c(cfs, ctos, reac_type,
-	                	      		tmp$reaction |> unique(), konm,
-	                    	  	    reac_info$bgcolor |> unique(),
-	                      		    reac_info$fgcolor |> unique()))    			    			
-    			    		} else if (reac_type=="reversible") {
-    			    			if (single_edge) {
-	    			    			return(rbind(
-	    			    				c(cfs, ctos, "reversible",
-					                      tmp$reaction |> unique(), konm,
-	                				      reac_info$bgcolor |> unique(),
-	                				      reac_info$fgcolor |> unique())))			    				
-    			    			} else {	    				
-	    			    			return(rbind(
-	    			    				c(cfs, ctos, "reversible",
-					                      tmp$reaction |> unique(), konm,
-	                				      reac_info$bgcolor |> unique(),
-	                				      reac_info$fgcolor |> unique()),
-	    			    				c(ctos, cfs, "reversible",
-					                      tmp$reaction |> unique(), konm,
-	                				      reac_info$bgcolor |> unique(),
-	                				      reac_info$fgcolor |> unique())
-	    			    				))
-	    			    		}
-    			    		} else {
-    			    			stop("Unknown reaction type detected")
-    			    		}
-        	    		})
-        	    	})
-    	    return(eds)
+            tmp <- in_reacs[c(block, block+1),]
+            fs <- tmp[tmp$subtype_name=="substrate",]$from
+            tos <- tmp[tmp$subtype_name=="product",]$to
+            reac_info <- nds[tmp[tmp$subtype_name=="substrate",]$to,]
+            reac_type <- unique(tmp$type)
+            
+            fs <- tmp[tmp$subtype_name=="substrate",]$from
+            tos <- tmp[tmp$subtype_name=="product",]$to
+            
+            eds <- lapply(fs, function(cfs) {
+                        lapply(tos, function(ctos) {
+                            if (reac_type=="irreversible") {
+                                return(c(cfs, ctos, reac_type,
+                                    tmp$reaction |> unique(), konm,
+                                    reac_info$bgcolor |> unique(),
+                                    reac_info$fgcolor |> unique()))                             
+                            } else if (reac_type=="reversible") {
+                                if (single_edge) {
+                                    return(rbind(
+                                        c(cfs, ctos, "reversible",
+                                          tmp$reaction |> unique(), konm,
+                                          reac_info$bgcolor |> unique(),
+                                          reac_info$fgcolor |> unique())))                              
+                                } else {                        
+                                    return(rbind(
+                                        c(cfs, ctos, "reversible",
+                                          tmp$reaction |> unique(), konm,
+                                          reac_info$bgcolor |> unique(),
+                                          reac_info$fgcolor |> unique()),
+                                        c(ctos, cfs, "reversible",
+                                          tmp$reaction |> unique(), konm,
+                                          reac_info$bgcolor |> unique(),
+                                          reac_info$fgcolor |> unique())
+                                        ))
+                                }
+                            } else {
+                                stop("Unknown reaction type detected")
+                            }
+                        })
+                    })
+            return(eds)
         })
     })
     new_eds <- unlist(new_eds, recursive=FALSE)
-	new_eds <- do.call(rbind, unlist(unlist(new_eds, recursive = FALSE),
-		recursive = FALSE)) |> data.frame() |>
-    	`colnames<-`(c("from","to","type","reaction","name","bgcolor","fgcolor"))
-	
-	new_eds <- new_eds[!duplicated(new_eds),]
+    new_eds <- do.call(rbind, unlist(unlist(new_eds, recursive = FALSE),
+        recursive = FALSE)) |> data.frame() |>
+        `colnames<-`(c("from","to","type","reaction","name","bgcolor","fgcolor"))
+    
+    new_eds <- new_eds[!duplicated(new_eds),]
     new_eds$from <- as.integer(new_eds$from)
     new_eds$to <- as.integer(new_eds$to)
     new_g <- tbl_graph(nodes=nds, edges=new_eds)
@@ -439,49 +439,49 @@ process_reaction <- function(g, single_edge=FALSE) {
 get_reaction <- function(xml) {
     rea_sets <- getNodeSet(xml, "//reaction")
     all_reas <- lapply(rea_sets, function(rea) {
-    	id <- xmlAttrs(rea)["id"]
-    	name <- xmlAttrs(rea)["name"]
-    	type <- xmlAttrs(rea)["type"]
-    	subs <- xmlElementsByTagName(rea,"substrate")
-    	prod <- xmlElementsByTagName(rea,"product")
-    	## Looking for `alt` tag
-    	## Multiple products or substrates are to be expected
-    	lapply(subs, function(ss) {
-    		lapply(prod, function(pp) {
-        		return(c(id, name, type,
+        id <- xmlAttrs(rea)["id"]
+        name <- xmlAttrs(rea)["name"]
+        type <- xmlAttrs(rea)["type"]
+        subs <- xmlElementsByTagName(rea,"substrate")
+        prod <- xmlElementsByTagName(rea,"product")
+        ## Looking for `alt` tag
+        ## Multiple products or substrates are to be expected
+        lapply(subs, function(ss) {
+            lapply(prod, function(pp) {
+                return(c(id, name, type,
                         xmlAttrs(ss)["id"], xmlAttrs(ss)["name"],
-                        xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))			
-    		})
-    	})
+                        xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))          
+            })
+        })
     })
     all_reas <- unlist(all_reas, recursive=FALSE)
     all_reas <- do.call(rbind, unlist(all_reas, recursive=FALSE)) |>
-    	data.frame() |> 
-    	`colnames<-`(c("id","reac_name",
+        data.frame() |> 
+        `colnames<-`(c("id","reac_name",
                     "type","substrate_id","substrate_name",
                     "product_id","product_name"))
 
     ## Perhaps this parsing would lead to wrong interpretation
     ## But for preserving Compound -> KO edges, this function
     ## adds edges of: 
-    ## 	   substrate -> ID (KO) (type: type, reaction: reaction)
+    ##     substrate -> ID (KO) (type: type, reaction: reaction)
     ##     ID (KO) -> product (type: type, reaction: reaction)
     ## Later used in `process_reaction()`.
     
     rsp_rels <- lapply(seq_len(nrow(all_reas)), function(i) {
-    	lapply(unlist(strsplit(all_reas[i,"id"], " ")), function(j) {
-			return(
-				rbind(
-	      			c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", NA, all_reas[i, "reac_name"]),
-	      			c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", NA, all_reas[i, "reac_name"])
-					)
-				)
-    	})
+        lapply(unlist(strsplit(all_reas[i,"id"], " ")), function(j) {
+            return(
+                rbind(
+                    c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", NA, all_reas[i, "reac_name"]),
+                    c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", NA, all_reas[i, "reac_name"])
+                    )
+                )
+        })
     })
 
 
     rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |> data.frame() |> 
-  	    `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value","reaction"))
+        `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value","reaction"))
     rsp_rels
 }
 
