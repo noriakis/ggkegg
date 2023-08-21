@@ -34,7 +34,7 @@
 #' @param numeric_attribute named vector for appending numeric attribute
 #' @param node_rect_nudge parameter for nudging the node rect
 #' @param group_rect_nudge parameter for nudging the group node rect
-#' @example
+#' @examples
 #' ## Use pathway ID to obtain `ggraph` object directly.
 #' g <- ggkegg("hsa04110")
 #' g + geom_node_rect()

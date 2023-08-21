@@ -722,7 +722,7 @@ parse_module <- function(kmo) {
         }
         steps[[j]] <- current_step
         j <- j + 1
-        steps[sapply(steps, is.null)] <- NULL
+        steps[vapply(steps, is.null, FUN.VALUE=TRUE)] <- NULL
         return(steps)
     }
     ## Preallocate   
