@@ -72,18 +72,18 @@ graph |>
 
 ```{r highlight, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 graph |>
-  activate(nodes) |>
-  mutate(ident=highlight_set_nodes("hsa:6737")) |>
-  ggraph(layout="manual", x=x, y=y)+
-  geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-  geom_node_rect(aes(fill="tomato", filter=ident), color="black")+
-  geom_node_text(aes(label=graphics_name))+
-  geom_edge_parallel(aes(linetype=subtype_name),
+    activate(nodes) |>
+    mutate(ident=highlight_set_nodes("hsa:6737")) |>
+    ggraph(layout="manual", x=x, y=y)+
+    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
+    geom_node_rect(aes(fill="tomato", filter=ident), color="black")+
+    geom_node_text(aes(label=graphics_name))+
+    geom_edge_parallel(aes(linetype=subtype_name),
                    arrow=arrow(length=unit(1,"mm"),
                                type="closed"),
                    end_cap=circle(1.5,"cm"),
                    start_cap=circle(1.5,"cm"))+
-  theme_void()
+    theme_void()
 ```
 
 
@@ -93,11 +93,11 @@ We can use `overlay_raw_map` to overlay the raw KEGG images on the created ggrap
 The node and text can be directly customized by using various geoms and effects such as `ggfx`.
 The code below creates nodes using default parsed background color and just overlay the image.
 
-```{r example_raw, message=FALSE, warning=FALSE, eval=FALSE}
-# graph <- pathway("hsa04110")
-# ggraph(graph, layout="manual", x=x, y=y)+
-#   geom_node_rect(aes(fill=I(bgcolor)))+
-#   overlay_raw_map()
+```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE}
+graph <- pathway("hsa04110")
+ggraph(graph, layout="manual", x=x, y=y)+
+    geom_node_rect(aes(fill=I(bgcolor)))+
+    overlay_raw_map()
 ```
 
 ### Use with the other omics packages
@@ -111,13 +111,9 @@ The package supports direct importing and visualization, and investigation of th
 KEGG MODULE can be parsed and used in the analysis. The formula to obtain module is the same as pathway. Here, we use test pathway which contains two KEGG ORTHOLOGY, two compounds and one reaction.
 This will create `kegg_module` class object storing definition and reactions.
 
-```{r module, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
-mod <- create_test_module()
+```{r module2, eval=TRUE}
+mod <- module("M00002", use_cache=TRUE)
 mod
-```
-
-```{r module2, eval=FALSE}
-# module("M00002", use_cache=TRUE)
 ```
 
 ### Visualizing module
@@ -127,26 +123,15 @@ The module can be visualized by text-based or network-based, depicting how they 
 ```{r mod_vis1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
 ## Text-based
 mod |>
-  module_text() |> ## return data.frame
-  plot_module_text()
+    module_text() |> ## return data.frame
+    plot_module_text()
 ```
 
 ```{r mod_vis2, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 ## Network-based
 mod |>
-  obtain_sequential_module_definition() |>## return tbl_graph
-ggraph()+
-  geom_node_point()+
-  geom_edge_link(aes(label=type, filter=!startsWith(type,"in_") & !startsWith(type,"block_")),
-                 label_dodge = unit(2,"mm"), color="tomato", angle_calc = "along")+
-    geom_edge_link(aes(filter= startsWith(type,"in_")))+ ## Additional edges specifying grouped relationship
-    geom_edge_link(aes(label=type, filter=startsWith(type,"block_")),
-                 start_cap=circle(5,"mm"), end_cap=circle(5,"mm"),
-                 color="steelblue")+ ## Edges specifying block transition
-  geom_node_shadowtext(aes(label=name, filter=startsWith(name,"K")),
-                       bg.colour="white", color="black")+
-  theme_graph()
-## plot_module_blocks() can be used for module containing definitions with multiple blocks
+    obtain_sequential_module_definition() |> ## return tbl_graph
+    plot_module_blocks()
 ```
 
 We can assess module completeness, as well as user-defined module abundances. Please refer to [the module section of documentation](https://noriakis.github.io/software/ggkegg/module.html).

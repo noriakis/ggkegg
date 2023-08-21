@@ -318,15 +318,17 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
         `colnames<-`(c("from","to","type"))
     
     plotg <- lapply(seq_along(cand_step), function(i) {
-        plotg <- as_data_frame(module_graph(kmo$definition_block[i]))       
-        ## Need to change naming
-        frm <- plotg$from
-        frm[!startsWith(frm,"K")] <- paste0(frm[!startsWith(frm,"K")],"_",i)
-        to <- plotg$to
-        to[!startsWith(to,"K")] <- paste0(to[!startsWith(to,"K")],"_",i)
-        plotg$from <- frm
-        plotg$to <- to
-        plotg
+        if (kmo$definition_num_in_block[i]!=1) {
+            plotg <- as_data_frame(module_graph(kmo$definition_block[i]))       
+            ## Need to change naming
+            frm <- plotg$from
+            frm[!startsWith(frm,"K")] <- paste0(frm[!startsWith(frm,"K")],"_",i)
+            to <- plotg$to
+            to[!startsWith(to,"K")] <- paste0(to[!startsWith(to,"K")],"_",i)
+            plotg$from <- frm
+            plotg$to <- to
+            plotg
+        }
     })
     plotg <- do.call(rbind, plotg)
 
@@ -472,9 +474,9 @@ module_graph <- function(input_string, skip_minus=FALSE) {
     rels <- do.call(rbind, rels)
 
     if (!is.null(rels)) {
-        rels <- rels |> data.frame() |> `colnames<-`(c("from","to","type"))    
-        relg <- graph_from_data_frame(rels,directed = FALSE)
-        g <- simplify(relg,edge.attr.comb = "first")
+        rels <- rels |> data.frame() |> `colnames<-`(c("from", "to", "type"))    
+        relg <- graph_from_data_frame(rels, directed = FALSE)
+        g <- simplify(relg, edge.attr.comb="first")
     
         noparen <- function(x) gsub("\\)","",gsub("\\(","",x))
         
@@ -525,6 +527,11 @@ module_graph <- function(input_string, skip_minus=FALSE) {
                 } else {## No comma
                     tmpg <- c(commas, i, "in_group")
                 }##CSS              
+            }
+            if (is.vector(tmpg)) {
+                tmpg <- data.frame(tmpg) |> t()
+            } else {
+                tmpg <- data.frame(tmpg)
             }
             tmp_g <- data.frame(tmpg) |> `colnames<-`(c("from","to","type"))      
             el <- simplify(graph_from_data_frame(tmpg, directed=FALSE),
