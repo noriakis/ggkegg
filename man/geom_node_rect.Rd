@@ -27,19 +27,11 @@ geom_node_rect(
 geom
 }
 \description{
-add rectangular shapes to ggplot2 using GeomRect,
+Plot rectangular shapes to ggplot2 using GeomRect,
 using StatFilter in ggraph
 }
 \examples{
-nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-                   x=c(1,1),
-                   xmin=c(-1,-1),
-                   xmax=c(2,2),
-                   y=c(1,1),
-                   ymin=c(-1,-1),
-                   ymax=c(2,2))
-edges <- data.frame(from=1, to=2)
-graph <- tbl_graph(nodes, edges)
-plt <- ggraph(graph, layout="manual", x=x, y=y) +
+test_pathway <- create_test_pathway()
+plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
  geom_node_rect()
 }

@@ -19,6 +19,7 @@ plot the output of network_graph
 }
 \examples{
 ne <- create_test_network()
+## Output of `network_graph` must be used with plot_kegg_network
 neg <- network_graph(ne)
 plt <- plot_kegg_network(neg)
 }

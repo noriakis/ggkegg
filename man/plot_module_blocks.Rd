@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_functions.R
 \name{plot_module_blocks}
 \alias{plot_module_blocks}
-\title{plot_module_blocks
-wrapper function for plotting module definition blocks}
+\title{plot_module_blocks}
 \usage{
 plot_module_blocks(all_steps, layout = "kk")
 }
@@ -16,11 +15,13 @@ plot_module_blocks(all_steps, layout = "kk")
 ggplot2 object
 }
 \description{
-plot_module_blocks
-wrapper function for plotting module definition blocks
+wrapper function for plotting network representation of 
+module definition blocks
 }
 \examples{
 mo <- create_test_module()
+## The output of `obtain_sequential_module_definition` 
+## is used for `plot_module_blocks()`
 sequential_mod <- obtain_sequential_module_definition(mo)
 plt <- plot_module_blocks(sequential_mod)
 }

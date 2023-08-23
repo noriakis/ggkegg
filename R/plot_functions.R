@@ -10,7 +10,8 @@
 #' @export
 #' @return graph adjusted for the position
 #' @examples
-#' \dontrun{multi_pathway_native(list("hsa04110","hsa03460"))}
+#' ## Pass multiple pathway IDs
+#' multi_pathway_native(list("hsa04110","hsa03460"))
 #' 
 multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
     plen <- length(pathways)
@@ -59,9 +60,13 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
 #' @return ggplot2 object
 #' @export
 #' @examples
+#' 
 #' mo <- create_test_module()
+#' 
+#' ## The output of `module_text` is used for `plot_module_text()`
 #' tex <- module_text(mo)
 #' plt <- plot_module_text(tex)
+#' 
 plot_module_text <- function(plot_list, show_name="name") {
     panel_list <- lapply(seq_along(plot_list), function(concat) {
         plot_list[[concat]]$name <- plot_list[[concat]][[show_name]]
@@ -80,13 +85,18 @@ plot_module_text <- function(plot_list, show_name="name") {
 
 
 #' plot_module_blocks
-#' wrapper function for plotting module definition blocks
+#' 
+#' wrapper function for plotting network representation of 
+#' module definition blocks
+#' 
 #' @param all_steps the result of `obtain_sequential_module_definition()`
 #' @param layout ggraph layout parameter
 #' @export
 #' @return ggplot2 object
 #' @examples
 #' mo <- create_test_module()
+#' ## The output of `obtain_sequential_module_definition` 
+#' ## is used for `plot_module_blocks()`
 #' sequential_mod <- obtain_sequential_module_definition(mo)
 #' plt <- plot_module_blocks(sequential_mod)
 plot_module_blocks <- function(all_steps, layout="kk") {
@@ -130,16 +140,8 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 #' @return geom
 #' @importFrom shadowtext GeomShadowText
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
+#' test_pathway <- create_test_pathway()
+#' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  geom_node_shadowtext(aes(label=name))
 geom_node_shadowtext <- function(mapping = NULL, data = NULL,
                            position = 'identity',
@@ -158,7 +160,7 @@ geom_node_shadowtext <- function(mapping = NULL, data = NULL,
 
 #' geom_node_rect
 #' 
-#' add rectangular shapes to ggplot2 using GeomRect,
+#' Plot rectangular shapes to ggplot2 using GeomRect,
 #' using StatFilter in ggraph
 #' 
 #' @param mapping aes mapping
@@ -169,16 +171,8 @@ geom_node_shadowtext <- function(mapping = NULL, data = NULL,
 #' @return geom
 #' @export
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
+#' test_pathway <- create_test_pathway()
+#' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  geom_node_rect()
 geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
                             show.legend = NA, ...) {
@@ -196,23 +190,17 @@ geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
 
 #' geom_node_rect_kegg
 #' 
+#' Wrapper function for plotting a certain type of nodes
+#' with background color with geom_node_rect()
 #' 
 #' @param type type to be plotted (gene, map, compound ...)
 #' @param rect_fill rectangular fill
 #' @export
 #' @return ggplot2 object
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2), type=c("gene","gene"))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
-#'  geom_node_rect_kegg()
+#' test_pathway <- create_test_pathway()
+#' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
+#'  geom_node_rect_kegg(type="gene")
 geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
     structure(list(type=type, rect_fill=rect_fill),
         class = "geom_node_rect_kegg")
@@ -226,17 +214,9 @@ geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
 #' @export
 #' @return ggplot2 object
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2), type=c("gene","gene"))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' plt <- ggraph(graph, layout="manual", x=x, y=y) +
-#'  geom_node_rect_kegg()
+#' test_pathway <- create_test_pathway()
+#' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
+#'  geom_node_rect_kegg(type="gene")
 ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
     if (is.null(object$type)){
         type <- unique(plot$data$type)
@@ -269,6 +249,7 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' @export
 #' @examples
 #' ne <- create_test_network()
+#' ## Output of `network_graph` must be used with plot_kegg_network
 #' neg <- network_graph(ne)
 #' plt <- plot_kegg_network(neg)
 plot_kegg_network <- function(g, layout="nicely") {
@@ -301,26 +282,17 @@ plot_kegg_network <- function(g, layout="nicely") {
 
 #' geom_kegg
 #' 
-#' convenient function for plotting KEGG pathway graph
-#' add geom_node_rect, geom_node_text and geom_edge_link
+#' Wrapper function for plotting KEGG pathway graph
+#' add geom_node_rect, geom_node_text and geom_edge_link simultaneously
+#' 
 #' @param edge_color color attribute to edge
 #' @param group_color border color for group node rectangles
 #' @param node_label column name for node label
 #' @param parallel use geom_edge_parallel() instead of geom_edge_link()
 #' @export
 #' @examples 
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2),
-#'                    type=c("gene","gene"),
-#'                    bgcolor=c("red","blue"))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' p <- ggraph(graph, layout="manual", x=x, y=y)+
+#' test_pathway <- create_test_pathway()
+#' p <- ggraph(test_pathway, layout="manual", x=x, y=y)+
 #' geom_kegg()
 #' @return ggplot2 object
 geom_kegg <- function(edge_color=NULL,
@@ -342,18 +314,8 @@ geom_kegg <- function(edge_color=NULL,
 #' @return ggplot2 object
 #' @export
 #' @examples 
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2),
-#'                    type=c("gene","gene"),
-#'                    bgcolor=c("red","blue"))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' p <- ggraph(graph, layout="manual", x=x, y=y)+
+#' test_pathway <- create_test_pathway()
+#' p <- ggraph(test_pathway, layout="manual", x=x, y=y)+
 #' geom_kegg()
 ggplot_add.geom_kegg <- function(object, plot, object_name) {
   if (object$parallel) {

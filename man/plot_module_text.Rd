@@ -18,7 +18,11 @@ ggplot2 object
 plot the text representation of KEGG modules
 }
 \examples{
+
 mo <- create_test_module()
+
+## The output of `module_text` is used for `plot_module_text()`
 tex <- module_text(mo)
 plt <- plot_module_text(tex)
+
 }
