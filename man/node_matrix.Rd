@@ -35,6 +35,8 @@ append the node value to node matrix and
 return tbl_graph object
 }
 \examples{
+
+## Append data.frame to tbl_graph
 graph <- create_test_pathway()
 num_df <- data.frame(row.names=c("6737","51428"),
                     "sample1"=c(1.1,1.2),

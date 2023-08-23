@@ -1,8 +1,6 @@
 #' find_parenthesis_pairs
 #' find pairs of parenthesis
 #' @noRd
-#' 
-#' 
 find_parenthesis_pairs <- function(s) {
     ## Preallocate
     stack <- integer(nchar(s))
@@ -32,9 +30,10 @@ find_parenthesis_pairs <- function(s) {
 
 #' append_label_position
 #'
-#' append the label position at center of edges
+#' Append the label position at center of edges
 #' in global map like ko01100 where line type nodes
-#' are present in KGML. Add `center` column to graph edge
+#' are present in KGML. 
+#' Add `center` column to graph edge.
 #' 
 #' @param g graph
 #' @importFrom dplyr mutate summarise group_by filter
@@ -42,7 +41,7 @@ find_parenthesis_pairs <- function(s) {
 #' @importFrom stats setNames
 #' @return tbl_graph
 #' @examples 
-#' ## For those containing nodes with the graphic type of `line`
+#' ## Simulate nodes containing `graphics_type` of line and `coords`
 #' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
 #'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
 #'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
@@ -82,8 +81,8 @@ append_label_position <- function(g) {
 #' ## For those containing nodes with the graphic type of `line`
 #' ## This returns no IDs as no edges are present
 #' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
-#'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
-#'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
+#'             graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
+#'             graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
 #' gm_test <- tbl_graph(gm_test)
 #' test <- process_line(gm_test) |> return_line_compounds(1)
 return_line_compounds <- function(g, orig) {
@@ -111,9 +110,8 @@ return_line_compounds <- function(g, orig) {
 #' @examples
 #' graph <- create_test_pathway()
 #' graph <- graph |> activate("edges") |>
-#'         mutate(num=edge_numeric(c(1.1) |> setNames("degradation"),
-#'             name="subtype_name"))
-#' 
+#'             mutate(num=edge_numeric(c(1.1) |>
+#'             setNames("degradation"), name="subtype_name"))
 edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
     graph <- .G()
     if (!is_tibble(num) & !is.vector(num)) {
@@ -164,11 +162,10 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' @importFrom tidygraph activate
 #' @examples
 #' graph <- create_test_pathway()
-#' graph <- graph |> activate("edges") |>
-#'         mutate(num=edge_numeric_sum(c(1.2,-1.2) |>
-#'             setNames(c("TRIM21","DDX41")),
-#'             name="graphics_name"))
-#' 
+#' graph <- graph |>
+#'             activate("edges") |>
+#'             mutate(num=edge_numeric_sum(c(1.2,-1.2) |>
+#'             setNames(c("TRIM21","DDX41")), name="graphics_name"))
 edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
     graph <- .G()
   
@@ -213,7 +210,7 @@ edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
 #' @examples
 #' graph <- create_test_pathway()
 #' graph <- graph |>
-#'     mutate(num=node_numeric(c(1.1) |> setNames("hsa:6737"))) 
+#'             mutate(num=node_numeric(c(1.1) |> setNames("hsa:6737"))) 
 #' 
 node_numeric <- function(num, num_combine=mean, name="name", how="any") {
     graph <- .G()
@@ -263,6 +260,8 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
 #' @examples
+#' 
+#' ## Append data.frame to tbl_graph
 #' graph <- create_test_pathway()
 #' num_df <- data.frame(row.names=c("6737","51428"),
 #'                     "sample1"=c(1.1,1.2),
@@ -321,19 +320,11 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2, name="K00112")
-#' graph <- tbl_graph(nodes, edges)
-#' num_df <- data.frame(row.names=c("1029","4171"),
-#'                      "sample1"=c(1.1,1.2),
-#'                      "sample2"=c(1.1,1.2),
-#'                      check.names=FALSE)
+#' graph <- create_test_pathway()
+#' num_df <- data.frame(row.names=c("6737","51428"),
+#'                     "sample1"=c(1.1,1.2),
+#'                     "sample2"=c(1.1,1.2),
+#'                     check.names=FALSE)
 #' graph <- graph |> edge_matrix(num_df, gene_type = "ENTREZID")
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                               org_db=org.Hs.eg.db,
@@ -392,9 +383,11 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' if (require("clusterProfiler")) {
 #'     cp <- enrichKEGG(nodes$name |>
 #'             strsplit(":") |>
-#'             vapply("[",2,FUN.VALUE="character"))
+#'             vapply("[", 2, FUN.VALUE="character"))
+#'     ## This append graph node logical value whether the 
+#'     ## enriched genes are in pathway
+#'     graph <- graph |> mutate(cp=append_cp(cp, pid="hsa05322"))
 #' }
-#' graph <- graph |> mutate(cp=append_cp(cp,pid="hsa05322"))
 #' @export
 #' 
 append_cp <- function(res, how="any", name="name", pid=NULL) {
@@ -459,16 +452,8 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
 #' @importFrom AnnotationDbi select
 #' @export
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2, name="K00112")
-#' graph <- tbl_graph(nodes, edges)
-#' res <- data.frame(row.names="1029",log2FoldChange=1.2)
+#' graph <- create_test_pathway()
+#' res <- data.frame(row.names="6737",log2FoldChange=1.2)
 #' graph <- graph |> mutate(num=assign_deseq2(res, gene_type = "ENTREZID"))
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
@@ -521,16 +506,8 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' @return vector containing converted IDs
 #' @export
 #' @examples
-#' nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-#'                    x=c(1,1),
-#'                    xmin=c(-1,-1),
-#'                    xmax=c(2,2),
-#'                    y=c(1,1),
-#'                    ymin=c(-1,-1),
-#'                    ymax=c(2,2))
-#' edges <- data.frame(from=1, to=2)
-#' graph <- tbl_graph(nodes, edges)
-#' \dontrun{graph <- graph |> mutate(conv=convert_id("hsa"))}
+#' graph <- create_test_pathway()
+#' graph <- graph |> mutate(conv=convert_id("hsa"))
 #' 
 convert_id <- function(org, name="name",
     convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,

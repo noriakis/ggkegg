@@ -24,7 +24,6 @@ add numeric attribute to edge of tbl_graph
 \examples{
 graph <- create_test_pathway()
 graph <- graph |> activate("edges") |>
-        mutate(num=edge_numeric(c(1.1) |> setNames("degradation"),
-            name="subtype_name"))
-
+            mutate(num=edge_numeric(c(1.1) |>
+            setNames("degradation"), name="subtype_name"))
 }

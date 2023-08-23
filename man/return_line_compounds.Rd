@@ -24,8 +24,8 @@ return the original compound node ID
 ## For those containing nodes with the graphic type of `line`
 ## This returns no IDs as no edges are present
 gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
-           graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
-           graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
+            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
+            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
 gm_test <- tbl_graph(gm_test)
 test <- process_line(gm_test) |> return_line_compounds(1)
 }
