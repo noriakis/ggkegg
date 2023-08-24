@@ -10,3 +10,14 @@ test_that("Do utils without errors", {
                                     name="graphics_name")),
         NA)
 })
+
+test_that("edge_matrix without errors", {
+	graph <- create_test_pathway()
+    num_df <- data.frame(row.names=c("6737","51428"),
+                    "sample1"=c(1.1,1.2),
+                    "sample2"=c(1.1,1.2),
+                     check.names=FALSE)
+    expect_error(graph <- graph |> edge_matrix(num_df, gene_type="ENTREZID"),
+    	NA)                     	
+})
+
