@@ -10,3 +10,6 @@ test_that("process_line without errors", {
 test_that("process_reaction without errors", {
 	expect_error( create_test_pathway(line=TRUE) |> process_reaction(), NA)
 })
+test_that("ggkegg (pathway) without errors", {
+	expect_error( ggkegg("hsa04110"), NA)
+})
