@@ -13,103 +13,130 @@ vignette: >
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE,
-                      fig.width=12,
-                      fig.height=6,
-                      warning=FALSE,
-                      message=FALSE)
+                    fig.width=12,
+                    fig.height=6,
+                    warning=FALSE,
+                    message=FALSE)
 ```
 
 # ggkegg
 
 This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages. As we will not download the raw KEGG information in this vignette, please refer to [the documentation](https://noriakis.github.io/software/ggkegg) for the detailed usage.
 
+## Introduction
+
+There are packages doing KEGG PATHWAY analysis in R. `r BiocStyle::Biocpkg("pathview")` fetches KEGG PATHWAY information, enabling the output of images reflecting various user-defined values on the map.
+
 ## Pathway
 
-The users can obtain a KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory with `directory` argument. Here, we obtain `Cell cycle` pathway (`hsa04110`).
+The users can obtain a KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory of the file with `directory` argument. Here, we obtain `Cell cycle` pathway (`hsa04110`) using cache.
 
 ```{r pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 library(ggkegg)
+library(tidygraph)
+library(dplyr)
 graph <- ggkegg::pathway("hsa04110", use_cache=TRUE)
 graph
 ```
+
+The output can be analysed readily using `tidygraph` and `dplyr` verbs. For example, degree calculations can be performed as follows.
+
+```{r pathway1_1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
+graph |> 
+    mutate(degree=centrality_degree(mode="all"),
+        betweenness=centrality_betweenness()) |> 
+    activate(nodes) |>
+    filter(type=="gene") |>
+    arrange(desc(degree)) |>
+    as_tibble() |>
+    relocate(degree, betweenness)
+```
+
 ### Plot using `ggraph`
 
-The parsed `tbl_graph` can be used to plot the information by `ggraph`. The nodes, edges, and text are plotted in the below example.
+The parsed `tbl_graph` can be used to plot the information by `ggraph` using the grammar of graphics. The components in the graph such as nodes, edges, and text can be plotted layer by layer.
 
-```{r plot_pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+```{r plot_pathway1, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
+graph <- graph |> mutate(showname=strsplit(graphics_name, ",") |>
+                    vapply("[", 1, FUN.VALUE="a"))
+
 ggraph(graph, layout="manual", x=x, y=y)+
-    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-    geom_node_text(aes(label=graphics_name))+
     geom_edge_parallel(aes(linetype=subtype_name),
-                    arrow=arrow(length=unit(1,"mm"), type="closed"),
-                    end_cap=circle(1.5,"cm"),
-                    start_cap=circle(1.5,"cm"))+
+        arrow=arrow(length=unit(1,"mm"), type="closed"),
+        end_cap=circle(1,"cm"),
+        start_cap=circle(1,"cm"))+
+    geom_node_rect(aes(fill=I(bgcolor),
+                      filter=type == "gene"),
+                  color="black")+
+    geom_node_text(aes(label=showname,
+                      filter=type == "gene"),
+                  size=2)+
     theme_void()
 ```
 
 ## Converting identifiers
 
-In the above example, `graphics_name` column in the node table were used, which are available in the default KGML file. The user can convert identifiers using `convert_id` function to be used in `mutate`. One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph` and plot them (not run because it downloads converting table).
+In the above example, `graphics_name` column in the node table were used, which are available in the default KGML file. The user can convert identifiers using `convert_id` function to be used in `mutate`. One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph`.
 
-```{r convert, message=FALSE, warning=FALSE, fig.width=6, fig.height=1, eval=FALSE}
+```{r convert, message=FALSE, warning=FALSE}
 graph |>
     activate(nodes) |>
     mutate(hsa=convert_id("hsa")) |>
-    ggraph(layout="manual", x=x, y=y)+
-    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-    geom_node_text(aes(label=hsa))+ ## specify converted column in node table
-    geom_edge_parallel(aes(linetype=subtype_name),
-                    arrow=arrow(length=unit(1,"mm"),
-                               type="closed"),
-                    end_cap=circle(1.5,"cm"),
-                    start_cap=circle(1.5,"cm"))+
-    theme_void()
+    filter(type == "gene") |>
+    as_tibble() |>
+    relocate(hsa)
 ```
 
 ### Highlighting set of nodes and edges
 
 `highlight_set_nodes()` and `highlight_set_edges()` can be used to identify nodes that satisfy query IDs. Nodes often have multiple IDs, and user can choose `how="any"` (if one of identifiers in the nodes matches the query) or `how="all"` (if all of the identifiers in the nodes match the query) to highlight.
 
-```{r highlight, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+```{r highlight, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
 graph |>
     activate(nodes) |>
-    mutate(ident=highlight_set_nodes("hsa:6737")) |>
+    mutate(highlight=highlight_set_nodes("hsa:7157")) |>
     ggraph(layout="manual", x=x, y=y)+
-    geom_node_rect(aes(fill=I(bgcolor)), color="black")+
-    geom_node_rect(aes(fill="tomato", filter=ident), color="black")+
-    geom_node_text(aes(label=graphics_name))+
+    geom_node_rect(aes(fill=I(bgcolor),
+                      filter=type == "gene"), color="black")+
+    geom_node_rect(aes(fill="tomato", filter=highlight), color="black")+
+    geom_node_text(aes(label=showname,
+                      filter=type == "gene"), size=2)+
     geom_edge_parallel(aes(linetype=subtype_name),
                    arrow=arrow(length=unit(1,"mm"),
                                type="closed"),
-                   end_cap=circle(1.5,"cm"),
-                   start_cap=circle(1.5,"cm"))+
+                   end_cap=circle(1,"cm"),
+                   start_cap=circle(1,"cm"))+
     theme_void()
 ```
 
 
 ### Overlaying raw KEGG image
 
-We can use `overlay_raw_map` to overlay the raw KEGG images on the created ggraph.
-The node and text can be directly customized by using various geoms and effects such as `ggfx`.
+We can use `overlay_raw_map` to overlay the raw KEGG images on the created `ggraph`.
+The node and text can be directly customized by using various geoms, effects such as `ggfx`, and scaling functions.
 The code below creates nodes using default parsed background color and just overlay the image.
 
-```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE}
-graph <- pathway("hsa04110")
-ggraph(graph, layout="manual", x=x, y=y)+
-    geom_node_rect(aes(fill=I(bgcolor)))+
-    overlay_raw_map()
+```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE, dev="CairoPNG"}
+graph |>
+  mutate(degree=centrality_degree(mode="all")) |>
+  ggraph(graph, layout="manual", x=x, y=y)+
+        geom_node_rect(aes(fill=degree,
+                      filter=type == "gene"))+
+        overlay_raw_map()+
+        scale_fill_viridis_c()+
+        theme_void()
 ```
 
 ### Use with the other omics packages
 
-The package supports direct importing and visualization, and investigation of the results of the other packages such as enrichment analysis results from `clusterProfiler` and differential expression analysis results from `DESeq2`. As this involves downloading the pathway information, please refer to [use cases](https://noriakis.github.io/software/ggkegg/usecases.html) in the documentation.
+The package supports direct importing and visualization, and investigation of the results of the other packages such as enrichment analysis results from `clusterProfiler` and differential expression analysis results from `DESeq2`. Pplease refer to [use cases](https://noriakis.github.io/software/ggkegg/usecases.html) in the documentation for more detailed use cases.
 
-## Module
+## Module and Network
 
 ### Parsing module
 
 KEGG MODULE can be parsed and used in the analysis. The formula to obtain module is the same as pathway. Here, we use test pathway which contains two KEGG ORTHOLOGY, two compounds and one reaction.
-This will create `kegg_module` class object storing definition and reactions.
+This will create `kegg_module` class object storing definition and reactions. The network can be created by the same way, and create `kegg_network` class object storing information.
 
 ```{r module2, eval=TRUE}
 mod <- module("M00002", use_cache=TRUE)
@@ -120,14 +147,14 @@ mod
 
 The module can be visualized by text-based or network-based, depicting how they interact.
 
-```{r mod_vis1, message=FALSE, warning=FALSE, fig.width=6, fig.height=1}
+```{r mod_vis1, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
 ## Text-based
 mod |>
     module_text() |> ## return data.frame
     plot_module_text()
 ```
 
-```{r mod_vis2, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
+```{r mod_vis2, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
 ## Network-based
 mod |>
     obtain_sequential_module_definition() |> ## return tbl_graph
