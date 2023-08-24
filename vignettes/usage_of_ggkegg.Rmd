@@ -25,7 +25,7 @@ This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY a
 
 ## Introduction
 
-There are packages doing KEGG PATHWAY analysis in R. `r BiocStyle::Biocpkg("pathview")` fetches KEGG PATHWAY information, enabling the output of images reflecting various user-defined values on the map.
+There are packages doing KEGG PATHWAY analysis in R. `r BiocStyle::Biocpkg("pathview")` fetches KEGG PATHWAY information, enabling the output of images reflecting various user-defined values on the map. `r BiocStyle::Biocpkg("KEGGlincs")` can overlay LINCS data to KEGG PATHWAY, and examine the map using Cytoscape. `r BiocStyle::Biocpkg("graphite")` acquires pathways including KEGG and Reactome, convert them into graphNEL format, and provides an interface for topological analysis. `r BiocStyle::Biocpkg("KEGGgraph")` also downloads KEGG PATHWAY information and converts it into a format analyzable in R. Extending to these great packages, the purpose of developing this package, `ggkegg`, is to allow for tidy manipulation of KEGG information by the power of `tidygraph`, to plot the relevant information using grammar of graphics, to examine the global and overview maps consisting of compounds and reactions.
 
 ## Pathway
 
@@ -127,16 +127,12 @@ graph |>
         theme_void()
 ```
 
-### Use with the other omics packages
-
-The package supports direct importing and visualization, and investigation of the results of the other packages such as enrichment analysis results from `clusterProfiler` and differential expression analysis results from `DESeq2`. Pplease refer to [use cases](https://noriakis.github.io/software/ggkegg/usecases.html) in the documentation for more detailed use cases.
-
 ## Module and Network
 
 ### Parsing module
 
 KEGG MODULE can be parsed and used in the analysis. The formula to obtain module is the same as pathway. Here, we use test pathway which contains two KEGG ORTHOLOGY, two compounds and one reaction.
-This will create `kegg_module` class object storing definition and reactions. The network can be created by the same way, and create `kegg_network` class object storing information.
+This will create `kegg_module` class object storing definition and reactions.
 
 ```{r module2, eval=TRUE}
 mod <- module("M00002", use_cache=TRUE)
@@ -145,7 +141,8 @@ mod
 
 ### Visualizing module
 
-The module can be visualized by text-based or network-based, depicting how they interact.
+The module can be visualized by text-based or network-based, depicting how the KOs interact each other.
+For text based visualization like the one shown in the original KEGG website, `module_text` can be used.
 
 ```{r mod_vis1, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
 ## Text-based
@@ -154,6 +151,8 @@ mod |>
     plot_module_text()
 ```
 
+For network based visualization, `obtain_sequential_module_definition` can be used.
+
 ```{r mod_vis2, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
 ## Network-based
 mod |>
@@ -161,7 +160,21 @@ mod |>
     plot_module_blocks()
 ```
 
-We can assess module completeness, as well as user-defined module abundances. Please refer to [the module section of documentation](https://noriakis.github.io/software/ggkegg/module.html).
+We can assess module completeness, as well as user-defined module abundances. Please refer to [the module section of documentation](https://noriakis.github.io/software/ggkegg/module.html). The network can be created by the same way, and create `kegg_network` class object storing information.
+
+### Use with the other omics packages
+
+The package supports direct importing and visualization, and investigation of the results of the other packages such as enrichment analysis results from `clusterProfiler` and differential expression analysis results from `DESeq2`. Pplease refer to [use cases](https://noriakis.github.io/software/ggkegg/usecases.html) in the documentation for more detailed use cases.
+
+## Wrapper function `ggkegg`
+
+`ggkegg` function can be used with various input. For example, if the user provides pathway ID, the function automatically returns the `ggraph` with the original layout, which can be used directly for stacking geoms. The other supported IDs are module, network, and also the `enrichResult` object, and the other options such as converting IDs are available.
+
+```{r ggkegg, fig.width=6, fig.height=6}
+ggkegg("bpsp00270") |> class() ## Returns ggraph
+ggkegg("N00002") ## Returns the KEGG NETWORK plot
+```
+
 
 ```{r}
 sessionInfo()

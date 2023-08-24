@@ -103,6 +103,10 @@ ggkegg <- function(pid,
                 " to module_type")
             }
         }
+        if (startsWith(pid, "N")) {
+            network <- network(pid)
+            return(network |> network_graph() |> plot_kegg_network())
+        }
     }
     ## If not module or enrichResult, return pathway
     g <- pathway(pid=pid,
