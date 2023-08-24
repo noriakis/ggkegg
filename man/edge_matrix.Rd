@@ -41,5 +41,5 @@ num_df <- data.frame(row.names=c("6737","51428"),
                     "sample1"=c(1.1,1.2),
                     "sample2"=c(1.1,1.2),
                     check.names=FALSE)
-graph <- graph |> edge_matrix(num_df, gene_type = "ENTREZID")
+graph <- graph |> edge_matrix(num_df, gene_type="ENTREZID")
 }

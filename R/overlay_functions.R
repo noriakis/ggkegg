@@ -33,7 +33,7 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                     clip=clip,
                     directory=directory,
                     use_cache=use_cache),
-            class = "overlay_raw_map")
+            class="overlay_raw_map")
 }
 
 #' ggplot_add.overlay_raw_map
@@ -72,7 +72,7 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         if (!is.null(object$directory)) {
             path <- paste0(object$directory,"/",path)
         }
-        download.file(url=url, destfile=path, mode = 'wb')
+        download.file(url=url, destfile=path, mode='wb')
     }
   
     ## Load, transparent and rasterize
@@ -107,6 +107,6 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     }
     plot + 
         annotation_raster(ras, xmin=xmin, ymin=ymin,
-            xmax=xmax, ymax=ymax, interpolate = TRUE)+
-        coord_fixed(xlim = c(xmin,xmax), ylim=c(ymin,ymax))
+            xmax=xmax, ymax=ymax, interpolate=TRUE)+
+        coord_fixed(xlim=c(xmin,xmax), ylim=c(ymin,ymax))
 }

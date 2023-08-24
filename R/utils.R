@@ -80,10 +80,7 @@ append_label_position <- function(g) {
 #' @examples
 #' ## For those containing nodes with the graphic type of `line`
 #' ## This returns no IDs as no edges are present
-#' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
-#'             graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
-#'             graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
-#' gm_test <- tbl_graph(gm_test)
+#' gm_test <- create_test_pathway(line=TRUE)
 #' test <- process_line(gm_test) |> return_line_compounds(1)
 return_line_compounds <- function(g, orig) {
     ndf <- g |> activate("nodes") |> data.frame()
@@ -267,7 +264,7 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #'                     "sample1"=c(1.1,1.2),
 #'                     "sample2"=c(1.5,2.2),
 #'                     check.names=FALSE)
-#' graph <- graph |> node_matrix(num_df, gene_type = "ENTREZID")
+#' graph <- graph |> node_matrix(num_df, gene_type="ENTREZID")
 #' 
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                         org_db=org.Hs.eg.db, num_combine=mean) {
@@ -275,7 +272,9 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
         val <- lapply(seq_along(x), function(xx) {
             if (x[xx]=="undefined") {return(NA)}
             vals <- strsplit(x[xx], " ") |> unlist() |> unique()
-            subset_conv <- convert_df |> filter(.data$converted %in% vals) |> data.frame()
+            subset_conv <- convert_df |>
+                filter(.data$converted %in% vals) |>
+                data.frame()
             if (dim(subset_conv)[1]==0) {return(NA)}
             if (dim(subset_conv)[1]==1) {
                 return(mat[subset_conv[[gene_type]],])
@@ -325,7 +324,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #'                     "sample1"=c(1.1,1.2),
 #'                     "sample2"=c(1.1,1.2),
 #'                     check.names=FALSE)
-#' graph <- graph |> edge_matrix(num_df, gene_type = "ENTREZID")
+#' graph <- graph |> edge_matrix(num_df, gene_type="ENTREZID")
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
                               org_db=org.Hs.eg.db,
                               num_combine=mean) {
@@ -454,7 +453,7 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
 #' @examples
 #' graph <- create_test_pathway()
 #' res <- data.frame(row.names="6737",log2FoldChange=1.2)
-#' graph <- graph |> mutate(num=assign_deseq2(res, gene_type = "ENTREZID"))
+#' graph <- graph |> mutate(num=assign_deseq2(res, gene_type="ENTREZID"))
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
                           org_db=org.Hs.eg.db, org="hsa",
@@ -524,7 +523,7 @@ convert_id <- function(org, name="name",
     bfc <- BiocFileCache()
     path <- bfcrpath(bfc, url)
     convert <- fread(path,
-                header = FALSE,
+                header=FALSE,
                 sep="\t") |> data.frame()
 
     if (is.null(convert_column)) {
@@ -546,9 +545,11 @@ convert_id <- function(org, name="name",
     convert_vec <- convert[,convert_column]
 
     if (org=="pathway") {
-        names(convert_vec) <- paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
+        names(convert_vec) <- 
+            paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
     } else {
-        names(convert_vec) <- paste0(pref,convert$V1)
+        names(convert_vec) <- 
+            paste0(pref,convert$V1)
     }
     if (!colon) {
         names(convert_vec) <- unlist(
@@ -598,7 +599,7 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
     bfc <- BiocFileCache()
     path <- bfcrpath(bfc, url)
     convert <- data.table::fread(path,
-                            header = FALSE,
+                            header=FALSE,
                             sep="\t")
     if (org %in% c("ko","compound")) {## KO and compound
         if (org=="compound") {pref <- "cpd"} 
@@ -616,7 +617,8 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
     } else if (org=="pathway") {## Pathway
         pref <- paste0("path:",gsub("[[:digit:]]","",pid))
         convert_vec <- convert$V2
-        names(convert_vec) <- paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
+        names(convert_vec) <- 
+            paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
     } else {## Ordinary organisms
         convert_vec <- vapply(convert$V4, function(x) {
             vapply(unlist(strsplit(x, ";"))[1],
@@ -651,7 +653,7 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' @importFrom tidygraph graph_join
 #' @export
 #' @examples
-#' if (requireNamespace("bnlearn", quietly = TRUE)) {
+#' if (requireNamespace("bnlearn", quietly=TRUE)) {
 #'     ## Simulating boot.strength() results
 #'     av <- bnlearn::model2network("[6737|51428][51428]")
 #'     str <- data.frame(from="51428",to="6737",strength=0.8,direction=0.7)
@@ -660,7 +662,7 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
 #' }
 #' 
 combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
-    if (requireNamespace("bnlearn", quietly = TRUE)) {
+    if (requireNamespace("bnlearn", quietly=TRUE)) {
         ## Make igraph with strength from bnlearn
         el <- av |> bnlearn::as.igraph() |> as_edgelist() |> data.frame() |>
             `colnames<-`(c("from","to"))
@@ -689,7 +691,9 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
             }
         })
 
-        js <- do.call(rbind, js) |> data.frame() |> `colnames<-`(c("raw","reference"))
+        js <- do.call(rbind, js) |>
+            data.frame() |>
+            `colnames<-`(c("raw","reference"))
         gdf <- as_data_frame(g)
 
         new_df <- lapply(seq_len(nrow(gdf)), function(i) {
@@ -702,7 +706,9 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
             }
         })
 
-        gdf <- do.call(rbind, new_df) |> data.frame() |> `colnames<-`(colnames(gdf))
+        gdf <- do.call(rbind, new_df) |>
+            data.frame() |>
+            `colnames<-`(colnames(gdf))
 
         new_df <- lapply(seq_len(nrow(gdf)), function(i) {
             if (gdf[i,"to"] %in% js$raw){
@@ -713,13 +719,16 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
                 stop("no `to` included in raw node name")    
             }            
         })
-        gdf <- do.call(rbind, new_df) |> data.frame() |> `colnames<-`(colnames(gdf))
+        gdf <- do.call(rbind, new_df) |> 
+            data.frame() |>
+            `colnames<-`(colnames(gdf))
     
         gdf$strength <- as.numeric(gdf$strength)
         gdf$direction <- as.numeric(gdf$direction)
     
         ## Drop duplicates
-        gdf <- gdf |> distinct(.data$from, .data$to, .data$strength, .data$direction)
+        gdf <- gdf |>
+            distinct(.data$from, .data$to, .data$strength, .data$direction)
 
         joined <- graph_join(pg, gdf, by="name")
         joined    

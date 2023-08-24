@@ -58,7 +58,7 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
     con <- file(dest, "r")
     content_list <- list()
     while ( TRUE ) {
-        line <- readLines(con, n = 1)
+        line <- readLines(con, n=1)
         if ( length(line) == 0 ) {
             break
         }
@@ -238,8 +238,10 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
 #' 
 #' Below is quoted from https://www.genome.jp/kegg/module.html
 #' 
-#' `A space or a plus sign, representing a connection in the pathway or the molecular complex,
-#' is treated as an AND operator and a comma, used for alternatives, is treated as an OR operator.
+#' `A space or a plus sign, representing a connection
+#' in the pathway or the molecular complex,
+#' is treated as an AND operator and a comma,
+#' used for alternatives, is treated as an OR operator.
 #' A minus sign designates an optional item in the complex.`
 #' 
 #' @param kmo module object
@@ -393,7 +395,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
                 converted_string <- gsub(posmat$text[i],
                     posmat$name[i],
                     converted_string,
-                    fixed = TRUE)
+                    fixed=TRUE)
                 posmat$text[(i+1):nrow(posmat)] <- gsub(posmat$text[i],
                     posmat$name[i],
                     posmat$text[(i+1):nrow(posmat)],
@@ -440,7 +442,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
                 converted_string <- gsub(css$text[i],
                     css$name[i],
                     converted_string,
-                    fixed = TRUE)
+                    fixed=TRUE)
             }
         }
     } else {
@@ -455,7 +457,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
                 converted_string <- gsub(css$text[i],
                     css$name[i],
                     converted_string,
-                    fixed = TRUE)
+                    fixed=TRUE)
             }
         }
     }
@@ -475,7 +477,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
 
     if (!is.null(rels)) {
         rels <- rels |> data.frame() |> `colnames<-`(c("from", "to", "type"))    
-        relg <- graph_from_data_frame(rels, directed = FALSE)
+        relg <- graph_from_data_frame(rels, directed=FALSE)
         g <- simplify(relg, edge.attr.comb="first")
     
         noparen <- function(x) gsub("\\)","",gsub("\\(","",x))
@@ -535,7 +537,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
             }
             tmp_g <- data.frame(tmpg) |> `colnames<-`(c("from","to","type"))      
             el <- simplify(graph_from_data_frame(tmpg, directed=FALSE),
-                            edge.attr.comb = "first")
+                            edge.attr.comb="first")
             tmp_g <- data.frame(as_data_frame(el)) |>
                 `colnames<-`(c("from","to","type"))
             list(tmp_g, css)
@@ -625,23 +627,21 @@ module_graph <- function(input_string, skip_minus=FALSE) {
     if (!is.null(rels)) {
         if (!is.null(cssparsed)) {
             plotg <- simplify(graph_from_data_frame(rbind(all_g, cssparsed),
-                        directed = FALSE),
-                        edge.attr.comb = "first")
+                        directed=FALSE),
+                        edge.attr.comb="first")
         } else {
             plotg <- simplify(graph_from_data_frame(rbind(all_g),
-                        directed = FALSE),
-                        edge.attr.comb = "first")
+                        directed=FALSE),
+                        edge.attr.comb="first")
         }
     } else {
         if (!is.null(cssparsed)) {
             plotg <- simplify(graph_from_data_frame(rbind(cssparsed),
-                        directed = FALSE),
-                        edge.attr.comb = "first")
+                        directed=FALSE),
+                        edge.attr.comb="first")
         } else {
             plotg <- input_string
         }
-    # plotg <- simplify(graph_from_data_frame(norel, directed = FALSE),edge.attr.comb = "first")
-    # plotg <- graph_from_data_frame(rbind(as_data_frame(plotg), reledges), directed=TRUE)
     }
     return(plotg)
 }
@@ -663,16 +663,20 @@ parse_module <- function(kmo) {
         right <- gsub(" ","", right)
         Cpattern <- "C\\d{5}"
         Rpattern <- "R\\d{5}"
-        left_Rmatches <- str_extract_all(left, Rpattern) |> unlist() |> tibble()
-        left_Cmatches <- str_extract_all(left, Cpattern) |> unlist() |> tibble()
-        right_Cmatches <- str_extract_all(right, Cpattern) |> unlist() |> tibble()
+        left_Rmatches <- str_extract_all(left, Rpattern) |>
+            unlist() |> tibble()
+        left_Cmatches <- str_extract_all(left, Cpattern) |>
+            unlist() |> tibble()
+        right_Cmatches <- str_extract_all(right, Cpattern) |>
+            unlist() |> tibble()
         
         # left
         ## Reaction
         left2 <- gsub(" ", "", unlist(strsplit(left, "  "))[2])
         left1 <- gsub(" ", "", unlist(strsplit(left, "  "))[1])
         if (is.na(left2)) {
-            message("Some modules cannot be parsed properly by the delimiter '  ', changing the split parameter")
+            message("Some modules cannot be parsed properly by the delimiter",
+            " '  ', changing the split parameter")
             message(paste0("  ",left))
             left2 <- gsub(" ", "", unlist(strsplit(left, " "))[2])
             left1 <- gsub(" ", "", unlist(strsplit(left, " "))[1])        
@@ -693,11 +697,14 @@ parse_module <- function(kmo) {
             "each_reacs_raw"=c(left2, left1, right_raw |> gsub(" ","",x=_)),
             "reac"=reac)
     })
-    reac <- as_tibble(do.call(rbind, lapply(reac_list, function(x) x[["reac"]])))
+    reac <- as_tibble(do.call(rbind,
+        lapply(reac_list, function(x) x[["reac"]])))
     if (dim(reac)[1] != 0) {
-        each <- as_tibble(do.call(rbind, lapply(reac_list, function(x) x[["each_reacs"]])))
+        each <- as_tibble(do.call(rbind,
+            lapply(reac_list, function(x) x[["each_reacs"]])))
         names(each) <- c("left","reaction","right")
-        eachraw <- as_tibble(do.call(rbind, lapply(reac_list, function(x) x[["each_reacs_raw"]])))
+        eachraw <- as_tibble(do.call(rbind,
+            lapply(reac_list, function(x) x[["each_reacs_raw"]])))
         names(eachraw) <- c("left","reaction","right")
         reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
         kmo@reaction_graph <- as_tbl_graph(reac)
@@ -772,14 +779,15 @@ parse_module <- function(kmo) {
 #' @return numeric value
 module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
     mod <- module(mod_id)
-    ko_abun <- lapply(mod@definitions[[num]]$definition_ko_in_block, function(kos) {
-        if (length(intersect(kos, names(vec))) >= 1) {
-          mean_kos <- vec[intersect(kos, names(vec))] |> mean()
-        } else {
-          mean_kos <- 0
-        }
-        return(mean_kos)        
-    }) |> unlist()
+    ko_abun <- lapply(mod@definitions[[num]]$definition_ko_in_block,
+        function(kos) {
+            if (length(intersect(kos, names(vec))) >= 1) {
+              mean_kos <- vec[intersect(kos, names(vec))] |> mean()
+            } else {
+              mean_kos <- 0
+            }
+            return(mean_kos)        
+        }) |> unlist()
     
     comp <- module_completeness(mod, names(vec))
     comp$abundance <- ko_abun
@@ -802,7 +810,8 @@ module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
 #' @export
 pathway_abundance <- function(id, vec, num=1) {
     pway <- pathway_info(id)
-    mods <- pway$MODULE |> strsplit(" ") |> vapply("[", 1, FUN.VALUE="character") |> unique()
+    mods <- pway$MODULE |> strsplit(" ") |>
+        vapply("[", 1, FUN.VALUE="character") |> unique()
     abuns <- lapply(mods, function(mod) {
         module_abundance(mod_id=mod, num=num, vec=vec)
     }) |> unlist()
@@ -828,11 +837,16 @@ create_test_module <- function() {
     mo@name <- "test module"
     mo@reaction_each <- tibble(left=list("C00065"),reaction=list("R00586"),
         right=list("C00979"))
-    mo@reaction_each_raw <- tibble(left="C00065",reaction="R00586",right="C00979")
-    mo@definition_raw <- list(c("(K00174+K00175,K00382) (K01902+K01903,K01899"))
-    mo@definitions <- list("1"=list("definition_block"=c("K00174+K00175,K00382","K01902+K01903,K01899"),
+    mo@reaction_each_raw <- 
+        tibble(left="C00065",reaction="R00586",right="C00979")
+    mo@definition_raw <- 
+        list(c("(K00174+K00175,K00382) (K01902+K01903,K01899"))
+    mo@definitions <- 
+        list("1"=list("definition_block"=c("K00174+K00175,K00382",
+            "K01902+K01903,K01899"),
         "definition_kos"=c("K00174","K00175","K00382","K01902","K01903","K01899"),
         "definition_num_in_block"=c(3,3),
-        "definition_ko_in_block"=list(c("K00174","K00175","K00382"),c("K01902","K01903","K01899"))))
+        "definition_ko_in_block"=list(c("K00174","K00175","K00382"),
+            c("K01902","K01903","K01899"))))
     mo
 }

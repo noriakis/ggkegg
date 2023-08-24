@@ -144,10 +144,14 @@ pathway <- function(pid,
     kegg_nodes$ymin <- kegg_nodes$y-kegg_nodes$height/2-node_rect_nudge
     kegg_nodes$ymax <- kegg_nodes$y+kegg_nodes$height/2+node_rect_nudge
   
-    kegg_nodes[kegg_nodes$type=="group",]$xmin <- kegg_nodes[kegg_nodes$type=="group",]$xmin-group_rect_nudge
-    kegg_nodes[kegg_nodes$type=="group",]$ymin <- kegg_nodes[kegg_nodes$type=="group",]$ymin-group_rect_nudge
-    kegg_nodes[kegg_nodes$type=="group",]$xmax <- kegg_nodes[kegg_nodes$type=="group",]$xmax+group_rect_nudge
-    kegg_nodes[kegg_nodes$type=="group",]$ymax <- kegg_nodes[kegg_nodes$type=="group",]$ymax+group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$xmin <- 
+        kegg_nodes[kegg_nodes$type=="group",]$xmin-group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$ymin <- 
+        kegg_nodes[kegg_nodes$type=="group",]$ymin-group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$xmax <- 
+        kegg_nodes[kegg_nodes$type=="group",]$xmax+group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$ymax <- 
+        kegg_nodes[kegg_nodes$type=="group",]$ymax+group_rect_nudge
   
     kegg_nodes$orig.id <- kegg_nodes$id ## Store ID as orig.id
   
@@ -164,14 +168,16 @@ pathway <- function(pid,
         for (rs in rel_subtypes) {
             all_rels[[ei]] <- c(entry1, entry2, rel_type,
                 xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
-            setNames(c("entry1","entry2","type","subtype_name","subtype_value"))
+            setNames(c("entry1","entry2","type",
+                "subtype_name","subtype_value"))
         ei <- ei + 1
         }
     }
     
     if (length(all_rels) != 0) {
         kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
-            `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value"))
+            `colnames<-`(c("entry1","entry2","type",
+                "subtype_name","subtype_value"))
     } else {
         kegg_edges <- NULL
     }
@@ -195,8 +201,10 @@ pathway <- function(pid,
     ## Append grouping
     if (!is.null(kegg_edges)) {
         if (!is.null(gr_rels)) {
-            gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type",
-                "subtype_name","subtype_value"))
+            gr_rels <- gr_rels |> 
+                data.frame() |> 
+                `colnames<-`(c("entry1","entry2","type",
+                    "subtype_name","subtype_value"))
             if ("reaction" %in% colnames(kegg_edges)) {
                 gr_rels$reaction <- "in_group"
             }
@@ -205,7 +213,7 @@ pathway <- function(pid,
     }
 
     if (!is.null(kegg_edges)) {
-        g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
+        g <- graph_from_data_frame(kegg_edges, vertices=kegg_nodes)
     } else {
         g <- tbl_graph(nodes=kegg_nodes)
     }
@@ -266,17 +274,16 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
             
             lapply(seq_along(rawcos), function(rc) {
                 co <- unlist(strsplit(rawcos[rc], ","))
-                if (verbose) {
-                    GetoptLong::qqcat("@{raw_name}, cooridnates components: @{length(co)}\n")
-                }
                 lapply(seq_len(length(co)), function(h) {
                     if (is.na(co[h+2])) {return(NULL)}
                     if (h %% 2 == 0) {return(NULL)}
                     ## Assign unique identifiers each node
                     list(
-                            c(paste0(raw_name,"_",i,"_",rc,"_",h), co[h], co[h+1], "line", raw_name, origid) |>
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h),
+                                co[h], co[h+1], "line", raw_name, origid) |>
                                 setNames(name_col_node),
-                            c(paste0(raw_name,"_",i,"_",rc,"_",h+1), co[h+2], co[h+3], "line", raw_name, origid)|>
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h+1),
+                                co[h+2], co[h+3], "line", raw_name, origid)|>
                                 setNames(name_col_node),
                             c(paste0(raw_name,"_",i,"_",rc,"_",h),
                                 paste0(raw_name,"_",i,"_",rc,"_",h+1),
@@ -288,8 +295,8 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
         }
     })
     
-    results <- results |> unlist(recursive = FALSE)
-    results <- results |> unlist(recursive = FALSE)
+    results <- results |> unlist(recursive=FALSE)
+    results <- results |> unlist(recursive=FALSE)
     results[vapply(results, is.null, TRUE)] <- NULL
 
     cos <- do.call(rbind, lapply(results, function(x) {
@@ -311,7 +318,11 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
     df_add |> activate("nodes") |>
         mutate(original_name=vapply(seq_len(length(.data$original_name)),
             function(x){ 
-                if(is.na(.data$original_name[x])) .data$name[x] else .data$original_name[x]
+                if(is.na(.data$original_name[x])) {
+                    .data$name[x]  
+                }  else {
+                    .data$original_name[x]
+                }
             },
             FUN.VALUE="character"))
 }
@@ -403,9 +414,10 @@ process_reaction <- function(g, single_edge=FALSE) {
         })
     })
     new_eds <- unlist(new_eds, recursive=FALSE)
-    new_eds <- do.call(rbind, unlist(unlist(new_eds, recursive = FALSE),
-        recursive = FALSE)) |> data.frame() |>
-        `colnames<-`(c("from","to","type","reaction","name","bgcolor","fgcolor"))
+    new_eds <- do.call(rbind, unlist(unlist(new_eds, recursive=FALSE),
+        recursive=FALSE)) |> data.frame() |>
+        `colnames<-`(c("from","to","type","reaction",
+            "name","bgcolor","fgcolor"))
     
     new_eds <- new_eds[!duplicated(new_eds),]
     new_eds$from <- as.integer(new_eds$from)
@@ -458,16 +470,20 @@ get_reaction <- function(xml) {
         lapply(unlist(strsplit(all_reas[i,"id"], " ")), function(j) {
             return(
                 rbind(
-                    c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", NA, all_reas[i, "reac_name"]),
-                    c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", NA, all_reas[i, "reac_name"])
+                    c(all_reas[i,"substrate_id"], j, all_reas[i,"type"],
+                        "substrate", NA, all_reas[i, "reac_name"]),
+                    c(j, all_reas[i,"product_id"], all_reas[i,"type"],
+                        "product", NA, all_reas[i, "reac_name"])
                     )
                 )
         })
     })
 
 
-    rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |> data.frame() |> 
-        `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value","reaction"))
+    rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |>
+        data.frame() |> 
+        `colnames<-`(c("entry1","entry2","type",
+            "subtype_name","subtype_value","reaction"))
     rsp_rels
 }
 
@@ -500,12 +516,13 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
     con <- file(dest, "r")
     content_list <- list()
     while ( TRUE ) {
-        line <- readLines(con, n = 1)
+        line <- readLines(con, n=1)
         if ( length(line) == 0 ) {
             break
         }
         if (!startsWith(line, " ")) {
-            current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
+            current_id <- strsplit(line, " ") |>
+                vapply("[", 1, FUN.VALUE="character")
         }
         if (!current_id %in% c("REFERENCE","///")) {
             content <- substr(line, 13, nchar(line))
@@ -579,8 +596,10 @@ create_test_pathway <- function(line=FALSE) {
         nodes$xmax <- nodes$x+nodes$width/2
         nodes$ymax <- nodes$y+nodes$height/2
       
-        edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
-                       c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
+        edges <- rbind(c(from=1, to=2,
+            subtype_name="degradation",pathway_id="test"),
+                       c(from=1, to=2,
+            subtype_name="ubiquitination",pathway_id="test")) |>
             data.frame()
         edges$from <- as.integer(edges$from)
         edges$to <- as.integer(edges$to)

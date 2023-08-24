@@ -38,5 +38,5 @@ assign DESeq2 numerical values to nodes
 \examples{
 graph <- create_test_pathway()
 res <- data.frame(row.names="6737",log2FoldChange=1.2)
-graph <- graph |> mutate(num=assign_deseq2(res, gene_type = "ENTREZID"))
+graph <- graph |> mutate(num=assign_deseq2(res, gene_type="ENTREZID"))
 }

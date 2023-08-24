@@ -26,7 +26,7 @@ combine the reference KEGG pathway graph
 with bnlearn boot.strength output
 }
 \examples{
-if (requireNamespace("bnlearn", quietly = TRUE)) {
+if (requireNamespace("bnlearn", quietly=TRUE)) {
     ## Simulating boot.strength() results
     av <- bnlearn::model2network("[6737|51428][51428]")
     str <- data.frame(from="51428",to="6737",strength=0.8,direction=0.7)

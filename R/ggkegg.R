@@ -93,12 +93,14 @@ ggkegg <- function(pid,
                 } else if (module_definition_type == "network") {
                     return(obtain_sequential_module_definition(mod))
                 } else {
-                  stop("Please specify `network` or `text` to module_definition_type")
+                  stop("Please specify `network` or `text`",
+                  " to module_definition_type")
                 }
             } else if (module_type == "reaction") {
                 return(mod@reaction_graph)
             } else {
-                stop("Please specify `reaction` or `definition` to module_type")
+                stop("Please specify `reaction` or `definition`",
+                " to module_type")
             }
         }
     }
@@ -141,7 +143,7 @@ ggkegg <- function(pid,
     if (!is.null(enrich_attribute)) {
         bools <- vapply(V(g)$name, function(xx) {
             in_node <- strsplit(xx, " ") |> unlist() |> unique()
-            if (length(intersect(in_node, enrich_attribute)) >= 1) { ## Only `any`
+            if (length(intersect(in_node, enrich_attribute)) >= 1) {
                 return(TRUE)
             } else {
                 return(FALSE)
@@ -224,7 +226,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     
     number <- length(enrich)
     if (length(fill_color) != number) {
-        qqcat("Length of fill_color and enrich mismatches, taking first color\n")
+        qqcat("Length of fill_color and enrich mismatches,",
+            " taking first color\n")
         fill_color <- rep(fill_color[1], number)
     }
     if (is.list(enrich)) {
@@ -275,8 +278,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         gg <- gg + overlay_raw_map()+theme_void()
     }
     if (white_background) {
-        gg + theme(panel.background = element_rect(fill = 'white',
-            colour = 'white'))
+        gg + theme(panel.background=element_rect(fill='white', colour='white'))
     } else {
         gg
     }
@@ -360,8 +362,7 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
         gg <- gg + overlay_raw_map()+theme_void()
     }
     if (white_background) {
-        gg + theme(panel.background = element_rect(fill = 'white',
-            colour = 'white'))
+        gg + theme(panel.background=element_rect(fill='white', colour='white'))
     } else {
         gg
     }

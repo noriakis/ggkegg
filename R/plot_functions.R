@@ -77,7 +77,8 @@ plot_module_text <- function(plot_list, show_name="name") {
           alpha=0.5, color="black")+
          geom_node_rect(aes(filter=!.data$koflag & !.data$conflag),
           fill="transparent", color="black")+
-         geom_node_text(aes(label=.data$name,filter=.data$koflag | .data$conflag))+
+         geom_node_text(
+            aes(label=.data$name,filter=.data$koflag | .data$conflag))+
          theme_void()       
     })
     wrap_plots(panel_list, ncol=1)
@@ -114,13 +115,16 @@ plot_module_blocks <- function(all_steps, layout="kk") {
                             filter=!startsWith(.data$type,"in") & 
                             !.data$type %in% c("block_transition","rel")),
                         angle_calc="along",
-                        label_dodge = unit(2, 'mm')) + 
-        geom_node_point(size=4, aes(filter=!startsWith(.data$name,"manual_BLOCK") &
-                                !startsWith(.data$name,"manual_G") &
-                                !startsWith(.data$name,"manual_CS"))) + 
-        geom_node_point(size=2, shape=21, aes(filter=startsWith(.data$name,"manual_BLOCK"))) + 
-        geom_node_point(size=2, shape=21, aes(filter=startsWith(.data$name,"manual_CS") |
-                                            startsWith(.data$name,"manual_G"))) + 
+                        label_dodge=unit(2, 'mm')) + 
+        geom_node_point(size=4,
+            aes(filter=!startsWith(.data$name,"manual_BLOCK") &
+                !startsWith(.data$name,"manual_G") &
+                !startsWith(.data$name,"manual_CS"))) + 
+        geom_node_point(size=2, shape=21,
+            aes(filter=startsWith(.data$name,"manual_BLOCK"))) + 
+        geom_node_point(size=2, shape=21,
+            aes(filter=startsWith(.data$name,"manual_CS") |
+                    startsWith(.data$name,"manual_G"))) + 
         geom_node_text(aes(label=.data$name,
                         filter=startsWith(.data$name,"K")),
                         repel=TRUE, size=4, bg.colour="white")+
@@ -143,18 +147,18 @@ plot_module_blocks <- function(all_steps, layout="kk") {
 #' test_pathway <- create_test_pathway()
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  geom_node_shadowtext(aes(label=name))
-geom_node_shadowtext <- function(mapping = NULL, data = NULL,
-                           position = 'identity',
-                           show.legend = NA, ...) {
-    params <- list(na.rm = FALSE, ...)
+geom_node_shadowtext <- function(mapping=NULL, data=NULL,
+                           position='identity',
+                           show.legend=NA, ...) {
+    params <- list(na.rm=FALSE, ...)
 
     mapping <- c(mapping, aes(x=.data$x, y=.data$y))
     class(mapping) <- "uneval"
 
     layer(
-        data = data, mapping = mapping, stat = StatFilter, geom = GeomShadowText,
-        position = position, show.legend = show.legend, inherit.aes = FALSE,
-        params = params
+        data=data, mapping=mapping, stat=StatFilter, geom=GeomShadowText,
+        position=position, show.legend=show.legend, inherit.aes=FALSE,
+        params=params
     )
 }
 
@@ -174,17 +178,17 @@ geom_node_shadowtext <- function(mapping = NULL, data = NULL,
 #' test_pathway <- create_test_pathway()
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  geom_node_rect()
-geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
-                            show.legend = NA, ...) {
-    mapping <- c(mapping, aes(xmin = .data$xmin,
-                            ymin = .data$ymin,
-                            xmax = .data$xmax,
-                            ymax = .data$ymax))
+geom_node_rect <- function(mapping=NULL, data=NULL, position='identity',
+                            show.legend=NA, ...) {
+    mapping <- c(mapping, aes(xmin=.data$xmin,
+                            ymin=.data$ymin,
+                            xmax=.data$xmax,
+                            ymax=.data$ymax))
     class(mapping) <- "uneval"
     layer(
-        data = data, mapping = mapping, stat = StatFilter, geom = GeomRect,
-        position = position, show.legend = show.legend, inherit.aes = FALSE,
-        params = list(na.rm = FALSE, ...)
+        data=data, mapping=mapping, stat=StatFilter, geom=GeomRect,
+        position=position, show.legend=show.legend, inherit.aes=FALSE,
+        params=list(na.rm=FALSE, ...)
   )
 }
 
@@ -203,7 +207,7 @@ geom_node_rect <- function(mapping = NULL, data = NULL, position = 'identity',
 #'  geom_node_rect_kegg(type="gene")
 geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
     structure(list(type=type, rect_fill=rect_fill),
-        class = "geom_node_rect_kegg")
+        class="geom_node_rect_kegg")
 }
 
 #' ggplot_add.geom_node_rect_kegg
@@ -263,12 +267,14 @@ plot_kegg_network <- function(g, layout="nicely") {
         geom_edge_link(aes(label=.data$type,
                        filter=!startsWith(.data$type,"in")),
                    angle_calc="along", force_flip=FALSE,
-                   label_dodge = unit(2, 'mm')) +
+                   label_dodge=unit(2, 'mm')) +
         geom_edge_link(aes(filter=startsWith(.data$type,"in_and")))+ 
-        geom_edge_link(aes(filter=startsWith(.data$type,"in_block")), linetype=2)+ 
-        geom_node_point(size=4, aes(filter=!startsWith(.data$name,"manual_BLOCK") &
-                                  !(.data$group)&
-                                  !(.data$and_group))) + 
+        geom_edge_link(aes(filter=startsWith(.data$type,"in_block")),
+            linetype=2)+ 
+        geom_node_point(size=4,
+            aes(filter=!startsWith(.data$name,"manual_BLOCK") &
+                !(.data$group)&
+                !(.data$and_group))) + 
         geom_node_point(size=2, shape=21,
             aes(filter=startsWith(.data$name,"manual_BLOCK"))) + 
         geom_node_point(size=2, shape=21,
@@ -303,7 +309,7 @@ geom_kegg <- function(edge_color=NULL,
                 node_label=enquo(node_label),
                 group_color=group_color,
                 parallel=parallel),
-            class = "geom_kegg")
+            class="geom_kegg")
 }
 
 #' ggplot_add.geom_kegg
@@ -321,15 +327,15 @@ ggplot_add.geom_kegg <- function(object, plot, object_name) {
   if (object$parallel) {
         plot <- plot + 
             geom_edge_parallel(width=0.5,
-                        arrow = arrow(length = unit(1, 'mm')), 
-                        start_cap = square(1, 'cm'),
-                        end_cap = square(1.5, 'cm'))    
+                        arrow=arrow(length=unit(1, 'mm')), 
+                        start_cap=square(1, 'cm'),
+                        end_cap=square(1.5, 'cm'))    
     } else {
         plot <- plot +  
             geom_edge_link(width=0.5,
-                        arrow = arrow(length = unit(1, 'mm')), 
-                        start_cap = square(1, 'cm'),
-                        end_cap = square(1.5, 'cm'))
+                        arrow=arrow(length=unit(1, 'mm')), 
+                        start_cap=square(1, 'cm'),
+                        end_cap=square(1.5, 'cm'))
     }
 
     plot <- plot + geom_node_rect(aes(filter=.data$type=="group"),
