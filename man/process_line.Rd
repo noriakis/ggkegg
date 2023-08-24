@@ -28,9 +28,6 @@ We cannot show directed arrows, as coords are not ordered to show direction.
 \examples{
 ## For those containing nodes with the graphic type of `line`,
 ## parse the coords attributes to edges.
-gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
-           graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
-           graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
-gm_test <- tbl_graph(gm_test)
+gm_test <- create_test_pathway(line=TRUE)
 test <- process_line(gm_test)
 }

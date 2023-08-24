@@ -27,18 +27,7 @@ new edges corresponding to `substrate -> product` and `product -> substrate`
 if the reaction is reversible.
 }
 \examples{
-gm_test <- rbind(data.frame(name="cpd:C99998",type="compound",
-           graphics_name="C99998",fgcolor="#ff0000",bgcolor="#ffffff"),
-           data.frame(name="cpd:C99999",type="compound",
-                      graphics_name="C99999",fgcolor="#ff0000",bgcolor="#ffffff"),
-           data.frame(name="ko:K00224",type="ortholog",
-                      graphics_name="K00224",fgcolor="#ff0000",bgcolor="#ffffff")
-           )
-gm_test_edges <- rbind(data.frame(from=1,to=3,reaction="rn:R99999",subtype_name="substrate",
-                            type="irreversible"),
-                       data.frame(from=3,to=2,reaction="rn:R99999",subtype_name="product",
-                                  type="irreversible"))
-gm_test <- tbl_graph(gm_test, gm_test_edges)
+gm_test <- create_test_pathway(line=TRUE)
 test <- process_reaction(gm_test)
 
 }

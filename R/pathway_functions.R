@@ -20,7 +20,7 @@
 #' @importFrom XML xmlParse xmlApply
 #' @importFrom tibble as_tibble
 #' @importFrom utils download.file head tail
-#' @examples \dontrun{pathway("hsa04110")}
+#' @examples pathway("hsa04110")
 #' @export
 pathway <- function(pid,
     directory=NULL,
@@ -241,10 +241,7 @@ parse_kgml <- pathway
 #' @examples 
 #' ## For those containing nodes with the graphic type of `line`,
 #' ## parse the coords attributes to edges.
-#' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
-#'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
-#'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
-#' gm_test <- tbl_graph(gm_test)
+#' gm_test <- create_test_pathway(line=TRUE)
 #' test <- process_line(gm_test)
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 
@@ -337,18 +334,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' @export
 #' @return tbl_graph
 #' @examples
-#' gm_test <- rbind(data.frame(name="cpd:C99998",type="compound",
-#'            graphics_name="C99998",fgcolor="#ff0000",bgcolor="#ffffff"),
-#'            data.frame(name="cpd:C99999",type="compound",
-#'                       graphics_name="C99999",fgcolor="#ff0000",bgcolor="#ffffff"),
-#'            data.frame(name="ko:K00224",type="ortholog",
-#'                       graphics_name="K00224",fgcolor="#ff0000",bgcolor="#ffffff")
-#'            )
-#' gm_test_edges <- rbind(data.frame(from=1,to=3,reaction="rn:R99999",subtype_name="substrate",
-#'                             type="irreversible"),
-#'                        data.frame(from=3,to=2,reaction="rn:R99999",subtype_name="product",
-#'                                   type="irreversible"))
-#' gm_test <- tbl_graph(gm_test, gm_test_edges)
+#' gm_test <- create_test_pathway(line=TRUE)
 #' test <- process_reaction(gm_test)
 #' 
 process_reaction <- function(g, single_edge=FALSE) {
@@ -493,6 +479,7 @@ get_reaction <- function(xml) {
 #' @param use_cache whether to use cache
 #' @param directory directory of file
 #' @return list of orthology and module contained in the pathway
+#' @examples pathway_info("hsa04110")
 #' @export
 pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
     if (!is.null(directory)){
@@ -532,49 +519,72 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
 }
 
 
-
 #' create_test_pathway
 #' 
 #' As downloading from KEGG API is not desirable
 #' in vignettes or examples, return the `tbl_graph`
 #' with two nodes and two edges.
+#' @param line return example containing graphics type line
 #' @examples create_test_pathway()
 #' @export
 #' @return tbl_graph
-create_test_pathway <- function() {
-    ddx <- data.frame(
-        name="hsa:51428",
-        type="gene",
-        reaction=NA,
-        graphics_name="DDX41",
-        x=500, y=-400,
-        width=20,height=9,
-        bgcolor="#BFFFBF",
-        pathway_id="test"
-    )
-  
-    trim <- data.frame(
-        name="hsa:6737",
-        type="gene",
-        reaction=NA,
-        graphics_name="TRIM21",
-        x=560, y=-400,
-        width=20,height=9,
-        bgcolor="#BFFFBF",
-        pathway_id="test"
-    )
-  
-    nodes <- rbind(trim, ddx)
-    nodes$xmin <- nodes$x-nodes$width/2
-    nodes$ymin <- nodes$y-nodes$height/2
-    nodes$xmax <- nodes$x+nodes$width/2
-    nodes$ymax <- nodes$y+nodes$height/2
-  
-    edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
-                   c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
-        data.frame()
-    edges$from <- as.integer(edges$from)
-    edges$to <- as.integer(edges$to)
-    tbl_graph(nodes, edges)
+create_test_pathway <- function(line=FALSE) {
+
+    if (line) {
+        gm_test <- data.frame(name=c("cpd:C99998","cpd:C99999","ko:K00224"),
+            type=c("compound","compound","ortholog"),
+            graphics_type=c("circle","circle","line"),
+            graphics_name=c("C99998","C99999","K00224"),
+            coords=c(NA, NA, "1,2,3,4,5"),
+            reaction=c(NA,NA,"rn:R99999"),
+            orig.id=c(1,2,3),
+            fgcolor=c("#ff0000","#ff0000","#ff0000"),
+            bgcolor=c("#ffffff","#ffffff","#ffffff"))
+
+        gm_test_edges <- rbind(
+            data.frame(from=1,to=3,reaction="rn:R99999",
+                subtype_name="substrate",
+                type="irreversible"),
+            data.frame(from=3,to=2,reaction="rn:R99999",
+                subtype_name="product",
+                type="irreversible"))
+        gm_test <- tbl_graph(gm_test, gm_test_edges)
+        return(gm_test)
+    } else {
+        ddx <- data.frame(
+            name="hsa:51428",
+            type="gene",
+            reaction=NA,
+            graphics_name="DDX41",
+            x=500, y=-400,
+            width=20,height=9,
+            bgcolor="#BFFFBF",
+            pathway_id="test"
+        )
+      
+        trim <- data.frame(
+            name="hsa:6737",
+            type="gene",
+            reaction=NA,
+            graphics_name="TRIM21",
+            x=560, y=-400,
+            width=20,height=9,
+            bgcolor="#BFFFBF",
+            pathway_id="test"
+        )
+      
+        nodes <- rbind(trim, ddx)
+        nodes$xmin <- nodes$x-nodes$width/2
+        nodes$ymin <- nodes$y-nodes$height/2
+        nodes$xmax <- nodes$x+nodes$width/2
+        nodes$ymax <- nodes$y+nodes$height/2
+      
+        edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
+                       c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
+            data.frame()
+        edges$from <- as.integer(edges$from)
+        edges$to <- as.integer(edges$to)
+        tbl_graph(nodes, edges)        
+    }
 }
 

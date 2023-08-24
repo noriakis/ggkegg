@@ -30,7 +30,7 @@ setMethod("show",
 #' @param use_cache use cache
 #' @param directory directory to save raw files
 #' @return list of network definition
-#' @examples \dontrun{network("N00002")}
+#' @examples network("N00002")
 #' @export
 network <- function(nid, use_cache=FALSE, directory=NULL) {
     if (!startsWith(nid, "N")) {
@@ -202,9 +202,6 @@ network_graph <- function (kne, type="definition") {
     network_ID=kne@ID)
   g
 }
-
-
-
 
 #' create_test_network
 #' @return test network

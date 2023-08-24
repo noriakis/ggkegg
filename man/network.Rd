@@ -20,5 +20,5 @@ list of network definition
 parsing the network elements starting with N
 }
 \examples{
-\dontrun{network("N00002")}
+network("N00002")
 }

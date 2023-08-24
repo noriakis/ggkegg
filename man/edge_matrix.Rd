@@ -37,9 +37,9 @@ Adnan et al. 2020 (https://doi.org/10.1186/s12859-020-03692-2).
 }
 \examples{
 graph <- create_test_pathway()
-num_df <- data.frame(row.names=c("1029","4171"),
-                     "sample1"=c(1.1,1.2),
-                     "sample2"=c(1.1,1.2),
-                     check.names=FALSE)
+num_df <- data.frame(row.names=c("6737","51428"),
+                    "sample1"=c(1.1,1.2),
+                    "sample2"=c(1.1,1.2),
+                    check.names=FALSE)
 graph <- graph |> edge_matrix(num_df, gene_type = "ENTREZID")
 }

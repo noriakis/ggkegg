@@ -24,5 +24,5 @@ module_abundance
 weighted mean abundance of fraction of present KO in the block
 }
 \examples{
-\dontrun{module_abundance("M00003",c(1.2) |> setNames("K00927"))}
+module_abundance("M00003",c(1.2) |> setNames("K00927"))
 }

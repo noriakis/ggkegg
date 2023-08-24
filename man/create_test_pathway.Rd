@@ -4,7 +4,10 @@
 \alias{create_test_pathway}
 \title{create_test_pathway}
 \usage{
-create_test_pathway()
+create_test_pathway(line = FALSE)
+}
+\arguments{
+\item{line}{return example containing graphics type line}
 }
 \value{
 tbl_graph

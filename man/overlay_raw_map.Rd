@@ -19,7 +19,8 @@ overlay_raw_map(
 \item{directory}{directory to store images if not use cache}
 
 \item{transparent_colors}{make these colors transparent to overlay
-Typical choice of colors would be: "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
+Typical choice of colors would be:
+"#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
 "#ADADAD","#838383","#B3B3B3"}
 
 \item{adjust}{adjust the x-axis location by 0.5 in data coordinates}
@@ -35,16 +36,9 @@ ggplot2 object
 Overlay the raw KEGG pathway image on ggraph
 }
 \examples{
-nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-                   x=c(1,1),
-                   xmin=c(-1,-1),
-                   xmax=c(2,2),
-                   y=c(1,1),
-                   ymin=c(-1,-1),
-                   ymax=c(2,2),
-                   pathway_id="hsa04110")
-edges <- data.frame(from=1, to=2, name="K00112")
-graph <- tbl_graph(nodes, edges)
-\dontrun{ggraph(graph) + overlay_raw_map()}
+## Need `pathway_id` column in graph 
+## if the function is to automatically infer
+graph <- create_test_pathway() |> mutate(pathway_id="hsa04110")
+ggraph(graph) + overlay_raw_map()
 
 }
