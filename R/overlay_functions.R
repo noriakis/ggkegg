@@ -10,6 +10,10 @@
 #' "#ADADAD","#838383","#B3B3B3"
 #' @param clip clip the both end of x- and y-axis by one dot
 #' @param adjust adjust the x-axis location by 0.5 in data coordinates
+#' @param adjust_manual_x adjust the position manually for x-axis
+#' Override `adjust`
+#' @param adjust_manual_y adjust the position manually for y-axis
+#' Override `adjust`
 #' @param use_cache whether to use BiocFileCache()
 #' @import magick
 #' @return ggplot2 object
@@ -25,12 +29,16 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                                 "#BFBFFF","#BFFFBF","#7F7F7F",
                                 "#808080"),
                             adjust=TRUE,
+                            adjust_manual_x=NULL,
+                            adjust_manual_y=NULL,
                             clip=FALSE,
                             use_cache=TRUE) {
     structure(list(pid=pid,
                     transparent_colors=transparent_colors,
                     adjust=adjust,
                     clip=clip,
+                    adjust_manual_x=adjust_manual_x,
+                    adjust_manual_y=adjust_manual_y,
                     directory=directory,
                     use_cache=use_cache),
             class="overlay_raw_map")
@@ -98,7 +106,16 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         ras <- ras[seq_len(nrow(ras)-1),
                     seq_len(ncol(ras)-1)]
     }
-
+    if (!is.null(object$adjust_manual_x)) {
+        object$adjust <- FALSE
+        xmin <- xmin + object$adjust_manual_x
+        xmax <- xmax + object$adjust_manual_x
+    }
+    if (!is.null(object$adjust_manual_y)) {
+        object$adjust <- FALSE
+        ymin <- ymin + object$adjust_manual_y
+        ymax <- ymax + object$adjust_manual_y
+    }
     if (object$adjust) {
         xmin <- xmin - 0.5
         xmax <- xmax - 0.5

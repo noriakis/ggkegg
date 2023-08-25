@@ -21,15 +21,15 @@ knitr::opts_chunk$set(echo = TRUE,
 
 # ggkegg
 
-This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages. As we will not download the raw KEGG information in this vignette, please refer to [the documentation](https://noriakis.github.io/software/ggkegg) for the detailed usage.
+This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages and the connection to the other tidy manipulation packages. In this documentation, the basic usage of `ggkegg` is presented. Please refer to [the documentation](https://noriakis.github.io/software/ggkegg) for the detailed usage.
 
 ## Introduction
 
-There are packages doing KEGG PATHWAY analysis in R. `r BiocStyle::Biocpkg("pathview")` fetches KEGG PATHWAY information, enabling the output of images reflecting various user-defined values on the map. `r BiocStyle::Biocpkg("KEGGlincs")` can overlay LINCS data to KEGG PATHWAY, and examine the map using Cytoscape. `r BiocStyle::Biocpkg("graphite")` acquires pathways including KEGG and Reactome, convert them into graphNEL format, and provides an interface for topological analysis. `r BiocStyle::Biocpkg("KEGGgraph")` also downloads KEGG PATHWAY information and converts it into a format analyzable in R. Extending to these great packages, the purpose of developing this package, `ggkegg`, is to allow for tidy manipulation of KEGG information by the power of `tidygraph`, to plot the relevant information using grammar of graphics, to examine the global and overview maps consisting of compounds and reactions.
+There are many great packages performing KEGG PATHWAY analysis in R. `r BiocStyle::Biocpkg("pathview")` fetches KEGG PATHWAY information, enabling the output of images reflecting various user-defined values on the map. `r BiocStyle::Biocpkg("KEGGlincs")` can overlay LINCS data to KEGG PATHWAY, and examine the map using Cytoscape. `r BiocStyle::Biocpkg("graphite")` acquires pathways including KEGG and Reactome, convert them into graphNEL format, and provides an interface for topological analysis. `r BiocStyle::Biocpkg("KEGGgraph")` also downloads KEGG PATHWAY information and converts it into a format analyzable in R. Extending to these packages, the purpose of developing this package, `ggkegg`, is to allow for tidy manipulation of KEGG information by the power of `tidygraph`, to plot the relevant information in flexible and customizable ways using grammar of graphics, to examine the global and overview maps consisting of compounds and reactions.
 
 ## Pathway
 
-The users can obtain a KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory of the file with `directory` argument. Here, we obtain `Cell cycle` pathway (`hsa04110`) using cache.
+The users can obtain a KEGG PATHWAY `tbl_graph` by `pathway` function. If you want to cache the file, please specify `use_cache=TRUE`, and if you already have the XML files of the pathway, please specify the directory of the file with `directory` argument. Here, we obtain `Cell cycle` pathway (`hsa04110`) using cache. `pathway_id` column is inserted to node and edge by default, which allows for the identification of the pathway ID in the other functions.
 
 ```{r pathway1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 library(ggkegg)
@@ -39,7 +39,7 @@ graph <- ggkegg::pathway("hsa04110", use_cache=TRUE)
 graph
 ```
 
-The output can be analysed readily using `tidygraph` and `dplyr` verbs. For example, degree calculations can be performed as follows.
+The output can be analysed readily using `tidygraph` and `dplyr` verbs. For example, centrality calculations can be performed as follows.
 
 ```{r pathway1_1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
 graph |> 
@@ -52,7 +52,7 @@ graph |>
     relocate(degree, betweenness)
 ```
 
-### Plot using `ggraph`
+### Plot the pathway using `ggraph`
 
 The parsed `tbl_graph` can be used to plot the information by `ggraph` using the grammar of graphics. The components in the graph such as nodes, edges, and text can be plotted layer by layer.
 
@@ -74,9 +74,29 @@ ggraph(graph, layout="manual", x=x, y=y)+
     theme_void()
 ```
 
+Besides the default ordering, various layout functions in `igraph` and `ggraph` can be used.
+
+```{r plot_pathway2, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
+graph |> mutate(x=NULL, y=NULL) |>
+ggraph(layout="nicely")+
+    geom_edge_parallel(aes(color=subtype_name),
+        arrow=arrow(length=unit(1,"mm"), type="closed"),
+        end_cap=circle(0.1,"cm"),
+        start_cap=circle(0.1,"cm"))+
+    geom_node_point(aes(filter=type == "gene"),
+                  color="black")+
+    geom_node_point(aes(filter=type == "group"),
+                  color="tomato")+
+    geom_node_text(aes(label=showname,
+                      filter=type == "gene"),
+                  size=3, repel=TRUE, bg.colour="white")+
+    scale_edge_color_viridis(discrete=TRUE)+
+    theme_void()
+```
+
 ## Converting identifiers
 
-In the above example, `graphics_name` column in the node table were used, which are available in the default KGML file. The user can convert identifiers using `convert_id` function to be used in `mutate`. One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph`.
+In the above example, `graphics_name` column in the node table were used, which are available in the default KGML file. Some of them are truncated, and the user can convert identifiers using `convert_id` function to be used in `mutate`. One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph`.
 
 ```{r convert, message=FALSE, warning=FALSE}
 graph |>
@@ -118,8 +138,8 @@ The code below creates nodes using default parsed background color and just over
 
 ```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE, dev="CairoPNG"}
 graph |>
-  mutate(degree=centrality_degree(mode="all")) |>
-  ggraph(graph, layout="manual", x=x, y=y)+
+    mutate(degree=centrality_degree(mode="all")) |>
+    ggraph(graph, layout="manual", x=x, y=y)+
         geom_node_rect(aes(fill=degree,
                       filter=type == "gene"))+
         overlay_raw_map()+
