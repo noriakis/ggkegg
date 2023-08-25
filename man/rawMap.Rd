@@ -32,11 +32,13 @@ ggraph with overlaid KEGG map
 \description{
 given enrichResult class object,
 return the ggplot object with raw KEGG map overlaid on
-enriched pathway
+enriched pathway. Can be used with the function such as 
+`clusterProfiler::enrichKEGG` and `MicrobiomeProfiler::enrichKO()`
 }
 \examples{
 if (require("clusterProfiler")) {
     cp <- enrichKEGG(c("1029","4171"))
-    \dontrun{rawMap(list(cp,cp), pid="hsa04110")}
+    ## Multiple class object can be passed by list
+    rawMap(list(cp,cp), pid="hsa04110")
 }
 }

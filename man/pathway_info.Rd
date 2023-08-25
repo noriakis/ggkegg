@@ -19,3 +19,6 @@ list of orthology and module contained in the pathway
 \description{
 obtain the list of pathway information
 }
+\examples{
+pathway_info("hsa04110")
+}

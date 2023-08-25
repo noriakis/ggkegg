@@ -44,5 +44,5 @@ tbl_graph by default
 KEGG pathway parsing function
 }
 \examples{
-\dontrun{pathway("hsa04110")}
+pathway("hsa04110")
 }

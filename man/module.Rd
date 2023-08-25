@@ -22,5 +22,5 @@ module
 KEGG module parsing function
 }
 \examples{
-\dontrun{module("M00003")}
+module("M00003")
 }

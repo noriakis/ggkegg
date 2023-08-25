@@ -23,6 +23,7 @@ joined graph or list of graphs in which the coordinates are altered to panel
 the pathways.
 }
 \examples{
-\dontrun{multi_pathway_native(list("hsa04110","hsa03460"))}
+## Pass multiple pathway IDs
+multi_pathway_native(list("hsa04110","hsa03460"))
 
 }

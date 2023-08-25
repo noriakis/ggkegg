@@ -13,12 +13,13 @@ append_label_position(g)
 tbl_graph
 }
 \description{
-append the label position at center of edges
+Append the label position at center of edges
 in global map like ko01100 where line type nodes
-are present in KGML. Add `center` column to graph edge
+are present in KGML. 
+Add `center` column to graph edge.
 }
 \examples{
-## For those containing nodes with the graphic type of `line`
+## Simulate nodes containing `graphics_type` of line and `coords`
 gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")

@@ -2,9 +2,7 @@
 % Please edit documentation in R/network_functions.R
 \name{network}
 \alias{network}
-\title{KEGG network parsing function
-network
-parsing the network elements starting with N}
+\title{KEGG network parsing function}
 \usage{
 network(nid, use_cache = FALSE, directory = NULL)
 }
@@ -19,10 +17,8 @@ network(nid, use_cache = FALSE, directory = NULL)
 list of network definition
 }
 \description{
-KEGG network parsing function
-network
 parsing the network elements starting with N
 }
 \examples{
-\dontrun{network("N00002")}
+network("N00002")
 }

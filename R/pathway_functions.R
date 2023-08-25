@@ -17,225 +17,217 @@
 #' @importFrom igraph graph_from_data_frame
 #' @import igraph
 #' @importFrom tidygraph .G
-#' @importFrom XML xmlParse
+#' @importFrom XML xmlParse xmlApply
 #' @importFrom tibble as_tibble
 #' @importFrom utils download.file head tail
-#' @examples \dontrun{pathway("hsa04110")}
+#' @examples pathway("hsa04110")
 #' @export
 pathway <- function(pid,
-           directory=NULL,
-           use_cache=FALSE,
-           group_rect_nudge=2,
-           node_rect_nudge=0,
-           invert_y=TRUE,
-           add_pathway_id=TRUE,
-           return_tbl_graph=TRUE,
-           return_image=FALSE) {
-  ## Specification of KGML format
-  ## https://www.genome.jp/kegg/xml/docs/
+    directory=NULL,
+    use_cache=FALSE,
+    group_rect_nudge=2,
+    node_rect_nudge=0,
+    invert_y=TRUE,
+    add_pathway_id=TRUE,
+    return_tbl_graph=TRUE,
+    return_image=FALSE) {
+    
+    ## Specification of KGML format is available at:
+    ## https://www.genome.jp/kegg/xml/docs/
 
-  file_name <- paste0(pid,".xml")
-  if (!is.null(directory)) {
-    file_name <- paste0(directory,"/",file_name)
-  }
-  if (!file.exists(file_name)) {
-    if (use_cache) {
-      bfc <- BiocFileCache()
-      file_name <- bfcrpath(bfc,
-        paste0("https://rest.kegg.jp/get/",pid,"/kgml"))
-    } else {
-      download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
-                  destfile=file_name)
+    file_name <- paste0(pid,".xml")
+    if (!is.null(directory)) {
+        file_name <- paste0(directory,"/",file_name)
     }
-  }
+    if (!file.exists(file_name)) {
+        if (use_cache) {
+            bfc <- BiocFileCache()
+            file_name <- bfcrpath(bfc,
+                paste0("https://rest.kegg.jp/get/",pid,"/kgml"))
+        } else {
+            download.file(url=paste0("https://rest.kegg.jp/get/",pid,"/kgml"),
+                            destfile=file_name)
+        }
+    }
 
-  xml <- xmlParse(file_name)
-  node_sets <- getNodeSet(xml, "//entry")
-  all_nodes <- list()
-  grs <- list()
-  rev_grs <- list()
+    xml <- xmlParse(file_name)
+    node_sets <- getNodeSet(xml, "//entry")
+    
+    ## Preallocate
+    all_nodes <- vector(mode="list", length=length(node_sets))
+    grs <- vector(mode="list", length=length(node_sets))
+    rev_grs <- vector(mode="list", length=length(node_sets))
 
-  node_names <- c("id","name","type","reaction",
+    node_names <- c("id","name","type","reaction",
                    "graphics_name",
                    "x","y","width","height","fgcolor","bgcolor",
                    "graphics_type","coords")
 
-  pwy <- getNodeSet(xml, "//pathway")[[1]]
+    pwy <- getNodeSet(xml, "//pathway")[[1]]
 
-  pwy_name <- xmlAttrs(pwy)["name"]
-  pwy_org <- xmlAttrs(pwy)["org"]
-  pwy_number <- xmlAttrs(pwy)["number"]
-  pwy_title <- xmlAttrs(pwy)["title"]
-  pwy_image <- xmlAttrs(pwy)["image"]
-  pwy_link <- xmlAttrs(pwy)["link"]
+    pwy_name <- xmlAttrs(pwy)["name"]
+    pwy_org <- xmlAttrs(pwy)["org"]
+    pwy_number <- xmlAttrs(pwy)["number"]
+    pwy_title <- xmlAttrs(pwy)["title"]
+    pwy_image <- xmlAttrs(pwy)["image"]
+    pwy_link <- xmlAttrs(pwy)["link"]
 
-  if (return_image) return(pwy_image)
-  ni <- 1
-  for (node in node_sets) {
-    id <- xmlAttrs(node)["id"]
-    name <- xmlAttrs(node)["name"]
-    type <- xmlAttrs(node)["type"]
-    reac <- xmlAttrs(node)["reaction"]
+    if (return_image) return(pwy_image)
+    
+    ni <- 1
+    for (node in node_sets) {
+        id <- xmlAttrs(node)["id"]
+        name <- xmlAttrs(node)["name"]
+        type <- xmlAttrs(node)["type"]
+        reac <- xmlAttrs(node)["reaction"]
 
-    gls <- getNodeSet(node, "graphics")
-    mult_coords <- NULL
-    for (gl in gls) {
-      glname <- xmlAttrs(gl)["name"]
-      gltype <- xmlAttrs(gl)["type"]
+        gls <- getNodeSet(node, "graphics")
 
-      ## If multiple graphics, take the last
-      ## parameters and append only the multiple coordinates
-      ## Otherwise graph will have duplicate 'original' ID
-      glcoords <- xmlAttrs(gl)["coords"]
-      mult_coords <- c(mult_coords, glcoords)
+        ## Preallocate
+        mult_coords <- vector(mode="list",
+            length=length(xmlApply(gls, function(x) xmlAttrs(x)["coords"])))
+        for (gl in gls) {
+            glname <- xmlAttrs(gl)["name"]
+            gltype <- xmlAttrs(gl)["type"]
 
-      x <- as.numeric(xmlAttrs(gl)["x"])
-      if (invert_y) {
-        y <- -1*as.numeric(xmlAttrs(gl)["y"])
-      } else {
-        y <- as.numeric(xmlAttrs(gl)["y"])
-      }
-      w <- as.numeric(xmlAttrs(gl)["width"])
-      h <- as.numeric(xmlAttrs(gl)["height"])
-      fg <- xmlAttrs(gl)["fgcolor"]
-      bg <- xmlAttrs(gl)["bgcolor"]
-      if (type=="group") {
-        for (comp in xmlElementsByTagName(node,"component")) {
-          grs[[as.character(id)]] <- 
-            c(grs[[as.character(id)]], as.character(xmlAttrs(comp)["id"]))
-          rev_grs[[as.character(xmlAttrs(comp)["id"])]] <- 
-            c(rev_grs[[as.character(xmlAttrs(comp)["id"])]], as.character(id))
+            ## If multiple graphics, take the last
+            ## parameters and append only the multiple coordinates
+            ## Otherwise graph will have duplicate 'original' ID
+            
+            glcoords <- xmlAttrs(gl)["coords"]
+            mult_coords <- c(mult_coords, glcoords)
+
+            x <- as.numeric(xmlAttrs(gl)["x"])
+            if (invert_y) {
+                y <- -1*as.numeric(xmlAttrs(gl)["y"])
+            } else {
+                y <- as.numeric(xmlAttrs(gl)["y"])
+            }
+            
+            w <- as.numeric(xmlAttrs(gl)["width"])
+            h <- as.numeric(xmlAttrs(gl)["height"])
+            fg <- xmlAttrs(gl)["fgcolor"]
+            bg <- xmlAttrs(gl)["bgcolor"]
+            
+            if (type=="group") {
+                for (comp in xmlElementsByTagName(node,"component")) {
+                    grs[[as.character(id)]] <- 
+                        c(grs[[as.character(id)]],
+                            as.character(xmlAttrs(comp)["id"]))
+                    rev_grs[[as.character(xmlAttrs(comp)["id"])]] <- 
+                        c(rev_grs[[as.character(xmlAttrs(comp)["id"])]],
+                            as.character(id))
+                }
+            }   
         }
-      }
-    }
-    all_nodes[[ni]] <- c(id, name, type, reac,
+        all_nodes[[ni]] <- c(id, name, type, reac,
                         glname, x, y, w, h, fg, bg, gltype,
-                        paste0(mult_coords, collapse="|")) |>
+                        paste0(mult_coords |> unlist(), collapse="|")) |>
                         setNames(node_names)
-    ni <- ni + 1
-  }
-  kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
-    `colnames<-`(node_names)
-
-  kegg_nodes$x <- as.numeric(kegg_nodes$x)
-  kegg_nodes$y <- as.numeric(kegg_nodes$y)
-  kegg_nodes$width <- as.numeric(kegg_nodes$width)
-  kegg_nodes$height <- as.numeric(kegg_nodes$height)
-
-  kegg_nodes$xmin <- kegg_nodes$x-kegg_nodes$width/2-node_rect_nudge
-  kegg_nodes$xmax <- kegg_nodes$x+kegg_nodes$width/2+node_rect_nudge
-  kegg_nodes$ymin <- kegg_nodes$y-kegg_nodes$height/2-node_rect_nudge
-  kegg_nodes$ymax <- kegg_nodes$y+kegg_nodes$height/2+node_rect_nudge
-  
-  kegg_nodes[kegg_nodes$type=="group",]$xmin <- kegg_nodes[kegg_nodes$type=="group",]$xmin-group_rect_nudge
-  kegg_nodes[kegg_nodes$type=="group",]$ymin <- kegg_nodes[kegg_nodes$type=="group",]$ymin-group_rect_nudge
-  kegg_nodes[kegg_nodes$type=="group",]$xmax <- kegg_nodes[kegg_nodes$type=="group",]$xmax+group_rect_nudge
-  kegg_nodes[kegg_nodes$type=="group",]$ymax <- kegg_nodes[kegg_nodes$type=="group",]$ymax+group_rect_nudge
-  
-  # kegg_nodes$xmin <- kegg_nodes$x-rect_width#kegg_nodes$width
-  # kegg_nodes$xmax <- kegg_nodes$x+rect_width#kegg_nodes$width
-  # kegg_nodes$ymin <- kegg_nodes$y-rect_height#kegg_nodes$height
-  # kegg_nodes$ymax <- kegg_nodes$y+rect_height#kegg_nodes$height
-  kegg_nodes$orig.id <- kegg_nodes$id ## Store ID as orig.id
-  
-  rel_sets <- getNodeSet(xml, "//relation")
-  all_rels <- NULL
-  ei <- 1
-  for (rel in rel_sets) {
-    entry1 <- xmlAttrs(rel)["entry1"]
-    entry2 <- xmlAttrs(rel)["entry2"]
-    rel_type <- xmlAttrs(rel)["type"]
-    # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
-    rel_subtypes <- xmlElementsByTagName(rel,"subtype")
-    for (rs in rel_subtypes) {
-      all_rels[[ei]] <- c(entry1, entry2, rel_type,
-        xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
-      setNames(c("entry1","entry2","type","subtype_name","subtype_value"))
-      ei <- ei + 1
+        ni <- ni + 1
     }
-  }
-  if (!is.null(all_rels)) {
-    kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
-      `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value"))
-  } else {
-    kegg_edges <- NULL
-  }
+    
+    all_nodes[vapply(all_nodes, is.null, TRUE)] <- NULL
+    grs[vapply(grs, is.null, TRUE)] <- NULL
+    rev_grs[vapply(rev_grs, is.null, TRUE)] <- NULL
 
-  gr_rels <- NULL
-  for (gr_name in names(grs)) {
-    for (comp_name in grs[[gr_name]]) {
-      ## Pad other values by `in_group`
-      gr_rels <- rbind(gr_rels, 
-        c(gr_name, comp_name, "in_group", "in_group", "in_group"))
+    kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
+        `colnames<-`(node_names)
+
+    kegg_nodes$x <- as.numeric(kegg_nodes$x)
+    kegg_nodes$y <- as.numeric(kegg_nodes$y)
+    kegg_nodes$width <- as.numeric(kegg_nodes$width)
+    kegg_nodes$height <- as.numeric(kegg_nodes$height)
+
+    kegg_nodes$xmin <- kegg_nodes$x-kegg_nodes$width/2-node_rect_nudge
+    kegg_nodes$xmax <- kegg_nodes$x+kegg_nodes$width/2+node_rect_nudge
+    kegg_nodes$ymin <- kegg_nodes$y-kegg_nodes$height/2-node_rect_nudge
+    kegg_nodes$ymax <- kegg_nodes$y+kegg_nodes$height/2+node_rect_nudge
+  
+    kegg_nodes[kegg_nodes$type=="group",]$xmin <- 
+        kegg_nodes[kegg_nodes$type=="group",]$xmin-group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$ymin <- 
+        kegg_nodes[kegg_nodes$type=="group",]$ymin-group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$xmax <- 
+        kegg_nodes[kegg_nodes$type=="group",]$xmax+group_rect_nudge
+    kegg_nodes[kegg_nodes$type=="group",]$ymax <- 
+        kegg_nodes[kegg_nodes$type=="group",]$ymax+group_rect_nudge
+  
+    kegg_nodes$orig.id <- kegg_nodes$id ## Store ID as orig.id
+  
+    rel_sets <- getNodeSet(xml, "//relation")
+    ## Preallocate
+    all_rels <- vector(mode="list", length=length(rel_sets))
+    ei <- 1
+    for (rel in rel_sets) {
+        entry1 <- xmlAttrs(rel)["entry1"]
+        entry2 <- xmlAttrs(rel)["entry2"]
+        rel_type <- xmlAttrs(rel)["type"]
+        # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
+        rel_subtypes <- xmlElementsByTagName(rel,"subtype")
+        for (rs in rel_subtypes) {
+            all_rels[[ei]] <- c(entry1, entry2, rel_type,
+                xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
+            setNames(c("entry1","entry2","type",
+                "subtype_name","subtype_value"))
+        ei <- ei + 1
+        }
     }
-  }
-  ## Include grouping edge
-  # for (i in seq_len(nrow(kegg_edges))) {
-  #   if (kegg_edges[i,"entry1"] %in% names(grs)) {
-  #     for (tmp_node in grs[[kegg_edges[i,"entry1"]]]) {
-  #       kegg_edges <- rbind(kegg_edges, c(tmp_node,
-  #                                         kegg_edges[i,"entry2"],
-  #                                         kegg_edges[i,"type"],
-  #                                         kegg_edges[i,"subtype"]))
-  #     }
-  #   }
-  #   if (kegg_edges[i,"entry2"] %in% names(grs)) {
-  #     for (tmp_node in grs[[kegg_edges[i,"entry2"]]]) {
-  #       kegg_edges <- rbind(kegg_edges, c(kegg_edges[i,"entry1"],
-  #                                         tmp_node,
-  #                                         kegg_edges[i,"type"],
-  #                                         kegg_edges[i,"subtype"]))
-  #     }
-  #   }
-  # }
-  if (length(getNodeSet(xml, "//reaction"))!=0) {
-    kegg_reac <- get_reaction(xml)
-    if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA}
-    kegg_edges <- rbind(kegg_edges, kegg_reac)
-  }
-
-  ## Append grouping
-  if (!is.null(kegg_edges)) {
-    if (!is.null(gr_rels)) {
-      gr_rels <- gr_rels |> data.frame() |> `colnames<-`(c("entry1","entry2","type",
-        "subtype_name","subtype_value"))
-      if ("reaction" %in% colnames(kegg_edges)) {
-        gr_rels$reaction <- "in_group"
-      }
-      kegg_edges <- rbind(kegg_edges, gr_rels)
+    
+    if (length(all_rels) != 0) {
+        kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
+            `colnames<-`(c("entry1","entry2","type",
+                "subtype_name","subtype_value"))
+    } else {
+        kegg_edges <- NULL
     }
-  }
 
-  if (!is.null(kegg_edges)) {
-    g <- graph_from_data_frame(kegg_edges, vertices = kegg_nodes)
-  } else {
-    # message("No edges in the map, returning node data")
-    g <- tbl_graph(nodes=kegg_nodes)
-    # return(kegg_nodes)
-  }
+    gr_rels <- lapply(names(grs), function(gr_name) {
+        tmp_rel <- lapply(grs[[gr_name]], function(comp_name) {
+            ## Pad other values by `in_group`
+            return(c(gr_name, comp_name, "in_group", "in_group", "in_group"))         
+        })
+        do.call(rbind, tmp_rel)
+    })
+    gr_rels <- do.call(rbind, gr_rels)
+    
 
-  ## Assign grouping
-  # group <- NULL
-  # for (i in V(g)$orig.id) {
-  #   if (i %in% names(rev_grs)) {
-  #     group <- c(group, paste(as.character(rev_grs[[i]]), collapse=","))
-  #   } else {
-  #     group <- c(group, NA)
-  #   }
-  # }
-  # V(g)$group <- unlist(group)
+    if (length(getNodeSet(xml, "//reaction"))!=0) {
+        kegg_reac <- get_reaction(xml)
+        if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA}
+        kegg_edges <- rbind(kegg_edges, kegg_reac)
+    }
+
+    ## Append grouping
+    if (!is.null(kegg_edges)) {
+        if (!is.null(gr_rels)) {
+            gr_rels <- gr_rels |> 
+                data.frame() |> 
+                `colnames<-`(c("entry1","entry2","type",
+                    "subtype_name","subtype_value"))
+            if ("reaction" %in% colnames(kegg_edges)) {
+                gr_rels$reaction <- "in_group"
+            }
+            kegg_edges <- rbind(kegg_edges, gr_rels)
+        }
+    }
+
+    if (!is.null(kegg_edges)) {
+        g <- graph_from_data_frame(kegg_edges, vertices=kegg_nodes)
+    } else {
+        g <- tbl_graph(nodes=kegg_nodes)
+    }
 
 
-  if (add_pathway_id) {
-    V(g)$pathway_id <- pid
-    E(g)$pathway_id <- pid
-  }
-  if (return_tbl_graph) {
-    return(as_tbl_graph(g))
-  } else {
-    return(g)
-    # return(as.igraph(g))
-  }
+    if (add_pathway_id) {
+        V(g)$pathway_id <- pid
+        E(g)$pathway_id <- pid
+    }
+    if (return_tbl_graph) {
+        return(as_tbl_graph(g))
+    } else {
+        return(g)
+    }
 }
 parse_kgml <- pathway
 
@@ -245,6 +237,8 @@ parse_kgml <- pathway
 #' global maps e.g. ko01100. Recursively add nodes and edges 
 #' connecting them based on `coords` properties in KGML.
 #' 
+#' We cannot show directed arrows, as coords are not ordered to show direction.
+#' 
 #' @param g graph
 #' @param invert_y whether to invert the position, default to TRUE
 #' should match with `pathway` function
@@ -253,99 +247,84 @@ parse_kgml <- pathway
 #' @export
 #' @return tbl_graph
 #' @examples 
-#' ## For those containing nodes with the graphic type of `line`
-#' gm_test <- data.frame(name="ko:K00112",type="ortholog",reaction="rn:R00112",
-#'            graphics_name="K00112",fgcolor="#ff0000",bgcolor="#ffffff",
-#'            graphics_type="line",coords="1,2,3,4",orig.id=1,pathway_id="test")
-#' gm_test <- tbl_graph(gm_test)
+#' ## For those containing nodes with the graphic type of `line`,
+#' ## parse the coords attributes to edges.
+#' gm_test <- create_test_pathway(line=TRUE)
 #' test <- process_line(gm_test)
 process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
-  ## [TODO] speed up
-  ## [TODO] add verbose
-  ## [TODO] add positional argument to coords to show arrow
-  ## We cannot do this, as coords are not ordered to show direction
-  df <- as_tbl_graph(g)
 
-  cos <- list()
-  eds <- list()
-  j <- 1
-  e <- 1
-  name_col_node <- c("name","x","y","type","original_name")
-  name_col_edge <- c("from","to","type","name",
-    "bgcolor","fgcolor","reaction","orig.id")
-
-  for (i in seq_along(V(g)$name)) {
-
-    if (V(g)$graphics_type[i]=="line") {
-
-      raw_name <- V(g)$name[i]
-      bgcol <- V(g)$bgcolor[i]
-      fgcol <- V(g)$fgcolor[i]
-      reac <- V(g)$reaction[i]
-      origid <- V(g)$orig.id[i]
-      rawco <- V(g)$coords[i]
-
-      ## reversible or irreversible
-      # rev <- E(g)[E(g)$reaction==reac]$type |> unique()
-      # rev <- ifelse(identical(rev,character(0)),NA,rev)
-
-      if (grepl("\\|",rawco)) {
-        rawcos <- strsplit(rawco, "\\|") |> unlist()
-      } else {
-        rawcos <- rawco
-      }
-
-      for (rc in rawcos) {
-        co <- unlist(strsplit(rc, ","))
-        q <- 1
-        if (verbose) {
-          GetoptLong::qqcat("@{raw_name}, cooridnates components: @{length(co)}\n")
+    df <- as_tbl_graph(g)
+    name_col_node <- c("name","x","y","type","original_name","node.orig.id")
+    name_col_edge <- c("from","to","type","name",
+        "bgcolor","fgcolor","reaction","orig.id")
+    results <- lapply(seq_along(V(g)$name), function(i) {
+        if (V(g)$graphics_type[i]=="line") {
+            raw_name <- V(g)$name[i]
+            bgcol <- V(g)$bgcolor[i]
+            fgcol <- V(g)$fgcolor[i]
+            reac <- V(g)$reaction[i]
+            origid <- V(g)$orig.id[i]
+            rawco <- V(g)$coords[i]
+            
+            if (grepl("\\|",rawco)) {
+                rawcos <- strsplit(rawco, "\\|") |> unlist()
+            } else {
+                rawcos <- rawco
+            }
+            
+            lapply(seq_along(rawcos), function(rc) {
+                co <- unlist(strsplit(rawcos[rc], ","))
+                lapply(seq_len(length(co)), function(h) {
+                    if (is.na(co[h+2])) {return(NULL)}
+                    if (h %% 2 == 0) {return(NULL)}
+                    ## Assign unique identifiers each node
+                    list(
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h),
+                                co[h], co[h+1], "line", raw_name, origid) |>
+                                setNames(name_col_node),
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h+1),
+                                co[h+2], co[h+3], "line", raw_name, origid)|>
+                                setNames(name_col_node),
+                            c(paste0(raw_name,"_",i,"_",rc,"_",h),
+                                paste0(raw_name,"_",i,"_",rc,"_",h+1),
+                                "line", raw_name, bgcol, fgcol, reac, origid) |>
+                                setNames(name_col_edge)        
+                        )                   
+                })
+            })
         }
-        for (h in seq_len(length(co))) {
-          if (is.na(co[q+2])) {
-            # eds[[e-1]]["position"] <- "End"
-            break
-          }
-          if (verbose) {
-            GetoptLong::qqcat("  @{paste(co[q], co[q+1])} -> @{paste(co[q+2], co[q+3])}\n")
-          }
-          cos[[j]] <- c(paste0(raw_name,"_",j), co[q], co[q+1], "line",raw_name) |>
-          setNames(name_col_node)
-          cos[[j+1]] <- c(paste0(raw_name,"_",j+1), co[q+2], co[q+3], "line",raw_name)|>
-          setNames(name_col_node)
-          eds[[e]] <- c(paste0(raw_name,"_",j), paste0(raw_name,"_",j+1),
-                              "line",raw_name,bgcol,fgcol,reac,origid
-                              )|>
-          setNames(name_col_edge)
-          # if (h==1) {
-          #   eds[[e]]["position"] <- "Start"
-          # }
-          e <- e+1
-          j <- j+2
-          q <- q+2
-        }
-      }
+    })
+    
+    results <- results |> unlist(recursive=FALSE)
+    results <- results |> unlist(recursive=FALSE)
+    results[vapply(results, is.null, TRUE)] <- NULL
+
+    cos <- do.call(rbind, lapply(results, function(x) {
+        rbind(x[[1]],x[[2]])
+    })) |> data.frame() |> `colnames<-`(name_col_node)
+    eds <- do.call(rbind, lapply(results, function(x) {
+        x[[3]]
+    })) |> data.frame() |> `colnames<-`(name_col_edge)
+
+    
+    cos$x <- as.numeric(cos$x);
+    if (invert_y) {
+        cos$y <- -1 * as.numeric(cos$y)
+    } else {
+        cos$y <- as.numeric(cos$y)
     }
-  }
-
-  cos <- dplyr::bind_rows(cos) |> data.frame() |> 
-    `colnames<-`(name_col_node)
-  cos$x <- as.numeric(cos$x);
-  if (invert_y) {
-    cos$y <- -1 * as.numeric(cos$y)
-  } else {
-    cos$y <- as.numeric(cos$y)
-  }
-  eds <- dplyr::bind_rows(eds) |> data.frame() |> 
-    `colnames<-`(name_col_edge)
-
-  df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
-  df_add |> activate("nodes") |>
-    mutate(original_name=vapply(seq_len(length(.data$original_name)),
-      function(x){ 
-        if(is.na(.data$original_name[x])) .data$name[x] else .data$original_name[x]
-      },
-     FUN.VALUE="character"))
+    
+    df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
+    df_add |> activate("nodes") |>
+        mutate(original_name=vapply(seq_len(length(.data$original_name)),
+            function(x){ 
+                if(is.na(.data$original_name[x])) {
+                    .data$name[x]  
+                }  else {
+                    .data$original_name[x]
+                }
+            },
+            FUN.VALUE="character"))
 }
 
 #' process_reaction
@@ -366,149 +345,146 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' @export
 #' @return tbl_graph
 #' @examples
-#' gm_test <- rbind(data.frame(name="cpd:C99998",type="compound",
-#'            graphics_name="C99998",fgcolor="#ff0000",bgcolor="#ffffff"),
-#'            data.frame(name="cpd:C99999",type="compound",
-#'                       graphics_name="C99999",fgcolor="#ff0000",bgcolor="#ffffff"),
-#'            data.frame(name="ko:K00224",type="ortholog",
-#'                       graphics_name="K00224",fgcolor="#ff0000",bgcolor="#ffffff")
-#'            )
-#' gm_test_edges <- rbind(data.frame(from=1,to=3,reaction="rn:R99999",subtype_name="substrate",
-#'                             type="irreversible"),
-#'                        data.frame(from=3,to=2,reaction="rn:R99999",subtype_name="product",
-#'                                   type="irreversible"))
-#' gm_test <- tbl_graph(gm_test, gm_test_edges)
+#' gm_test <- create_test_pathway(line=TRUE)
 #' test <- process_reaction(gm_test)
 #' 
 process_reaction <- function(g, single_edge=FALSE) {
-  ## [TODO] Dirty ways to obtain edges, perhaps directly
-  ## parsing substrate -> product would be reasonable
+    ## This is perhaps dirty ways to obtain edges. Perhaps directly
+    ## parsing substrate -> product would be reasonable with
+    ## assigning "reversible" and "irreversible"
 
-  ## Obtain raw nodes
-  nds <- g |> activate("nodes") |> data.frame()
+    ## Obtain raw nodes
+    nds <- g |> activate("nodes") |> data.frame()
 
-  ## Obtain raw edges
-  eds <- g |> activate("edges") |> data.frame()
-
-  ## Prepare new edges
-  new_eds <- NULL
-  k <- 1
-  for (i in eds$reaction |> unique()) {
-      konm <- nds[nds$reaction %in% i,]$name
-      konm <- ifelse(is.null(konm),NA,konm)
-      in_reacs <- eds[eds$reaction %in% i,]
-
-      row.names(in_reacs) <- seq_len(nrow(in_reacs))
-      for (block in seq(1,nrow(in_reacs),2)) {
-
-        tmp <- in_reacs[c(block, block+1),]
-        fs <- tmp[tmp$subtype_name=="substrate",]$from
-        tos <- tmp[tmp$subtype_name=="product",]$to
-        reac_info <- nds[tmp[tmp$subtype_name=="substrate",]$to,]
+    ## Obtain raw edges
+    eds <- g |> activate("edges") |> data.frame()
+    reacs <- eds$reaction |> unique()
+  
+    ## Prepare new edges
+    new_eds <- lapply(seq_along(reacs), function(i) {
+        tmp_reac <- reacs[i]
+        konm <- nds[nds$reaction %in% tmp_reac,]$name
+        konm <- ifelse(is.null(konm),NA,konm)
+        in_reacs <- eds[eds$reaction %in% tmp_reac, ]
+        row.names(in_reacs) <- seq_len(nrow(in_reacs))
         
-        # if (length(reac_info$fgcolor |> unique())>1) {stop(i)}
+        lapply(seq(1, nrow(in_reacs), 2), function(block) {
 
-        if (tmp$type |> unique()=="irreversible") {
+            tmp <- in_reacs[c(block, block+1),]
             fs <- tmp[tmp$subtype_name=="substrate",]$from
             tos <- tmp[tmp$subtype_name=="product",]$to
-            for (cfs in fs) {
-                for (ctos in tos) {
-                    new_eds[[k]] <- c(cfs, ctos, "irreversible",
-                      tmp$reaction |> unique(), konm,
-                      reac_info$bgcolor |> unique(), reac_info$fgcolor |> unique())
-                    k <- k + 1
-                }
-            }
-        } else {
-            for (cfs in fs) {
-                for (ctos in tos) {
-                    new_eds[[k]] <- c(cfs, ctos, "reversible",
-                      tmp$reaction |> unique(), konm,
-                      reac_info$bgcolor |> unique(), reac_info$fgcolor |> unique())
-                                      # tmp$pathway_id |> unique(), tmp$name |> unique(),
-                                      # tmp$bgcolor |> unique(),
-                                      # tmp$fgcolor |> unique(),
-                                      # tmp$orig.id |> unique())
-                    k <- k + 1
-                }
-            }
-            if (!single_edge) {
-              for (ctos in tos) {
-                  for (cfs in fs) {
-                      new_eds[[k]] <- c(ctos, cfs, "reversible",
-                        tmp$reaction |> unique(), konm, reac_info$bgcolor |> unique(),
-                        reac_info$fgcolor |> unique())
-                      k <- k + 1
-                  }
-              }              
-            }
-        }
-      }
-  }
-
-  new_eds <- do.call(rbind, new_eds) |> data.frame() |>
-  `colnames<-`(c("from","to","type","reaction","name","bgcolor","fgcolor"))
-
-  new_eds <- new_eds[!duplicated(new_eds),]
-  new_eds$from <- as.integer(new_eds$from)
-  new_eds$to <- as.integer(new_eds$to)
-
-  new_g <- tbl_graph(nodes=nds, edges = new_eds)
+            reac_info <- nds[tmp[tmp$subtype_name=="substrate",]$to,]
+            reac_type <- unique(tmp$type)
+            
+            fs <- tmp[tmp$subtype_name=="substrate",]$from
+            tos <- tmp[tmp$subtype_name=="product",]$to
+            
+            eds <- lapply(fs, function(cfs) {
+                        lapply(tos, function(ctos) {
+                            if (reac_type=="irreversible") {
+                                return(c(cfs, ctos, reac_type,
+                                    tmp$reaction |> unique(), konm,
+                                    reac_info$bgcolor |> unique(),
+                                    reac_info$fgcolor |> unique()))                             
+                            } else if (reac_type=="reversible") {
+                                if (single_edge) {
+                                    return(rbind(
+                                        c(cfs, ctos, "reversible",
+                                          tmp$reaction |> unique(), konm,
+                                          reac_info$bgcolor |> unique(),
+                                          reac_info$fgcolor |> unique())))                              
+                                } else {                        
+                                    return(rbind(
+                                        c(cfs, ctos, "reversible",
+                                          tmp$reaction |> unique(), konm,
+                                          reac_info$bgcolor |> unique(),
+                                          reac_info$fgcolor |> unique()),
+                                        c(ctos, cfs, "reversible",
+                                          tmp$reaction |> unique(), konm,
+                                          reac_info$bgcolor |> unique(),
+                                          reac_info$fgcolor |> unique())
+                                        ))
+                                }
+                            } else {
+                                stop("Unknown reaction type detected")
+                            }
+                        })
+                    })
+            return(eds)
+        })
+    })
+    new_eds <- unlist(new_eds, recursive=FALSE)
+    new_eds <- do.call(rbind, unlist(unlist(new_eds, recursive=FALSE),
+        recursive=FALSE)) |> data.frame() |>
+        `colnames<-`(c("from","to","type","reaction",
+            "name","bgcolor","fgcolor"))
+    
+    new_eds <- new_eds[!duplicated(new_eds),]
+    new_eds$from <- as.integer(new_eds$from)
+    new_eds$to <- as.integer(new_eds$to)
+    new_g <- tbl_graph(nodes=nds, edges=new_eds)
+    new_g
 }
 
 
 #' get_reaction
-#' parse the reaction in KGML
+#' 
+#' Parse the reaction in KGML.
+#' Used internally in pathway().
+#' 
 #' @noRd
 #' @importFrom XML xmlAttrs getNodeSet xmlElementsByTagName
 get_reaction <- function(xml) {
-  rea_sets <- getNodeSet(xml, "//reaction")
-  all_reas <- NULL
-  for (rea in rea_sets) {
-    id <- xmlAttrs(rea)["id"]
-    name <- xmlAttrs(rea)["name"]
-    type <- xmlAttrs(rea)["type"]
-    subs <- xmlElementsByTagName(rea,"substrate")
-    prod <- xmlElementsByTagName(rea,"product")
-    ## Looking for `alt` tag
-    ## Multiple products or substrates are to be expected
-    for (ss in subs) {
-      for (pp in prod) {
-        all_reas <- rbind(all_reas, c(id, name, type,
-                                      xmlAttrs(ss)["id"], xmlAttrs(ss)["name"],
-                                      xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))
-      }
-    }
-  }
-  all_reas <- all_reas |> data.frame() |> `colnames<-`(c("id","reac_name",
-                                             "type","substrate_id","substrate_name",
-                                             "product_id","product_name"))
+    rea_sets <- getNodeSet(xml, "//reaction")
+    all_reas <- lapply(rea_sets, function(rea) {
+        id <- xmlAttrs(rea)["id"]
+        name <- xmlAttrs(rea)["name"]
+        type <- xmlAttrs(rea)["type"]
+        subs <- xmlElementsByTagName(rea,"substrate")
+        prod <- xmlElementsByTagName(rea,"product")
+        ## Looking for `alt` tag
+        ## Multiple products or substrates are to be expected
+        lapply(subs, function(ss) {
+            lapply(prod, function(pp) {
+                return(c(id, name, type,
+                        xmlAttrs(ss)["id"], xmlAttrs(ss)["name"],
+                        xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))          
+            })
+        })
+    })
+    all_reas <- unlist(all_reas, recursive=FALSE)
+    all_reas <- do.call(rbind, unlist(all_reas, recursive=FALSE)) |>
+        data.frame() |> 
+        `colnames<-`(c("id","reac_name",
+                    "type","substrate_id","substrate_name",
+                    "product_id","product_name"))
 
-  ## Maybe this parsing will lead to wrong interpretation
-  ## substrate -> ID (KO) (type: type, reaction: reaction)
-  ## ID (KO) -> product (type: type, reaction: reaction)
-  rsp_rels <- NULL
-  for (i in seq_len(nrow(all_reas))) {
-    for (j in unlist(strsplit(all_reas[i,"id"], " "))) {
-      rsp_rels <- rbind(rsp_rels,
-      c(all_reas[i,"substrate_id"], j, all_reas[i,"type"], "substrate", NA, all_reas[i, "reac_name"]),
-      c(j, all_reas[i,"product_id"], all_reas[i,"type"], "product", NA, all_reas[i, "reac_name"]))
-    }
-  }
+    ## Perhaps this parsing would lead to wrong interpretation
+    ## But for preserving Compound -> KO edges, this function
+    ## adds edges of: 
+    ##     substrate -> ID (KO) (type: type, reaction: reaction)
+    ##     ID (KO) -> product (type: type, reaction: reaction)
+    ## Later used in `process_reaction()`.
+    
+    rsp_rels <- lapply(seq_len(nrow(all_reas)), function(i) {
+        lapply(unlist(strsplit(all_reas[i,"id"], " ")), function(j) {
+            return(
+                rbind(
+                    c(all_reas[i,"substrate_id"], j, all_reas[i,"type"],
+                        "substrate", NA, all_reas[i, "reac_name"]),
+                    c(j, all_reas[i,"product_id"], all_reas[i,"type"],
+                        "product", NA, all_reas[i, "reac_name"])
+                    )
+                )
+        })
+    })
 
-  ## substrate -> product, type: type, subtype: ID (KO), reaction: reaction
-  # rsp_rels <- NULL
-  # for (i in seq_len(nrow(all_reas))) {
-  #   for (j in unlist(strsplit(all_reas[i,"id"], " "))) {
-  #     rsp_rels <- rbind(rsp_rels,
-  #     c(all_reas[i,"substrate_id"], all_reas[i,"product_id"], all_reas[i,"type"], j, all_reas[i, "reac_name"]))
-  #   }
-  # }
 
-
-  rsp_rels <- data.frame(rsp_rels) |> 
-    `colnames<-`(c("entry1","entry2","type","subtype_name","subtype_value","reaction"))
-  rsp_rels
+    rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |>
+        data.frame() |> 
+        `colnames<-`(c("entry1","entry2","type",
+            "subtype_name","subtype_value","reaction"))
+    rsp_rels
 }
 
 
@@ -519,88 +495,115 @@ get_reaction <- function(xml) {
 #' @param use_cache whether to use cache
 #' @param directory directory of file
 #' @return list of orthology and module contained in the pathway
+#' @examples pathway_info("hsa04110")
 #' @export
 pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
-  if (!is.null(directory)){
-    dest <- paste0(directory, "/", pid)
-  } else {
-    dest <- pid
-  }
-  if (!file.exists(pid)) {
-    if (use_cache) {
-      bfc <- BiocFileCache()
-      dest <- bfcrpath(bfc, paste0("https://rest.kegg.jp/get/",pid))  
+    if (!is.null(directory)){
+        dest <- paste0(directory, "/", pid)
     } else {
-      download.file(paste0("https://rest.kegg.jp/get/",pid),
-                    destfile=dest)      
+        dest <- pid
     }
-  }
-  pway <- list()
-  con <- file(dest, "r")
-  content_list <- list()
-  while ( TRUE ) {
-    line <- readLines(con, n = 1)
-    if ( length(line) == 0 ) {
-      break
+    if (!file.exists(pid)) {
+        if (use_cache) {
+            bfc <- BiocFileCache()
+            dest <- bfcrpath(bfc, paste0("https://rest.kegg.jp/get/",pid))  
+        } else {
+            download.file(paste0("https://rest.kegg.jp/get/",pid),
+                destfile=dest)      
+        }
     }
-    if (!startsWith(line, " ")) {
-      current_id <- strsplit(line, " ") |> vapply("[", 1, FUN.VALUE="character")
+
+    con <- file(dest, "r")
+    content_list <- list()
+    while ( TRUE ) {
+        line <- readLines(con, n=1)
+        if ( length(line) == 0 ) {
+            break
+        }
+        if (!startsWith(line, " ")) {
+            current_id <- strsplit(line, " ") |>
+                vapply("[", 1, FUN.VALUE="character")
+        }
+        if (!current_id %in% c("REFERENCE","///")) {
+            content <- substr(line, 13, nchar(line))
+            content_list[[current_id]] <- c(content_list[[current_id]], content) 
+        }
     }
-    if (!current_id %in% c("REFERENCE","///")) {
-      content <- substr(line, 13, nchar(line))
-      content_list[[current_id]] <- c(content_list[[current_id]], content) 
-    }
-  }
-  close(con)
-  content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |> vapply("[", 1,
-    FUN.VALUE="character")
-  content_list
+    close(con)
+    content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |>
+        vapply("[", 1, FUN.VALUE="character")
+    content_list
 }
 
 
-
-#' return_pathway_example
+#' create_test_pathway
 #' 
 #' As downloading from KEGG API is not desirable
 #' in vignettes or examples, return the `tbl_graph`
 #' with two nodes and two edges.
-#' @examples return_pathway_example
+#' @param line return example containing graphics type line
+#' @examples create_test_pathway()
 #' @export
 #' @return tbl_graph
-return_pathway_example <- function() {
-  ddx <- data.frame(
-    name="hsa:51428",
-    type="gene",
-    reaction=NA,
-    graphics_name="DDX41",
-    x=500, y=-400,
-    width=20,height=9,
-    bgcolor="#BFFFBF",
-    pathway_id="test"
-  )
-  
-  trim <- data.frame(
-    name="hsa:6737",
-    type="gene",
-    reaction=NA,
-    graphics_name="TRIM21",
-    x=560, y=-400,
-    width=20,height=9,
-    bgcolor="#BFFFBF",
-    pathway_id="test"
-  )
-  
-  nodes <- rbind(trim, ddx)
-  nodes$xmin <- nodes$x-nodes$width/2
-  nodes$ymin <- nodes$y-nodes$height/2
-  nodes$xmax <- nodes$x+nodes$width/2
-  nodes$ymax <- nodes$y+nodes$height/2
-  
-  edges <- rbind(c(from=1, to=2, subtype_name="degradation",pathway_id="test"),
-                 c(from=1, to=2, subtype_name="ubiquitination",pathway_id="test")) |>
-    data.frame()
-  edges$from <- as.integer(edges$from)
-  edges$to <- as.integer(edges$to)
-  tbl_graph(nodes, edges)
+create_test_pathway <- function(line=FALSE) {
+
+    if (line) {
+        gm_test <- data.frame(name=c("cpd:C99998","cpd:C99999","ko:K00224"),
+            type=c("compound","compound","ortholog"),
+            graphics_type=c("circle","circle","line"),
+            graphics_name=c("C99998","C99999","K00224"),
+            coords=c(NA, NA, "1,2,3,4,5"),
+            reaction=c(NA,NA,"rn:R99999"),
+            orig.id=c(1,2,3),
+            fgcolor=c("#ff0000","#ff0000","#ff0000"),
+            bgcolor=c("#ffffff","#ffffff","#ffffff"))
+
+        gm_test_edges <- rbind(
+            data.frame(from=1,to=3,reaction="rn:R99999",
+                subtype_name="substrate",
+                type="irreversible"),
+            data.frame(from=3,to=2,reaction="rn:R99999",
+                subtype_name="product",
+                type="irreversible"))
+        gm_test <- tbl_graph(gm_test, gm_test_edges)
+        return(gm_test)
+    } else {
+        ddx <- data.frame(
+            name="hsa:51428",
+            type="gene",
+            reaction=NA,
+            graphics_name="DDX41",
+            x=500, y=-400,
+            width=20,height=9,
+            bgcolor="#BFFFBF",
+            pathway_id="test"
+        )
+      
+        trim <- data.frame(
+            name="hsa:6737",
+            type="gene",
+            reaction=NA,
+            graphics_name="TRIM21",
+            x=560, y=-400,
+            width=20,height=9,
+            bgcolor="#BFFFBF",
+            pathway_id="test"
+        )
+      
+        nodes <- rbind(trim, ddx)
+        nodes$xmin <- nodes$x-nodes$width/2
+        nodes$ymin <- nodes$y-nodes$height/2
+        nodes$xmax <- nodes$x+nodes$width/2
+        nodes$ymax <- nodes$y+nodes$height/2
+      
+        edges <- rbind(c(from=1, to=2,
+            subtype_name="degradation",pathway_id="test"),
+                       c(from=1, to=2,
+            subtype_name="ubiquitination",pathway_id="test")) |>
+            data.frame()
+        edges$from <- as.integer(edges$from)
+        edges$to <- as.integer(edges$to)
+        tbl_graph(nodes, edges)        
+    }
 }
 

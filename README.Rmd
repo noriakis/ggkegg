@@ -26,11 +26,19 @@ knitr::opts_chunk$set(
 [![R-CMD-check](https://github.com/noriakis/ggkegg/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/noriakis/ggkegg/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-A set of functions to analyse and plot the KEGG information using `tidygraph`, `ggraph` and `ggplot2`. Will split to `tidykegg` and `ggkegg`.
+A set of functions to analyse and plot the KEGG information using `tidygraph`, `ggraph` and `ggplot2`.
 
 The detailed documentation is [here](https://noriakis.github.io/software/ggkegg) using `bookdown`.
 
 ## Installation
+
+Using `BiocManager`:
+
+```{r, eval=FALSE}
+BiocManager::install("ggkegg")
+```
+
+Using `devtools`:
 
 ```{r, eval=FALSE}
 devtools::install_github("noriakis/ggkegg")

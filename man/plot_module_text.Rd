@@ -2,8 +2,7 @@
 % Please edit documentation in R/plot_functions.R
 \name{plot_module_text}
 \alias{plot_module_text}
-\title{plot_module_text
-plot the text representation of KEGG modules}
+\title{plot_module_text}
 \usage{
 plot_module_text(plot_list, show_name = "name")
 }
@@ -16,11 +15,14 @@ plot_module_text(plot_list, show_name = "name")
 ggplot2 object
 }
 \description{
-plot_module_text
 plot the text representation of KEGG modules
 }
 \examples{
+
 mo <- create_test_module()
+
+## The output of `module_text` is used for `plot_module_text()`
 tex <- module_text(mo)
 plt <- plot_module_text(tex)
+
 }

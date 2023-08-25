@@ -29,14 +29,11 @@ if multiple IDs are listed after separation by `sep`,
 only return TRUE if all the IDs are in the query.
 }
 \examples{
-nodes <- data.frame(name=c("hsa:1029","hsa:4171"),
-                   x=c(1,1),
-                   xmin=c(-1,-1),
-                   xmax=c(2,2),
-                   y=c(1,1),
-                   ymin=c(-1,-1),
-                   ymax=c(2,2))
-edges <- data.frame(from=1, to=2)
-graph <- tbl_graph(nodes, edges)
-graph <- graph |> mutate(hl=highlight_set_nodes(c("hsa:1029")))
+graph <- create_test_pathway()
+## Highlight set of nodes by specifying ID
+graph <- graph |> mutate(hl=highlight_set_nodes(c("hsa:51428")))
+
+## node column can be specified by `name` argument
+graph <- graph |> 
+    mutate(hl=highlight_set_nodes(c("DDX41"), name="graphics_name"))
 }

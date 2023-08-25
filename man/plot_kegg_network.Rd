@@ -4,10 +4,12 @@
 \alias{plot_kegg_network}
 \title{plot_kegg_network}
 \usage{
-plot_kegg_network(g)
+plot_kegg_network(g, layout = "nicely")
 }
 \arguments{
 \item{g}{graph object returned by `network()`}
+
+\item{layout}{layout to be used, default to nicely}
 }
 \value{
 ggplot2 object
@@ -17,6 +19,7 @@ plot the output of network_graph
 }
 \examples{
 ne <- create_test_network()
+## Output of `network_graph` must be used with plot_kegg_network
 neg <- network_graph(ne)
 plt <- plot_kegg_network(neg)
 }
