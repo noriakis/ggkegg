@@ -164,7 +164,7 @@ network_graph <- function (kne, type="definition") {
                 paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
             vs <- do.call(rbind, lapply(vs[,1], function(j) {
                 c(j,bln,"in_block")
-            }))
+            })) |> data.frame() |> `colnames<-`(c("from","to","type"))
             list(rbind(es, vs), nn)
         }
     })
