@@ -635,7 +635,17 @@ obtain_map_and_cache <- function(org, pid=NULL, colon=TRUE) {
   convert_vec
 }
 
-
+#' carrow
+#' 
+#' make closed type arrow
+#' @param length arrow length in unit()
+#' @export
+#' @examples
+#' carrow()
+#' 
+carrow <- function(length=unit(2,"mm")) {
+	arrow(length=length, type="closed")
+}
 
 #' combine_with_bnlearn
 #' 
