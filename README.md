@@ -16,6 +16,13 @@ The detailed documentation is
 
 ## Installation
 
+Using `BiocManager`:
+
+``` r
+BiocManager::install("ggkegg")
+```
+Using `devtools`:
+
 ``` r
 devtools::install_github("noriakis/ggkegg")
 ```

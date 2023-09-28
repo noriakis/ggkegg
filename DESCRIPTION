@@ -22,5 +22,5 @@ RoxygenNote: 7.2.3
 biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr
 URL: https://github.com/noriakis/ggkegg
-BugReport: https://github.com/noriakis/ggkegg/issues
+BugReports: https://github.com/noriakis/ggkegg/issues
 Config/testthat/edition: 3
