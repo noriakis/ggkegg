@@ -1,3 +1,66 @@
+#' highlight_entities
+#' 
+#' highlight the entities in the pathway,
+#' overlay raw map and return the results
+#' 
+#' @param pathway pathway ID to be passed to `pathway()`
+#' @param set vector of identifiers
+#' @param how if `all`, if node contains multiple
+#' IDs separated by `sep`, highlight if all the IDs
+#' are in query. if `any`, highlight if one of the IDs
+#' is in query.
+#' @param name which column to search for
+#' @param sep separater for node names
+#' @param no_sep not separate node name
+#' @param type entitie type, default to 'gene'
+#' @param fill_color highlight color, default to 'tomato'
+#' @param legend_name legend name, NULL to suppress
+#' @return overlaid map
+#' @examples
+#' highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
+#' @export
+#'
+highlight_entities <- function(pathway, set, how="any",
+	name="graphics_name", sep=",", no_sep=FALSE,
+	type="gene", fill_color="tomato",
+	legend_name=NULL) {
+	graph <- pathway(pathway, use_cache=TRUE)
+	x <- get.vertex.attribute(graph, name)
+    vec <- vapply(seq_along(x), function(xn) {
+        if (no_sep) {
+            nn <- x[xn]
+        } else {
+            nn <- unlist(strsplit(x[xn], sep))
+        }
+        if (how == "all") {
+            if (length(intersect(nn, set)) == length(nn)) {
+                return(TRUE)
+            } else {
+                return(FALSE)
+            }
+        } else {
+            if (length(intersect(nn, set)) >= 1) {
+                return(TRUE)
+            } else {
+                return(FALSE)
+            }      
+        }
+    }, FUN.VALUE=TRUE)
+    graph <- graph |> mutate(highlight=vec)
+
+    res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
+        geom_node_rect(aes(filter=.data$type %in% type, fill=.data$highlight))+
+        scale_fill_manual(values=c("grey", fill_color), name=legend_name)+
+        overlay_raw_map()+
+        theme_void()
+    if (is.null(legend_name)) {
+    	res <- res + theme(legend.position="none")    	
+    }
+    res
+}
+
+
+
 #' highlight_set_nodes
 #' 
 #' identify if nodes are involved in specific queriy.
