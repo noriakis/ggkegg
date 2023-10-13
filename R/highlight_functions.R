@@ -12,7 +12,7 @@
 #' @param name which column to search for
 #' @param sep separater for node names
 #' @param no_sep not separate node name
-#' @param type entitie type, default to 'gene'
+#' @param show_type entitie type, default to 'gene'
 #' @param fill_color highlight color, default to 'tomato'
 #' @param legend_name legend name, NULL to suppress
 #' @return overlaid map
@@ -22,7 +22,7 @@
 #'
 highlight_entities <- function(pathway, set, how="any",
 	name="graphics_name", sep=",", no_sep=FALSE,
-	type="gene", fill_color="tomato",
+	show_type="gene", fill_color="tomato",
 	legend_name=NULL) {
 	graph <- pathway(pathway, use_cache=TRUE)
 	x <- get.vertex.attribute(graph, name)
@@ -49,7 +49,8 @@ highlight_entities <- function(pathway, set, how="any",
     graph <- graph |> mutate(highlight=vec)
 
     res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
-        geom_node_rect(aes(filter=.data$type %in% type, fill=.data$highlight))+
+        geom_node_rect(aes(filter=.data$type %in% show_type,
+            fill=.data$highlight))+
         scale_fill_manual(values=c("grey", fill_color), name=legend_name)+
         overlay_raw_map()+
         theme_void()

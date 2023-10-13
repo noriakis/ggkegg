@@ -11,7 +11,7 @@ highlight_entities(
   name = "graphics_name",
   sep = ",",
   no_sep = FALSE,
-  type = "gene",
+  show_type = "gene",
   fill_color = "tomato",
   legend_name = NULL
 )
@@ -32,7 +32,7 @@ is in query.}
 
 \item{no_sep}{not separate node name}
 
-\item{type}{entitie type, default to 'gene'}
+\item{show_type}{entitie type, default to 'gene'}
 
 \item{fill_color}{highlight color, default to 'tomato'}
 
