@@ -119,8 +119,8 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     if (object$adjust) {
         xmin <- xmin - 0.5
         xmax <- xmax - 0.5
-        ymin <- ymin - 0.5
-        ymax <- ymax - 0.5
+        # ymin <- ymin - 0.5
+        # ymax <- ymax - 0.5
     }
     plot + 
         annotation_raster(ras, xmin=xmin, ymin=ymin,
