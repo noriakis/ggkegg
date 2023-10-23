@@ -15,6 +15,7 @@
 #' @param show_type entitie type, default to 'gene'
 #' @param fill_color highlight color, default to 'tomato'
 #' @param legend_name legend name, NULL to suppress
+#' @param use_cache use cache or not
 #' @return overlaid map
 #' @examples
 #' highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
@@ -23,8 +24,8 @@
 highlight_entities <- function(pathway, set, how="any",
 	name="graphics_name", sep=",", no_sep=FALSE,
 	show_type="gene", fill_color="tomato",
-	legend_name=NULL) {
-	graph <- pathway(pathway, use_cache=TRUE)
+	legend_name=NULL, use_cache=FALSE) {
+	graph <- pathway(pathway, use_cache=use_cache)
 	x <- get.vertex.attribute(graph, name)
     vec <- vapply(seq_along(x), function(xn) {
         if (no_sep) {

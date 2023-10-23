@@ -13,7 +13,8 @@ highlight_entities(
   no_sep = FALSE,
   show_type = "gene",
   fill_color = "tomato",
-  legend_name = NULL
+  legend_name = NULL,
+  use_cache = FALSE
 )
 }
 \arguments{
@@ -37,6 +38,8 @@ is in query.}
 \item{fill_color}{highlight color, default to 'tomato'}
 
 \item{legend_name}{legend name, NULL to suppress}
+
+\item{use_cache}{use cache or not}
 }
 \value{
 overlaid map
