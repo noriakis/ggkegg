@@ -159,21 +159,28 @@ pathway <- function(pid,
     ## Preallocate
     all_rels <- vector(mode="list", length=length(rel_sets))
     ei <- 1
+    rel_names <- c("entry1","entry2","type",
+            "subtype_name","subtype_value")
     for (rel in rel_sets) {
         entry1 <- xmlAttrs(rel)["entry1"]
         entry2 <- xmlAttrs(rel)["entry2"]
         rel_type <- xmlAttrs(rel)["type"]
         # rel_subtype <- xmlAttrs(rel[["subtype"]])["name"]
         rel_subtypes <- xmlElementsByTagName(rel,"subtype")
-        for (rs in rel_subtypes) {
-            all_rels[[ei]] <- c(entry1, entry2, rel_type,
-                xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
-            setNames(c("entry1","entry2","type",
-                "subtype_name","subtype_value"))
-        ei <- ei + 1
+        if (length(rel_subtypes)!=0) {
+            for (rs in rel_subtypes) {
+                all_rels[[ei]] <- c(entry1, entry2, rel_type,
+                    xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
+                setNames(rel_names)
+                ei <- ei + 1
+            }
+        } else {
+            all_rels[[ei]] <- c(entry1, entry2, rel_type, NA, NA) |>
+            setNames(rel_names)
+            ei <- ei + 1
         }
     }
-    
+
     if (length(all_rels) != 0) {
         kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
             `colnames<-`(c("entry1","entry2","type",
