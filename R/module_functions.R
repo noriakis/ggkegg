@@ -28,6 +28,12 @@ setMethod("show",
     }
 )
 
+setGeneric("get_module_attribute",
+    function(x, ...) standardGeneric("get_module_attribute"))
+
+setMethod("get_module_attribute", "kegg_module",
+    function(x, attribute) attr(x, attribute))
+
 #' module
 #' KEGG module parsing function
 #' @param mid KEGG module ID

@@ -22,6 +22,12 @@ setMethod("show",
     }
 )
 
+setGeneric("get_network_attribute",
+    function(x, ...) standardGeneric("get_network_attribute"))
+
+setMethod("get_network_attribute", "kegg_network",
+    function(x, attribute) attr(x, attribute))
+
 #' KEGG network parsing function
 #' 
 #' parsing the network elements starting with N
