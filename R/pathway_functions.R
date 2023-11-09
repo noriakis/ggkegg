@@ -366,6 +366,7 @@ process_reaction <- function(g, single_edge=FALSE) {
     ## Obtain raw edges
     eds <- g |> activate("edges") |> data.frame()
     reacs <- eds$reaction |> unique()
+    reacs <- reacs[!is.na(reacs)]
   
     ## Prepare new edges
     new_eds <- lapply(seq_along(reacs), function(i) {
