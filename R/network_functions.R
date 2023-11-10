@@ -22,6 +22,7 @@ setMethod("show",
     }
 )
 
+#' @export
 setGeneric("get_network_attribute",
     function(x, ...) standardGeneric("get_network_attribute"))
 

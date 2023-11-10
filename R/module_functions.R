@@ -28,6 +28,7 @@ setMethod("show",
     }
 )
 
+#' @export
 setGeneric("get_module_attribute",
     function(x, ...) standardGeneric("get_module_attribute"))
 
