@@ -201,7 +201,8 @@ pathway <- function(pid,
 
     if (length(getNodeSet(xml, "//reaction"))!=0) {
         kegg_reac <- get_reaction(xml)
-        if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA}
+        if (!is.null(kegg_edges)) {kegg_edges$reaction <- NA
+            kegg_edges$reaction_id <- NA}
         kegg_edges <- rbind(kegg_edges, kegg_reac)
     }
 
@@ -365,65 +366,61 @@ process_reaction <- function(g, single_edge=FALSE) {
 
     ## Obtain raw edges
     eds <- g |> activate("edges") |> data.frame()
-    reacs <- eds$reaction |> unique()
+    reacs <- eds$reaction_id |> unique()
     reacs <- reacs[!is.na(reacs)]
-  
     ## Prepare new edges
-    new_eds <- lapply(seq_along(reacs), function(i) {
-        tmp_reac <- reacs[i]
-        konm <- nds[nds$reaction %in% tmp_reac,]$name
-        konm <- ifelse(is.null(konm),NA,konm)
-        in_reacs <- eds[eds$reaction %in% tmp_reac, ]
+    
+    new_eds <- lapply(reacs, function(reac_id) {
+        konm <- nds[nds$orig.id %in% reac_id,]$name |> unique()
+        konm <- ifelse(is.null(konm), NA, konm)
+        in_reacs <- eds[eds$reaction_id %in% reac_id, ]
+        reac_name <- in_reacs$reaction |> unique()
         row.names(in_reacs) <- seq_len(nrow(in_reacs))
+        reac_type <- in_reacs$type |> unique()
         
-        lapply(seq(1, nrow(in_reacs), 2), function(block) {
+        subst_ind <- which(in_reacs$subtype_name == "substrate")
+        prod_ind <- which(in_reacs$subtype_name == "product")
 
-            tmp <- in_reacs[c(block, block+1),]
-            fs <- tmp[tmp$subtype_name=="substrate",]$from
-            tos <- tmp[tmp$subtype_name=="product",]$to
-            reac_info <- nds[tmp[tmp$subtype_name=="substrate",]$to,]
-            reac_type <- unique(tmp$type)
-            
-            fs <- tmp[tmp$subtype_name=="substrate",]$from
-            tos <- tmp[tmp$subtype_name=="product",]$to
-            
-            eds <- lapply(fs, function(cfs) {
-                        lapply(tos, function(ctos) {
-                            if (reac_type=="irreversible") {
-                                return(c(cfs, ctos, reac_type,
-                                    tmp$reaction |> unique(), konm,
-                                    reac_info$bgcolor |> unique(),
-                                    reac_info$fgcolor |> unique()))                             
-                            } else if (reac_type=="reversible") {
-                                if (single_edge) {
-                                    return(rbind(
-                                        c(cfs, ctos, "reversible",
-                                          tmp$reaction |> unique(), konm,
-                                          reac_info$bgcolor |> unique(),
-                                          reac_info$fgcolor |> unique())))                              
-                                } else {                        
-                                    return(rbind(
-                                        c(cfs, ctos, "reversible",
-                                          tmp$reaction |> unique(), konm,
-                                          reac_info$bgcolor |> unique(),
-                                          reac_info$fgcolor |> unique()),
-                                        c(ctos, cfs, "reversible",
-                                          tmp$reaction |> unique(), konm,
-                                          reac_info$bgcolor |> unique(),
-                                          reac_info$fgcolor |> unique())
-                                        ))
-                                }
-                            } else {
-                                stop("Unknown reaction type detected")
-                            }
-                        })
-                    })
-            return(eds)
+        eds <- lapply(subst_ind, function(subst) {
+        	lapply(prod_ind, function(prod) {
+        		fr <- in_reacs[subst, ]$from
+        		to <- in_reacs[prod, ]$to
+        		reac_info <- nds[in_reacs[subst, ]$to, ]
+        		if (reac_type=="irreversible") {
+        			return(c(fr, to, reac_type, reac_name,
+        				konm, reac_info$bgcolor |> unique(),
+        				reac_info$fgcolor |> unique()))
+        		} else if (reac_type=="reversible") {
+                    if (single_edge) {
+                        return(rbind(
+                            c(fr, to, reac_type,
+                              reac_name, konm,
+                              reac_info$bgcolor |> unique(),
+                              reac_info$fgcolor |> unique())
+                            ))                          
+                    } else {                        
+                        return(rbind(
+                            c(fr, to, reac_type,
+                              reac_name, konm,
+                              reac_info$bgcolor |> unique(),
+                              reac_info$fgcolor |> unique()),
+                            c(to, fr, reac_type,
+                              reac_name, konm,
+                              reac_info$bgcolor |> unique(),
+                              reac_info$fgcolor |> unique())
+                            ))
+                    }       			
+        		} else {
+                    stop("Unknown reaction type detected")
+        		}
+        	})
         })
+        return(eds)
     })
+
     new_eds <- unlist(new_eds, recursive=FALSE)
-    new_eds <- do.call(rbind, unlist(unlist(new_eds, recursive=FALSE),
-        recursive=FALSE)) |> data.frame() |>
+    new_eds <- do.call(rbind, unlist(new_eds, recursive=FALSE)) |>
+        data.frame() |>
         `colnames<-`(c("from","to","type","reaction",
             "name","bgcolor","fgcolor"))
     
@@ -473,15 +470,18 @@ get_reaction <- function(xml) {
     ##     substrate -> ID (KO) (type: type, reaction: reaction)
     ##     ID (KO) -> product (type: type, reaction: reaction)
     ## Later used in `process_reaction()`.
+    ## Changed this layout to drop duplicates by distinct()
     
     rsp_rels <- lapply(seq_len(nrow(all_reas)), function(i) {
         lapply(unlist(strsplit(all_reas[i,"id"], " ")), function(j) {
             return(
                 rbind(
                     c(all_reas[i,"substrate_id"], j, all_reas[i,"type"],
-                        "substrate", NA, all_reas[i, "reac_name"]),
+                        "substrate", NA, all_reas[i, "reac_name"],
+                        all_reas[i, "id"]),
                     c(j, all_reas[i,"product_id"], all_reas[i,"type"],
-                        "product", NA, all_reas[i, "reac_name"])
+                        "product", NA, all_reas[i, "reac_name"],
+                        all_reas[i, "id"])
                     )
                 )
         })
@@ -489,9 +489,10 @@ get_reaction <- function(xml) {
 
 
     rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |>
-        data.frame() |> 
+        data.frame() |>
+        dplyr::distinct() |>
         `colnames<-`(c("entry1","entry2","type",
-            "subtype_name","subtype_value","reaction"))
+            "subtype_name","subtype_value","reaction","reaction_id"))
     rsp_rels
 }
 
@@ -569,10 +570,10 @@ create_test_pathway <- function(line=FALSE) {
         gm_test_edges <- rbind(
             data.frame(from=1,to=3,reaction="rn:R99999",
                 subtype_name="substrate",
-                type="irreversible"),
+                type="irreversible",reaction_id="1"),
             data.frame(from=3,to=2,reaction="rn:R99999",
                 subtype_name="product",
-                type="irreversible"))
+                type="irreversible", reaction_id="1"))
         gm_test <- tbl_graph(gm_test, gm_test_edges)
         return(gm_test)
     } else {
