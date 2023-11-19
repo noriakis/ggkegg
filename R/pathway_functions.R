@@ -349,6 +349,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' 
 #' @param g graph
 #' @param single_edge discard one edge when edge type is `reversible`
+#' @param keep_no_reaction keep edges not related to reaction
 #' @importFrom tidygraph bind_nodes bind_edges
 #' @export
 #' @return tbl_graph
@@ -356,7 +357,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
 #' gm_test <- create_test_pathway(line=TRUE)
 #' test <- process_reaction(gm_test)
 #' 
-process_reaction <- function(g, single_edge=FALSE) {
+process_reaction <- function(g, single_edge=FALSE, keep_no_reaction=TRUE) {
     ## This is perhaps dirty ways to obtain edges. Perhaps directly
     ## parsing substrate -> product would be reasonable with
     ## assigning "reversible" and "irreversible"
@@ -366,6 +367,7 @@ process_reaction <- function(g, single_edge=FALSE) {
 
     ## Obtain raw edges
     eds <- g |> activate("edges") |> data.frame()
+    no_reacs <- eds[is.na(eds$reaction_id),]
     reacs <- eds$reaction_id |> unique()
     reacs <- reacs[!is.na(reacs)]
     ## Prepare new edges
@@ -427,6 +429,15 @@ process_reaction <- function(g, single_edge=FALSE) {
     new_eds <- new_eds[!duplicated(new_eds),]
     new_eds$from <- as.integer(new_eds$from)
     new_eds$to <- as.integer(new_eds$to)
+    if (keep_no_reaction) {
+        for (coln in colnames(no_reacs)) {
+            if (!coln %in% colnames(new_eds)) {
+                new_eds[[coln]] <- NA
+            }
+        }
+        new_eds <- new_eds[,colnames(no_reacs)]
+        new_eds <- rbind(no_reacs, new_eds)
+    }
     new_g <- tbl_graph(nodes=nds, edges=new_eds)
     new_g
 }
