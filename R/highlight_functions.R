@@ -111,6 +111,9 @@ highlight_set_nodes <- function(set, how="all",
             }      
         }
     }, FUN.VALUE=TRUE)
+    if (length(unique(vec))==1) {
+    	cat("None of the nodes (or all the nodes) was highlighted.\n")	
+    }
     vec
 }
 
