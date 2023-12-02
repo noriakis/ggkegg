@@ -22,9 +22,24 @@ setMethod("show",
     }
 )
 
+#' get_network_attribute
+#' 
+#' get slot from `kegg_network` class
+#' 
+#' @param x kegg_network class object
+#' @param attribute pass to get_network_attribute
+#' @return attribute of kegg_network
+#' @export
 setGeneric("get_network_attribute",
-    function(x, ...) standardGeneric("get_network_attribute"))
+    function(x, attribute) standardGeneric("get_network_attribute"))
 
+#' get_network_attribute
+#' 
+#' get the kegg_network class attribute
+#' 
+#' @param x kegg_network class object
+#' @param attribute slot name
+#' @return attribute of kegg_module
 setMethod("get_network_attribute", "kegg_network",
     function(x, attribute) attr(x, attribute))
 

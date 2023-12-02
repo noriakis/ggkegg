@@ -1,10 +1,13 @@
 #' highlight_entities
 #' 
 #' highlight the entities in the pathway,
-#' overlay raw map and return the results
+#' overlay raw map and return the results.
+#' Note that highlighted nodes are considered to be rectangular,
+#' so it is not compatible with the type like `compound`.
 #' 
 #' @param pathway pathway ID to be passed to `pathway()`
-#' @param set vector of identifiers
+#' @param set vector of identifiers, or named vector of numeric values
+#' @param num_combine combining function if multiple hits are obtained per node
 #' @param how if `all`, if node contains multiple
 #' IDs separated by `sep`, highlight if all the IDs
 #' are in query. if `any`, highlight if one of the IDs
@@ -16,49 +19,79 @@
 #' @param fill_color highlight color, default to 'tomato'
 #' @param legend_name legend name, NULL to suppress
 #' @param use_cache use cache or not
+#' @param return_graph return tbl_graph instead of plot
 #' @return overlaid map
 #' @examples
 #' highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
 #' @export
 #'
 highlight_entities <- function(pathway, set, how="any",
-	name="graphics_name", sep=",", no_sep=FALSE,
+	num_combine=mean, name="graphics_name", sep=",", no_sep=FALSE,
 	show_type="gene", fill_color="tomato",
-	legend_name=NULL, use_cache=FALSE) {
+	legend_name=NULL, use_cache=FALSE, return_graph=FALSE) {
 	graph <- pathway(pathway, use_cache=use_cache)
 	x <- get.vertex.attribute(graph, name)
-    vec <- vapply(seq_along(x), function(xn) {
-        if (no_sep) {
-            nn <- x[xn]
-        } else {
-            nn <- unlist(strsplit(x[xn], sep))
-        }
-        if (how == "all") {
-            if (length(intersect(nn, set)) == length(nn)) {
-                return(TRUE)
+	
+	if (is.null(names(set))) {## Discrete
+	    vec <- vapply(seq_along(x), function(xn) {
+	        if (no_sep) {
+	            nn <- x[xn]
+	        } else {
+	            nn <- unlist(strsplit(x[xn], sep)) |> unique()
+	        }
+	        if (how == "all") {
+	            if (length(intersect(nn, set)) == length(nn)) {
+	                return(TRUE)
+	            } else {
+	                return(FALSE)
+	            }
+	        } else {
+	            if (length(intersect(nn, set)) >= 1) {
+	                return(TRUE)
+	            } else {
+	                return(FALSE)
+	            }      
+	        }
+	    }, FUN.VALUE=TRUE)
+	    graph <- graph |> mutate(highlight=vec)
+	    if (return_graph) {return(graph)}
+	    res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
+	        geom_node_rect(aes(filter=.data$type %in% show_type,
+	            fill=.data$highlight))+
+	        scale_fill_manual(values=c("grey", fill_color), name=legend_name)+
+	        overlay_raw_map()+
+	        theme_void()
+	    if (is.null(legend_name)) {
+	    	res <- res + theme(legend.position="none")    	
+	    }
+	} else {## Numeric
+		vec <- lapply(seq_along(x), function(xn) {
+			if (no_sep) {
+				nn <- x[xn]
+			} else {
+				nn <- unlist(strsplit(x[xn], sep)) |> unique()
+			}
+            thresh <- ifelse(how=="any", 1, length(nn))
+            if (length(intersect(names(set), nn)) >= thresh) {
+                summed <- do.call(num_combine,
+                    list(x=set[intersect(names(set), nn)]))
             } else {
-                return(FALSE)
+                summed <- NA
             }
-        } else {
-            if (length(intersect(nn, set)) >= 1) {
-                return(TRUE)
-            } else {
-                return(FALSE)
-            }      
-        }
-    }, FUN.VALUE=TRUE)
-    graph <- graph |> mutate(highlight=vec)
-
-    res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
-        geom_node_rect(aes(filter=.data$type %in% show_type,
-            fill=.data$highlight))+
-        scale_fill_manual(values=c("grey", fill_color), name=legend_name)+
-        overlay_raw_map()+
-        theme_void()
-    if (is.null(legend_name)) {
-    	res <- res + theme(legend.position="none")    	
-    }
-    res
+		}) |> unlist()
+	    graph <- graph |> mutate(highlight=vec)
+	    if (return_graph) {return(graph)}
+	    res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
+	        geom_node_rect(aes(filter=.data$type %in% show_type,
+	            fill=.data$highlight))+
+	        scale_fill_continuous(name=legend_name)+
+	        overlay_raw_map()+
+	        theme_void()
+	    if (is.null(legend_name)) {
+	    	res <- res + theme(legend.position="none")    	
+	    }
+	}
+	return(res)
 }
 
 
@@ -111,6 +144,9 @@ highlight_set_nodes <- function(set, how="all",
             }      
         }
     }, FUN.VALUE=TRUE)
+    if (length(unique(vec))==1) {
+    	cat("None of the nodes (or all the nodes) was highlighted.\n")	
+    }
     vec
 }
 

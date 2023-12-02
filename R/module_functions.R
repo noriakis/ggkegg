@@ -28,9 +28,25 @@ setMethod("show",
     }
 )
 
-setGeneric("get_module_attribute",
-    function(x, ...) standardGeneric("get_module_attribute"))
 
+#' get_module_attribute
+#' 
+#' get slot from `kegg_module` class
+#' 
+#' @param x kegg_module class object
+#' @param attribute pass to get_module_attribute
+#' @return attribute of kegg_module
+#' @export
+setGeneric("get_module_attribute",
+    function(x, attribute) standardGeneric("get_module_attribute"))
+
+#' get_module_attribute
+#' 
+#' get the kegg_module class attribute
+#' 
+#' @param x kegg_module class object
+#' @param attribute slot name
+#' @return attribute of kegg_module
 setMethod("get_module_attribute", "kegg_module",
     function(x, attribute) attr(x, attribute))
 
