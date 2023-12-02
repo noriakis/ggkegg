@@ -431,12 +431,16 @@ process_reaction <- function(g, single_edge=FALSE, keep_no_reaction=TRUE) {
     new_eds$to <- as.integer(new_eds$to)
     if (keep_no_reaction) {
         if (dim(no_reacs)[1]!=0) {## If the no-reaction row is present
-            for (coln in colnames(no_reacs)) {
+            all_columns <- union(colnames(no_reacs), colnames(new_eds))
+            for (coln in all_columns) {
                 if (!coln %in% colnames(new_eds)) {
                     new_eds[[coln]] <- NA
                 }
+                if (!coln %in% colnames(no_reacs)) {
+                    no_reacs[[coln]] <- NA
+                }
+
             }
-            new_eds <- new_eds[,colnames(no_reacs)]
             new_eds <- rbind(no_reacs, new_eds)            
         }
     }
