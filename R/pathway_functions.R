@@ -430,13 +430,15 @@ process_reaction <- function(g, single_edge=FALSE, keep_no_reaction=TRUE) {
     new_eds$from <- as.integer(new_eds$from)
     new_eds$to <- as.integer(new_eds$to)
     if (keep_no_reaction) {
-        for (coln in colnames(no_reacs)) {
-            if (!coln %in% colnames(new_eds)) {
-                new_eds[[coln]] <- NA
+        if (dim(no_reacs)[1]!=0) {## If the no-reaction row is present
+            for (coln in colnames(no_reacs)) {
+                if (!coln %in% colnames(new_eds)) {
+                    new_eds[[coln]] <- NA
+                }
             }
+            new_eds <- new_eds[,colnames(no_reacs)]
+            new_eds <- rbind(no_reacs, new_eds)            
         }
-        new_eds <- new_eds[,colnames(no_reacs)]
-        new_eds <- rbind(no_reacs, new_eds)
     }
     new_g <- tbl_graph(nodes=nds, edges=new_eds)
     new_g
