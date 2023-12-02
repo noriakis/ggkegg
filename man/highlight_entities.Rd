@@ -8,6 +8,7 @@ highlight_entities(
   pathway,
   set,
   how = "any",
+  num_combine = mean,
   name = "graphics_name",
   sep = ",",
   no_sep = FALSE,
@@ -20,12 +21,14 @@ highlight_entities(
 \arguments{
 \item{pathway}{pathway ID to be passed to `pathway()`}
 
-\item{set}{vector of identifiers}
+\item{set}{vector of identifiers, or named vector of numeric values}
 
 \item{how}{if `all`, if node contains multiple
 IDs separated by `sep`, highlight if all the IDs
 are in query. if `any`, highlight if one of the IDs
 is in query.}
+
+\item{num_combine}{combining function if multiple hits are obtained per node}
 
 \item{name}{which column to search for}
 
@@ -46,7 +49,9 @@ overlaid map
 }
 \description{
 highlight the entities in the pathway,
-overlay raw map and return the results
+overlay raw map and return the results.
+Note that highlighted nodes are considered to be rectangular,
+so it is not compatible with the type like `compound`.
 }
 \examples{
 highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
