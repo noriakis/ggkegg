@@ -15,7 +15,8 @@ highlight_entities(
   show_type = "gene",
   fill_color = "tomato",
   legend_name = NULL,
-  use_cache = FALSE
+  use_cache = FALSE,
+  return_graph = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ is in query.}
 \item{legend_name}{legend name, NULL to suppress}
 
 \item{use_cache}{use cache or not}
+
+\item{return_graph}{return tbl_graph instead of plot}
 }
 \value{
 overlaid map

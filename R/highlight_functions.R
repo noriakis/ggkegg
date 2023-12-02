@@ -19,6 +19,7 @@
 #' @param fill_color highlight color, default to 'tomato'
 #' @param legend_name legend name, NULL to suppress
 #' @param use_cache use cache or not
+#' @param return_graph return tbl_graph instead of plot
 #' @return overlaid map
 #' @examples
 #' highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
@@ -27,7 +28,7 @@
 highlight_entities <- function(pathway, set, how="any",
 	num_combine=mean, name="graphics_name", sep=",", no_sep=FALSE,
 	show_type="gene", fill_color="tomato",
-	legend_name=NULL, use_cache=FALSE) {
+	legend_name=NULL, use_cache=FALSE, return_graph=FALSE) {
 	graph <- pathway(pathway, use_cache=use_cache)
 	x <- get.vertex.attribute(graph, name)
 	
@@ -53,7 +54,7 @@ highlight_entities <- function(pathway, set, how="any",
 	        }
 	    }, FUN.VALUE=TRUE)
 	    graph <- graph |> mutate(highlight=vec)
-
+	    if (return_graph) {return(graph)}
 	    res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
 	        geom_node_rect(aes(filter=.data$type %in% show_type,
 	            fill=.data$highlight))+
@@ -79,6 +80,7 @@ highlight_entities <- function(pathway, set, how="any",
             }
 		}) |> unlist()
 	    graph <- graph |> mutate(highlight=vec)
+	    if (return_graph) {return(graph)}
 	    res <- ggraph(graph, layout="manual", x=.data$x, y=.data$y) + 
 	        geom_node_rect(aes(filter=.data$type %in% show_type,
 	            fill=.data$highlight))+
