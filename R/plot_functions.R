@@ -15,12 +15,13 @@
 #' 
 multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
     plen <- length(pathways)
+    
     if (plen %% 2) {
-        col_num <- plen / row_num; addit <- 0
+        col_num <- as.integer(plen / row_num)+1; addit <- plen %% row_num
     } else {
-        col_num <- as.integer(plen / row_num); addit <- plen %% row_num
+        col_num <- plen / row_num; addit <- 0
     }
-  
+    
     tot_row <- 1
     tot_col <- 1
     miny <- 0
@@ -28,22 +29,23 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
     ## Preallocate
     gls <- vector(mode="list", length=plen)
     for (pp in seq_len(pathways |> length())) {
-    
-        tot_row <- tot_row + 1
-
         g <- pathway(pathways[pp])
         g <- g |> mutate(x=(.data$x/max(.data$x)+tot_col-1),
-                           y=.data$y-miny)
+                           y=.data$y/min(.data$y)+miny)
         gls[[pp]] <- g
-
-        edf <- g |> activate("nodes") |> data.frame()
-        miny <- miny - min(edf$y)
-    
-        if (tot_row > row_num) {
-          tot_row <- 1
-          tot_col <- tot_col + 1
-          miny <- 0
-        }
+        # edf <- g |> activate("nodes") |> data.frame()
+        # miny <- miny - min(edf$y)
+        tot_col <- tot_col + 1
+        
+        if (tot_col > col_num) {
+            tot_col <- 1
+            tot_row <- tot_row + 1
+            miny <- miny - 1
+        }    
+        # if (tot_row > row_num) {
+        #     tot_row <- 1
+        #     tot_col <- tot_col + 1
+        # }
     }
     if (return_list) {return(gls)}
     Reduce(graph_join, gls)
