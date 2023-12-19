@@ -1,0 +1,20 @@
+citEntry(entry  ="ARTICLE",
+         title  = "ggkegg: analysis and visualization of KEGG data utilizing the grammar of graphics",
+         author = personList(
+             as.person("Noriaki Sato"),
+             as.person("Miho Uematsu"),
+             as.person("Kosuke Fujimoto"),
+             as.person("Satoshi Uematsu"),
+             as.person("Seiya Imoto")
+             ),
+         journal = "Bioinformatics",
+         year    = "2023",
+         volume  = "39",
+         number  = "10",
+         pages   = "btad622",
+         PMID    = "37846038",
+         doi     = "10.1093/bioinformatics/btad622",
+         textVersion = paste("Sato N, Uematsu M, Fujimoto K, Uematsu S, Imoto S.",
+                             "ggkegg: analysis and visualization of KEGG data utilizing the grammar of graphics.", 
+                             "Bioinformatics. 2023 Oct 3;39(10):btad622.")
+         )
