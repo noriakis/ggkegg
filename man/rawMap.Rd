@@ -10,7 +10,8 @@ rawMap(
   pid = NULL,
   fill_color = "red",
   how = "any",
-  white_background = TRUE
+  white_background = TRUE,
+  infer = FALSE
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ rawMap(
 \item{how}{how to match the node IDs with the queries 'any' or 'all'}
 
 \item{white_background}{fill background color white}
+
+\item{infer}{if TRUE, append the prefix to queried IDs based on pathway ID}
 }
 \value{
 ggraph with overlaid KEGG map

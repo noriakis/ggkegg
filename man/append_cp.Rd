@@ -4,7 +4,7 @@
 \alias{append_cp}
 \title{append_cp}
 \usage{
-append_cp(res, how = "any", name = "name", pid = NULL)
+append_cp(res, how = "any", name = "name", pid = NULL, infer = FALSE)
 }
 \arguments{
 \item{res}{enrichResult class}
@@ -14,6 +14,8 @@ append_cp(res, how = "any", name = "name", pid = NULL)
 \item{name}{name column to search for query}
 
 \item{pid}{pathway ID, if NULL, try to infer from graph attribute}
+
+\item{infer}{if TRUE, append the prefix to queried IDs based on pathway ID}
 }
 \value{
 enrich_attribute column in node
