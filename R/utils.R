@@ -415,9 +415,11 @@ append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE) {
     } else {## If UNKNOWN
         ## Try to infer
         if (infer) {
-            org <- gsub("[^a-zA-Z]", "", pid)        
+            org <- gsub("[^a-zA-Z]", "", pid)
+            enrich_attribute <- paste0(org, ":", unlist(strsplit(res[pid,][[gene_col]], "/")))
+        } else {
+	        enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))
         }
-        enrich_attribute <- paste0(org, ":", unlist(strsplit(res[pid,][[gene_col]], "/")))
     }
     bools <- vapply(x, function(xx) {
         in_node <- strsplit(xx, " ") |> unlist() |> unique()
