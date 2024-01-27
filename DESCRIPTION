@@ -7,7 +7,7 @@ Description: This package aims to import, parse, and analyze KEGG data such as K
 License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
-    R (>= 4.3.0), ggplot2, ggraph, XML, igraph, tidygraph
+    R (>= 3.5.0), ggplot2, ggraph, XML, igraph, tidygraph
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
     org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices, Cairo

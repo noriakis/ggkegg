@@ -106,7 +106,7 @@ ggkegg <- function(pid,
         }
         if (startsWith(pid, "N")) {
             network <- network(pid)
-            return(network |> network_graph() |> plot_kegg_network())
+            return(network %>% network_graph() %>% plot_kegg_network())
         }
     }
     ## If not module or enrichResult, return pathway
@@ -119,7 +119,7 @@ ggkegg <- function(pid,
     if (!is.null(convert_org)) {
         convert_vec <- lapply(convert_org, function(co) {
                obtain_map_and_cache(co, pid)                
-        }) |> unlist()
+        }) %>% unlist()
     
         V(g)$converted_name <- unlist(lapply(V(g)$name,
             function(x) {
@@ -147,7 +147,7 @@ ggkegg <- function(pid,
 
     if (!is.null(enrich_attribute)) {
         bools <- vapply(V(g)$name, function(xx) {
-            in_node <- strsplit(xx, " ") |> unlist() |> unique()
+            in_node <- strsplit(xx, " ") %>% unlist() %>% unique()
             if (length(intersect(in_node, enrich_attribute)) >= 1) {
                 return(TRUE)
             } else {
@@ -260,19 +260,19 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     }
 
     if (number == 1) {
-        g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid, infer=infer))
+        g <- pathway(pid) %>% mutate(cp=append_cp(enrich, how=how, pid=pid, infer=infer))
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
             geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
             overlay_raw_map()+theme_void()
     } else {
         g <- pathway(pid)
         for (i in seq_len(number)) {
-            g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
+            g <- g  %>% mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
                 how=how, pid=pid, infer=infer))
         }
         V(g)$space <- V(g)$width/number
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
-        nds <- g |> activate("nodes") |> data.frame()
+        nds <- g %>% activate("nodes") %>% data.frame()
         for (i in seq_len(number)) {
             gg <- gg +
                 geom_node_rect(fill=fill_color[i],
@@ -310,7 +310,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' @export
 #' @examples
 #' ## Colorize by passing the named vector of numeric values
-#' rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
+#' rv <- rawValue(c(1.1) %>% setNames("hsa:6737"), 
 #'         man_graph=create_test_pathway())
 #' @return ggraph with overlaid KEGG map
 #' 
@@ -337,7 +337,7 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
         pgraph <- pathway(pid)
     }
     if (number == 1) {
-        g <- pgraph |> mutate(value=node_numeric(values,
+        g <- pgraph %>% mutate(value=node_numeric(values,
             name=column, how=how))
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
             geom_node_rect(aes(fill=.data$value,
@@ -347,12 +347,12 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
         ## Add new scales like ggh4x
         g <- pgraph
         for (i in seq_len(number)) {
-            g <- g  |> mutate(!!paste0("value",i):=node_numeric(values[[i]],
+            g <- g  %>% mutate(!!paste0("value",i):=node_numeric(values[[i]],
                 name=column,how=how))
         }
         V(g)$space <- V(g)$width/number
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
-        nds <- g |> activate("nodes") |> data.frame()
+        nds <- g %>% activate("nodes") %>% data.frame()
         nds <- nds[nds$type %in% show_type,]
 
         for (i in seq_len(number)) {

@@ -37,10 +37,10 @@ library(igraph)
 library(tidygraph)
 library(dplyr)
 
-pathway("ko01100") |>
-    process_line() |>
-    highlight_module(module("M00021")) |>
-    highlight_module(module("M00338")) |>
+pathway("ko01100") %>%
+    process_line() %>%
+    highlight_module(module("M00021")) %>%
+    highlight_module(module("M00338")) %>%
     ggraph(x=x, y=y) +
         geom_node_point(size=1, aes(color=I(fgcolor),
             filter=fgcolor!="none" & type!="line")) +
@@ -75,7 +75,7 @@ functions.
 compounds <- c("cpd:C00100", "cpd:C00894", "cpd:C00894", "cpd:C05668",
     "cpd:C05668", "cpd:C01013", "cpd:C01013", "cpd:C00222",
     "cpd:C00222", "cpd:C00024")
-g <- pathway("ko00640") |> mutate(mod=highlight_set_nodes(compounds, how="all"))
+g <- pathway("ko00640") %>% mutate(mod=highlight_set_nodes(compounds, how="all"))
 ggraph(g, layout="manual", x=x, y=y)+
     geom_node_rect(fill="grey",aes(filter=type == "ortholog"))+
     overlay_raw_map("ko00640")+

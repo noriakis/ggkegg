@@ -42,13 +42,13 @@ graph
 The output can be analysed readily using `tidygraph` and `dplyr` verbs. For example, centrality calculations can be performed as follows.
 
 ```{r pathway1_1, message=FALSE, warning=FALSE, fig.width=6, fig.height=3}
-graph |> 
+graph %>% 
     mutate(degree=centrality_degree(mode="all"),
-        betweenness=centrality_betweenness()) |> 
-    activate(nodes) |>
-    filter(type=="gene") |>
-    arrange(desc(degree)) |>
-    as_tibble() |>
+        betweenness=centrality_betweenness()) %>% 
+    activate(nodes) %>%
+    filter(type=="gene") %>%
+    arrange(desc(degree)) %>%
+    as_tibble() %>%
     relocate(degree, betweenness)
 ```
 
@@ -57,7 +57,7 @@ graph |>
 The parsed `tbl_graph` can be used to plot the information by `ggraph` using the grammar of graphics. The components in the graph such as nodes, edges, and text can be plotted layer by layer.
 
 ```{r plot_pathway1, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
-graph <- graph |> mutate(showname=strsplit(graphics_name, ",") |>
+graph <- graph %>% mutate(showname=strsplit(graphics_name, ",") %>%
                     vapply("[", 1, FUN.VALUE="a"))
 
 ggraph(graph, layout="manual", x=x, y=y)+
@@ -77,7 +77,7 @@ ggraph(graph, layout="manual", x=x, y=y)+
 Besides the default ordering, various layout functions in `igraph` and `ggraph` can be used.
 
 ```{r plot_pathway2, message=FALSE, warning=FALSE, fig.width=10, fig.height=10}
-graph |> mutate(x=NULL, y=NULL) |>
+graph %>% mutate(x=NULL, y=NULL) %>%
 ggraph(layout="nicely")+
     geom_edge_parallel(aes(color=subtype_name),
         arrow=arrow(length=unit(1,"mm"), type="closed"),
@@ -99,11 +99,11 @@ ggraph(layout="nicely")+
 In the above example, `graphics_name` column in the node table were used, which are available in the default KGML file. Some of them are truncated, and the user can convert identifiers using `convert_id` function to be used in `mutate`. One can pipe the functions to convert `name` column consisting of `hsa` KEGG gene IDs in node table of `tbl_graph`.
 
 ```{r convert, message=FALSE, warning=FALSE}
-graph |>
-    activate(nodes) |>
-    mutate(hsa=convert_id("hsa")) |>
-    filter(type == "gene") |>
-    as_tibble() |>
+graph %>%
+    activate(nodes) %>%
+    mutate(hsa=convert_id("hsa")) %>%
+    filter(type == "gene") %>%
+    as_tibble() %>%
     relocate(hsa)
 ```
 
@@ -112,9 +112,9 @@ graph |>
 `highlight_set_nodes()` and `highlight_set_edges()` can be used to identify nodes that satisfy query IDs. Nodes often have multiple IDs, and user can choose `how="any"` (if one of identifiers in the nodes matches the query) or `how="all"` (if all of the identifiers in the nodes match the query) to highlight.
 
 ```{r highlight, message=FALSE, warning=FALSE, fig.width=10, fig.height=8}
-graph |>
-    activate(nodes) |>
-    mutate(highlight=highlight_set_nodes("hsa:7157")) |>
+graph %>%
+    activate(nodes) %>%
+    mutate(highlight=highlight_set_nodes("hsa:7157")) %>%
     ggraph(layout="manual", x=x, y=y)+
     geom_node_rect(aes(fill=I(bgcolor),
                       filter=type == "gene"), color="black")+
@@ -137,8 +137,8 @@ The node and text can be directly customized by using various geoms, effects suc
 The code below creates nodes using default parsed background color and just overlay the image.
 
 ```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE, dev="CairoPNG"}
-graph |>
-    mutate(degree=centrality_degree(mode="all")) |>
+graph %>%
+    mutate(degree=centrality_degree(mode="all")) %>%
     ggraph(graph, layout="manual", x=x, y=y)+
         geom_node_rect(aes(fill=degree,
                       filter=type == "gene"))+
@@ -166,8 +166,8 @@ For text based visualization like the one shown in the original KEGG website, `m
 
 ```{r mod_vis1, message=FALSE, warning=FALSE, fig.width=8, fig.height=4}
 ## Text-based
-mod |>
-    module_text() |> ## return data.frame
+mod %>%
+    module_text() %>% ## return data.frame
     plot_module_text()
 ```
 
@@ -175,8 +175,8 @@ For network based visualization, `obtain_sequential_module_definition` can be us
 
 ```{r mod_vis2, message=FALSE, warning=FALSE, fig.width=8, fig.height=8}
 ## Network-based
-mod |>
-    obtain_sequential_module_definition() |> ## return tbl_graph
+mod %>%
+    obtain_sequential_module_definition() %>% ## return tbl_graph
     plot_module_blocks()
 ```
 
@@ -191,7 +191,7 @@ The package supports direct importing and visualization, and investigation of th
 `ggkegg` function can be used with various input. For example, if the user provides pathway ID, the function automatically returns the `ggraph` with the original layout, which can be used directly for stacking geoms. The other supported IDs are module, network, and also the `enrichResult` object, and the other options such as converting IDs are available.
 
 ```{r ggkegg, fig.width=6, fig.height=6}
-ggkegg("bpsp00270") |> class() ## Returns ggraph
+ggkegg("bpsp00270") %>% class() ## Returns ggraph
 ggkegg("N00002") ## Returns the KEGG NETWORK plot
 ```
 

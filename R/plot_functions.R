@@ -28,12 +28,12 @@ multi_pathway_native <- function(pathways, row_num=2, return_list=FALSE) {
 
     ## Preallocate
     gls <- vector(mode="list", length=plen)
-    for (pp in seq_len(pathways |> length())) {
+    for (pp in seq_len(pathways %>% length())) {
         g <- pathway(pathways[pp])
-        g <- g |> mutate(x=(.data$x/max(.data$x)+tot_col-1),
+        g <- g %>% mutate(x=(.data$x/max(.data$x)+tot_col-1),
                            y=.data$y/min(.data$y)+miny)
         gls[[pp]] <- g
-        # edf <- g |> activate("nodes") |> data.frame()
+        # edf <- g %>% activate("nodes") %>% data.frame()
         # miny <- miny - min(edf$y)
         tot_col <- tot_col + 1
         
@@ -259,9 +259,9 @@ ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
 #' neg <- network_graph(ne)
 #' plt <- plot_kegg_network(neg)
 plot_kegg_network <- function(g, layout="nicely") {
-    gg <- g |> as_tbl_graph() |> activate("nodes") |>
-        mutate(splitn=strsplit(.data$name,"_") |> 
-                        vapply("[",1,FUN.VALUE="character")) |>
+    gg <- g %>% as_tbl_graph() %>% activate("nodes") %>%
+        mutate(splitn=strsplit(.data$name,"_") %>% 
+                        vapply("[",1,FUN.VALUE="character")) %>%
         mutate(group=startsWith(.data$splitn,"manual_G"),
             and_group=startsWith(.data$splitn,"manual_CS"))
 

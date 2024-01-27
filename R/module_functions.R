@@ -85,7 +85,7 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
             break
         }
         if (!startsWith(line, " ")) {
-            current_id <- strsplit(line, " ") |>
+            current_id <- strsplit(line, " ") %>%
                 vapply("[", 1, FUN.VALUE="character")
         }
         if (!current_id %in% c("REFERENCE","///")) {
@@ -120,7 +120,7 @@ module <- function(mid, use_cache=FALSE, directory=NULL) {
     }
     pattern <- "K\\d{5}"
     kos <- paste0("ko:",
-        unlist(str_extract_all(kmo@definition_raw |> unlist(), pattern)))
+        unlist(str_extract_all(kmo@definition_raw %>% unlist(), pattern)))
     pattern <- "C\\d{5}"
     cos <- paste0("cpd:",unlist(str_extract_all(kmo@reaction, pattern)))
     pattern <- "R\\d{5}"
@@ -160,7 +160,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
                 if (is.vector(posmat)) {dfs <- data.frame(t(posmat))} else {
                   dfs <- data.frame(posmat)
                 }
-                posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
+                posmat <- dfs %>% `colnames<-`(c("xmin","xmax","length"))
                 posmat$name <- paste0("manual_G",
                     str_pad(seq_len(nrow(posmat)),5,pad="0"))
                 ul <- sort(unique(posmat$length))
@@ -187,7 +187,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
                     }))
                 })
             kopos <- do.call(rbind, kopos)
-            kopos <- data.frame(kopos) |> `colnames<-`(c("name","xmin","xmax"))
+            kopos <- data.frame(kopos) %>% `colnames<-`(c("name","xmin","xmax"))
             kopos$x <- (as.numeric(kopos$xmin)+as.numeric(kopos$xmax))/2
             kopos$height <- 0.5
             kopos$size <- 6
@@ -235,7 +235,7 @@ module_text <- function(kmo, name="1", candidate_ko=NULL,
                 } else {
                   "transparent"
                 }
-            }) |> unlist()
+            }) %>% unlist()
 
             if (!is.null(convert)) {
                 conv <- convert[concat$name]
@@ -300,10 +300,10 @@ module_completeness <- function(kmo, query, name="1") {
     })
     
     tibble(block=kmo$definition_block,
-        all_num=lapply(results, function(x) x[[1]]) |> unlist(),
-        present_num=lapply(results, function(x) x[[3]]) |> unlist(),
-        ratio=lapply(results, function(x) x[[4]]) |> unlist(),
-        complete=lapply(results, function(x) x[[2]]) |> unlist())
+        all_num=lapply(results, function(x) x[[1]]) %>% unlist(),
+        present_num=lapply(results, function(x) x[[3]]) %>% unlist(),
+        ratio=lapply(results, function(x) x[[4]]) %>% unlist(),
+        complete=lapply(results, function(x) x[[2]]) %>% unlist())
 }
 
 #' obtain_sequential_module_definition
@@ -337,8 +337,8 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
         }
     })
 
-    all_steps <- do.call(rbind, all_steps) |>
-        data.frame() |>
+    all_steps <- do.call(rbind, all_steps) %>%
+        data.frame() %>%
         `colnames<-`(c("from","to","type"))
     
     plotg <- lapply(seq_along(cand_step), function(i) {
@@ -364,7 +364,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
         } else {
             return(kmo$definition_block[i]) 
         }
-    }) |> unlist()
+    }) %>% unlist()
 
     ords <- lapply(seq_along(orders), function (i) {
         if (i!=length(orders)) {
@@ -375,7 +375,7 @@ obtain_sequential_module_definition <- function(kmo, name="1", block=NULL) {
 
     if (!is.null(ords)) {
         all_steps <- rbind(all_steps, 
-                        data.frame(ords)|>
+                        data.frame(ords)%>%
                             `colnames<-`(c("from","to","type")))
     } else {
         ## Only one step
@@ -399,7 +399,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
         if (is.vector(posmat)) {dfs <- data.frame(t(posmat))} else {
             dfs <- data.frame(posmat)
         }
-        posmat <- dfs |> `colnames<-`(c("xmin","xmax","length"))
+        posmat <- dfs %>% `colnames<-`(c("xmin","xmax","length"))
         posmat$name <- paste0("manual_G",
             str_pad(seq_len(nrow(posmat)),5,pad="0"))
         ul <- sort(unique(posmat$length))
@@ -446,7 +446,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
         }
         css <- do.call(rbind, css)
         if (!is.null(css)) {
-          css <- data.frame(css) |> `colnames<-`(c("text","name"))
+          css <- data.frame(css) %>% `colnames<-`(c("text","name"))
         }
         list(css=css, num=cssnum)
     }
@@ -498,7 +498,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
     rels <- do.call(rbind, rels)
 
     if (!is.null(rels)) {
-        rels <- rels |> data.frame() |> `colnames<-`(c("from", "to", "type"))    
+        rels <- rels %>% data.frame() %>% `colnames<-`(c("from", "to", "type"))    
         relg <- graph_from_data_frame(rels, directed=FALSE)
         g <- simplify(relg, edge.attr.comb="first")
     
@@ -553,18 +553,18 @@ module_graph <- function(input_string, skip_minus=FALSE) {
                 }##CSS              
             }
             if (is.vector(tmpg)) {
-                tmpg <- data.frame(tmpg) |> t()
+                tmpg <- data.frame(tmpg) %>% t()
             } else {
                 tmpg <- data.frame(tmpg)
             }
-            tmp_g <- data.frame(tmpg) |> `colnames<-`(c("from","to","type"))      
+            tmp_g <- data.frame(tmpg) %>% `colnames<-`(c("from","to","type"))      
             el <- simplify(graph_from_data_frame(tmpg, directed=FALSE),
                             edge.attr.comb="first")
-            tmp_g <- data.frame(as_data_frame(el)) |>
+            tmp_g <- data.frame(as_data_frame(el)) %>%
                 `colnames<-`(c("from","to","type"))
             list(tmp_g, css)
         })
-        all_g <- as_data_frame(g) |> `colnames<-`(c("from","to","type"))
+        all_g <- as_data_frame(g) %>% `colnames<-`(c("from","to","type"))
         all_g <- rbind(all_g, do.call(rbind, lapply(gs, function(x) x[[1]])))
         css <- rbind(css, do.call(rbind, lapply(gs, function(x) x[[2]])))
     }
@@ -611,7 +611,7 @@ module_graph <- function(input_string, skip_minus=FALSE) {
             parse_css(css[x,])
         })
         cssparsed <- do.call(rbind, cssparsed)
-        cssparsed <- data.frame(cssparsed) |>
+        cssparsed <- data.frame(cssparsed) %>%
             `colnames<-`(c("from","to","type"))
     } else {
         cssparsed <- NULL
@@ -685,12 +685,12 @@ parse_module <- function(kmo) {
         right <- gsub(" ","", right)
         Cpattern <- "C\\d{5}"
         Rpattern <- "R\\d{5}"
-        left_Rmatches <- str_extract_all(left, Rpattern) |>
-            unlist() |> tibble()
-        left_Cmatches <- str_extract_all(left, Cpattern) |>
-            unlist() |> tibble()
-        right_Cmatches <- str_extract_all(right, Cpattern) |>
-            unlist() |> tibble()
+        left_Rmatches <- str_extract_all(left, Rpattern) %>%
+            unlist() %>% tibble()
+        left_Cmatches <- str_extract_all(left, Cpattern) %>%
+            unlist() %>% tibble()
+        right_Cmatches <- str_extract_all(right, Cpattern) %>%
+            unlist() %>% tibble()
         
         # left
         ## Reaction
@@ -716,7 +716,7 @@ parse_module <- function(kmo) {
         })
         reac <- do.call(rbind, reac)
         list("each_reacs"=c(left_Cmatches, left_Rmatches, right_Cmatches),
-            "each_reacs_raw"=c(left2, left1, right_raw |> gsub(" ","",x=_)),
+            "each_reacs_raw"=c(left2, left1, right_raw %>% gsub(" ","",x=.)),
             "reac"=reac)
     })
     reac <- as_tibble(do.call(rbind,
@@ -728,7 +728,7 @@ parse_module <- function(kmo) {
         eachraw <- as_tibble(do.call(rbind,
             lapply(reac_list, function(x) x[["each_reacs_raw"]])))
         names(eachraw) <- c("left","reaction","right")
-        reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
+        reac <- reac %>% data.frame() %>% `colnames<-`(c("from","to","reaction"))
         kmo@reaction_graph <- as_tbl_graph(reac)
         kmo@reaction_each <- each
         kmo@reaction_each_raw <- eachraw
@@ -778,7 +778,7 @@ parse_module <- function(kmo) {
         })
         num_step <- lapply(seq_along(result), function(i) {
             length(unlist(str_extract_all(result[i], pattern)))
-        }) |> unlist()
+        }) %>% unlist()
         list("definition_block"=unlist(result),
             "definition_kos"=unlist(matches),
             "definition_num_in_block"=num_step,
@@ -797,19 +797,19 @@ parse_module <- function(kmo) {
 #' @param calc calculation of final results, mean or weighted_mean
 #' @export
 #' @importFrom stats weighted.mean
-#' @examples module_abundance("M00003",c(1.2) |> setNames("K00927"))
+#' @examples module_abundance("M00003",c(1.2) %>% setNames("K00927"))
 #' @return numeric value
 module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
     mod <- module(mod_id)
     ko_abun <- lapply(mod@definitions[[num]]$definition_ko_in_block,
         function(kos) {
             if (length(intersect(kos, names(vec))) >= 1) {
-              mean_kos <- vec[intersect(kos, names(vec))] |> mean()
+              mean_kos <- vec[intersect(kos, names(vec))] %>% mean()
             } else {
               mean_kos <- 0
             }
             return(mean_kos)        
-        }) |> unlist()
+        }) %>% unlist()
     
     comp <- module_completeness(mod, names(vec))
     comp$abundance <- ko_abun
@@ -828,15 +828,15 @@ module_abundance <- function(mod_id, vec, num=1, calc="weighted_mean") {
 #' @param vec named vector of abundance
 #' @param num number of module definition
 #' @return numeric value
-#' @examples pathway_abundance("ko00270", c(1.2) |> `setNames`("K00927"))
+#' @examples pathway_abundance("ko00270", c(1.2) %>% `setNames`("K00927"))
 #' @export
 pathway_abundance <- function(id, vec, num=1) {
     pway <- pathway_info(id)
-    mods <- pway$MODULE |> strsplit(" ") |>
-        vapply("[", 1, FUN.VALUE="character") |> unique()
+    mods <- pway$MODULE %>% strsplit(" ") %>%
+        vapply("[", 1, FUN.VALUE="character") %>% unique()
     abuns <- lapply(mods, function(mod) {
         module_abundance(mod_id=mod, num=num, vec=vec)
-    }) |> unlist()
+    }) %>% unlist()
     tibble(
         module=mods,
         abundance=abuns

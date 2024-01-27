@@ -106,7 +106,7 @@ network <- function(nid, use_cache=FALSE, directory=NULL) {
 
 #' @noRd
 convert_expanded_to_graph <- function(kne) {
-    sp <- kne@expanded |> strsplit(" ") |> unlist()
+    sp <- kne@expanded %>% strsplit(" ") %>% unlist()
     edges <- lapply(seq(1,length(sp), 2), function(i) {
         if (i!=length(sp)) {
             left <- sp[i]
@@ -115,14 +115,14 @@ convert_expanded_to_graph <- function(kne) {
             return(c(left, right, edge))
         } else {}       
     })
-    edges <- do.call(rbind, edges) |> data.frame() |>
+    edges <- do.call(rbind, edges) %>% data.frame() %>%
         `colnames<-`(c("from","to","type"))
     return(as_tbl_graph(edges))
 }
 
 #' @noRd
 convert_definition_to_graph <- function(kne) {
-    sp <- kne@definition |> strsplit(" ") |> unlist()
+    sp <- kne@definition %>% strsplit(" ") %>% unlist()
     edges <- lapply(seq(1,length(sp), 2), function(i) {
         if (i!=length(sp)) {
             left <- sp[i]
@@ -131,7 +131,7 @@ convert_definition_to_graph <- function(kne) {
             return(c(left, right, edge))
         } else {}       
     })
-    edges <- do.call(rbind, edges) |> data.frame() |>
+    edges <- do.call(rbind, edges) %>% data.frame() %>%
         `colnames<-`(c("from","to","type"))
     return(as_tbl_graph(edges))
 }
@@ -152,11 +152,11 @@ convert_definition_to_graph <- function(kne) {
 #' 
 network_graph <- function (kne, type="definition") {
     if (type=="definition") {
-        raw_nodes <- kne@definition_graph |> activate("nodes") |> data.frame()
-        raw_edges <- kne@definition_graph |> activate("edges") |> data.frame()
+        raw_nodes <- kne@definition_graph %>% activate("nodes") %>% data.frame()
+        raw_edges <- kne@definition_graph %>% activate("edges") %>% data.frame()
     } else {
-        raw_nodes <- kne@expanded_graph |> activate("nodes") |> data.frame()
-        raw_edges <- kne@expanded_graph |> activate("edges") |> data.frame()
+        raw_nodes <- kne@expanded_graph %>% activate("nodes") %>% data.frame()
+        raw_edges <- kne@expanded_graph %>% activate("edges") %>% data.frame()
     }
 
     res <- lapply(seq_along(raw_nodes$name), function(nn) {
@@ -185,13 +185,13 @@ network_graph <- function (kne, type="definition") {
                 paste0(vs[,1],"_",nn,"_",kne@ID) ,vs[,1])
             vs <- do.call(rbind, lapply(vs[,1], function(j) {
                 c(j,bln,"in_block")
-            })) |> data.frame() |> `colnames<-`(c("from","to","type"))
+            })) %>% data.frame() %>% `colnames<-`(c("from","to","type"))
             list(rbind(es, vs), nn)
         }
     })
     edges <- do.call(rbind, lapply(res, function(x) x[[1]]))
-    name_change <- lapply(res, function(x) x[[2]]) |> unlist()
-    nns <- lapply(res, function(x) x[[2]]) |> unlist()
+    name_change <- lapply(res, function(x) x[[2]]) %>% unlist()
+    nns <- lapply(res, function(x) x[[2]]) %>% unlist()
 
     name_change <- paste0("manual_BLOCK",name_change,"_",kne@ID)
     names(name_change) <- as.character(nns)
@@ -205,7 +205,7 @@ network_graph <- function (kne, type="definition") {
         } else {
             raw_nodes$name[i]
         }
-    }) |> unlist()
+    }) %>% unlist()
 
     new_edges_to <- lapply(raw_edges$to, function(i) {
         if (i %in% names(name_change)) {
@@ -213,7 +213,7 @@ network_graph <- function (kne, type="definition") {
         } else {
             raw_nodes$name[i]
         }
-    }) |> unlist()
+    }) %>% unlist()
 
     raw_edges$from <- new_edges_from
     raw_edges$to <- new_edges_to
@@ -221,10 +221,10 @@ network_graph <- function (kne, type="definition") {
     if (!is.null(edges)) {
         edges$subtype <- "manual"
     }
-    all_edges <- rbind(raw_edges |>
+    all_edges <- rbind(raw_edges %>%
         `colnames<-`(c("from","to","type","subtype")), edges)
     g <- as_tbl_graph(all_edges, directed=TRUE)
-    g <- g |> activate("nodes") |>
+    g <- g %>% activate("nodes") %>%
         mutate(network_name=kne@name, network_ID=kne@ID)
     g
 }

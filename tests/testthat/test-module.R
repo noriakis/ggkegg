@@ -4,12 +4,12 @@ test_that("Module parsing to text and network without errors", {
 	
 	## Text parsing
 	expect_error( module_text(mod), NA)
-	expect_error( module_text(mod) |> plot_module_text(), NA)
+	expect_error( module_text(mod) %>% plot_module_text(), NA)
     mod <- module("M00004")
     expect_error( module_text(mod), NA)
-    expect_error( module_text(mod) |> plot_module_text(), NA)
+    expect_error( module_text(mod) %>% plot_module_text(), NA)
     
     ## Network parsing
-    expect_error( obtain_sequential_module_definition(mod) |>
+    expect_error( obtain_sequential_module_definition(mod) %>%
         plot_module_blocks(), NA)
 })

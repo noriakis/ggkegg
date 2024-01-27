@@ -22,7 +22,7 @@
 #' @examples
 #' ## Need `pathway_id` column in graph 
 #' ## if the function is to automatically infer
-#' graph <- create_test_pathway() |> mutate(pathway_id="hsa04110")
+#' graph <- create_test_pathway() %>% mutate(pathway_id="hsa04110")
 #' ggraph(graph) + overlay_raw_map()
 #'
 overlay_raw_map <- function(pid=NULL, directory=NULL,
@@ -58,12 +58,12 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
 #' @examples
 #' ## Need `pathway_id` column in graph 
 #' ## if the function is to automatically infer
-#' graph <- create_test_pathway() |> mutate(pathway_id="hsa04110")
+#' graph <- create_test_pathway() %>% mutate(pathway_id="hsa04110")
 #' ggraph(graph) + overlay_raw_map()
 #'
 ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     if (is.null(object$pid)) {
-        infer <- plot$data$pathway_id |> unique()
+        infer <- plot$data$pathway_id %>% unique()
         object$pid <- infer[!is.na(infer)]
     }
     if (!grepl("[[:digit:]]", object$pid)) {
@@ -93,7 +93,7 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     h <- img_info$height
   
     for (col in object$transparent_colors) {
-        magick_image <- magick_image |> 
+        magick_image <- magick_image %>% 
             image_transparent(col)
     }
   

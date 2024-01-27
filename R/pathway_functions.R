@@ -122,7 +122,7 @@ pathway <- function(pid,
         }
         all_nodes[[ni]] <- c(id, name, type, reac,
                         glname, x, y, w, h, fg, bg, gltype,
-                        paste0(mult_coords |> unlist(), collapse="|")) |>
+                        paste0(mult_coords %>% unlist(), collapse="|")) %>%
                         setNames(node_names)
         ni <- ni + 1
     }
@@ -131,7 +131,7 @@ pathway <- function(pid,
     grs[vapply(grs, is.null, TRUE)] <- NULL
     rev_grs[vapply(rev_grs, is.null, TRUE)] <- NULL
 
-    kegg_nodes <- dplyr::bind_rows(all_nodes) |> data.frame() |>
+    kegg_nodes <- dplyr::bind_rows(all_nodes) %>% data.frame() %>%
         `colnames<-`(node_names)
 
     kegg_nodes$x <- as.numeric(kegg_nodes$x)
@@ -170,19 +170,19 @@ pathway <- function(pid,
         if (length(rel_subtypes)!=0) {
             for (rs in rel_subtypes) {
                 all_rels[[ei]] <- c(entry1, entry2, rel_type,
-                    xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) |>
+                    xmlAttrs(rs)["name"], xmlAttrs(rs)["value"]) %>%
                 setNames(rel_names)
                 ei <- ei + 1
             }
         } else {
-            all_rels[[ei]] <- c(entry1, entry2, rel_type, NA, NA) |>
+            all_rels[[ei]] <- c(entry1, entry2, rel_type, NA, NA) %>%
             setNames(rel_names)
             ei <- ei + 1
         }
     }
 
     if (length(all_rels) != 0) {
-        kegg_edges <- dplyr::bind_rows(all_rels) |> data.frame() |>
+        kegg_edges <- dplyr::bind_rows(all_rels) %>% data.frame() %>%
             `colnames<-`(c("entry1","entry2","type",
                 "subtype_name","subtype_value"))
     } else {
@@ -209,8 +209,8 @@ pathway <- function(pid,
     ## Append grouping
     if (!is.null(kegg_edges)) {
         if (!is.null(gr_rels)) {
-            gr_rels <- gr_rels |> 
-                data.frame() |> 
+            gr_rels <- gr_rels %>% 
+                data.frame() %>% 
                 `colnames<-`(c("entry1","entry2","type",
                     "subtype_name","subtype_value"))
             if ("reaction" %in% colnames(kegg_edges)) {
@@ -275,7 +275,7 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
             rawco <- V(g)$coords[i]
             
             if (grepl("\\|",rawco)) {
-                rawcos <- strsplit(rawco, "\\|") |> unlist()
+                rawcos <- strsplit(rawco, "\\|") %>% unlist()
             } else {
                 rawcos <- rawco
             }
@@ -288,14 +288,14 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
                     ## Assign unique identifiers each node
                     list(
                             c(paste0(raw_name,"_",i,"_",rc,"_",h),
-                                co[h], co[h+1], "line", raw_name, origid) |>
+                                co[h], co[h+1], "line", raw_name, origid) %>%
                                 setNames(name_col_node),
                             c(paste0(raw_name,"_",i,"_",rc,"_",h+1),
-                                co[h+2], co[h+3], "line", raw_name, origid)|>
+                                co[h+2], co[h+3], "line", raw_name, origid)%>%
                                 setNames(name_col_node),
                             c(paste0(raw_name,"_",i,"_",rc,"_",h),
                                 paste0(raw_name,"_",i,"_",rc,"_",h+1),
-                                "line", raw_name, bgcol, fgcol, reac, origid) |>
+                                "line", raw_name, bgcol, fgcol, reac, origid) %>%
                                 setNames(name_col_edge)        
                         )                   
                 })
@@ -303,16 +303,16 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
         }
     })
     
-    results <- results |> unlist(recursive=FALSE)
-    results <- results |> unlist(recursive=FALSE)
+    results <- results %>% unlist(recursive=FALSE)
+    results <- results %>% unlist(recursive=FALSE)
     results[vapply(results, is.null, TRUE)] <- NULL
 
     cos <- do.call(rbind, lapply(results, function(x) {
         rbind(x[[1]],x[[2]])
-    })) |> data.frame() |> `colnames<-`(name_col_node)
+    })) %>% data.frame() %>% `colnames<-`(name_col_node)
     eds <- do.call(rbind, lapply(results, function(x) {
         x[[3]]
-    })) |> data.frame() |> `colnames<-`(name_col_edge)
+    })) %>% data.frame() %>% `colnames<-`(name_col_edge)
 
     
     cos$x <- as.numeric(cos$x);
@@ -322,8 +322,8 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
         cos$y <- as.numeric(cos$y)
     }
     
-    df_add <- df |> bind_nodes(cos) |> bind_edges(eds)
-    df_add |> activate("nodes") |>
+    df_add <- df %>% bind_nodes(cos) %>% bind_edges(eds)
+    df_add %>% activate("nodes") %>%
         mutate(original_name=vapply(seq_len(length(.data$original_name)),
             function(x){ 
                 if(is.na(.data$original_name[x])) {
@@ -363,22 +363,22 @@ process_reaction <- function(g, single_edge=FALSE, keep_no_reaction=TRUE) {
     ## assigning "reversible" and "irreversible"
 
     ## Obtain raw nodes
-    nds <- g |> activate("nodes") |> data.frame()
+    nds <- g %>% activate("nodes") %>% data.frame()
 
     ## Obtain raw edges
-    eds <- g |> activate("edges") |> data.frame()
+    eds <- g %>% activate("edges") %>% data.frame()
     no_reacs <- eds[is.na(eds$reaction_id),]
-    reacs <- eds$reaction_id |> unique()
+    reacs <- eds$reaction_id %>% unique()
     reacs <- reacs[!is.na(reacs)]
     ## Prepare new edges
     
     new_eds <- lapply(reacs, function(reac_id) {
-        konm <- nds[nds$orig.id %in% reac_id,]$name |> unique()
+        konm <- nds[nds$orig.id %in% reac_id,]$name %>% unique()
         konm <- ifelse(is.null(konm), NA, konm)
         in_reacs <- eds[eds$reaction_id %in% reac_id, ]
-        reac_name <- in_reacs$reaction |> unique()
+        reac_name <- in_reacs$reaction %>% unique()
         row.names(in_reacs) <- seq_len(nrow(in_reacs))
-        reac_type <- in_reacs$type |> unique()
+        reac_type <- in_reacs$type %>% unique()
         
         subst_ind <- which(in_reacs$subtype_name == "substrate")
         prod_ind <- which(in_reacs$subtype_name == "product")
@@ -390,26 +390,26 @@ process_reaction <- function(g, single_edge=FALSE, keep_no_reaction=TRUE) {
         		reac_info <- nds[in_reacs[subst, ]$to, ]
         		if (reac_type=="irreversible") {
         			return(c(fr, to, reac_type, reac_name,
-        				konm, reac_info$bgcolor |> unique(),
-        				reac_info$fgcolor |> unique()))
+        				konm, reac_info$bgcolor %>% unique(),
+        				reac_info$fgcolor %>% unique()))
         		} else if (reac_type=="reversible") {
                     if (single_edge) {
                         return(rbind(
                             c(fr, to, reac_type,
                               reac_name, konm,
-                              reac_info$bgcolor |> unique(),
-                              reac_info$fgcolor |> unique())
+                              reac_info$bgcolor %>% unique(),
+                              reac_info$fgcolor %>% unique())
                             ))                          
                     } else {                        
                         return(rbind(
                             c(fr, to, reac_type,
                               reac_name, konm,
-                              reac_info$bgcolor |> unique(),
-                              reac_info$fgcolor |> unique()),
+                              reac_info$bgcolor %>% unique(),
+                              reac_info$fgcolor %>% unique()),
                             c(to, fr, reac_type,
                               reac_name, konm,
-                              reac_info$bgcolor |> unique(),
-                              reac_info$fgcolor |> unique())
+                              reac_info$bgcolor %>% unique(),
+                              reac_info$fgcolor %>% unique())
                             ))
                     }       			
         		} else {
@@ -421,8 +421,8 @@ process_reaction <- function(g, single_edge=FALSE, keep_no_reaction=TRUE) {
     })
 
     new_eds <- unlist(new_eds, recursive=FALSE)
-    new_eds <- do.call(rbind, unlist(new_eds, recursive=FALSE)) |>
-        data.frame() |>
+    new_eds <- do.call(rbind, unlist(new_eds, recursive=FALSE)) %>%
+        data.frame() %>%
         `colnames<-`(c("from","to","type","reaction",
             "name","bgcolor","fgcolor"))
     
@@ -475,8 +475,8 @@ get_reaction <- function(xml) {
         })
     })
     all_reas <- unlist(all_reas, recursive=FALSE)
-    all_reas <- do.call(rbind, unlist(all_reas, recursive=FALSE)) |>
-        data.frame() |> 
+    all_reas <- do.call(rbind, unlist(all_reas, recursive=FALSE)) %>%
+        data.frame() %>% 
         `colnames<-`(c("id","reac_name",
                     "type","substrate_id","substrate_name",
                     "product_id","product_name"))
@@ -505,9 +505,9 @@ get_reaction <- function(xml) {
     })
 
 
-    rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |>
-        data.frame() |>
-        dplyr::distinct() |>
+    rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) %>%
+        data.frame() %>%
+        dplyr::distinct() %>%
         `colnames<-`(c("entry1","entry2","type",
             "subtype_name","subtype_value","reaction","reaction_id"))
     rsp_rels
@@ -547,7 +547,7 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
             break
         }
         if (!startsWith(line, " ")) {
-            current_id <- strsplit(line, " ") |>
+            current_id <- strsplit(line, " ") %>%
                 vapply("[", 1, FUN.VALUE="character")
         }
         if (!current_id %in% c("REFERENCE","///")) {
@@ -556,7 +556,7 @@ pathway_info <- function(pid, use_cache=FALSE, directory=NULL) {
         }
     }
     close(con)
-    content_list$ENTRY <- strsplit(content_list$ENTRY, " ") |>
+    content_list$ENTRY <- strsplit(content_list$ENTRY, " ") %>%
         vapply("[", 1, FUN.VALUE="character")
     content_list
 }
@@ -625,7 +625,7 @@ create_test_pathway <- function(line=FALSE) {
         edges <- rbind(c(from=1, to=2,
             subtype_name="degradation",pathway_id="test"),
                        c(from=1, to=2,
-            subtype_name="ubiquitination",pathway_id="test")) |>
+            subtype_name="ubiquitination",pathway_id="test")) %>%
             data.frame()
         edges$from <- as.integer(edges$from)
         edges$to <- as.integer(edges$to)
