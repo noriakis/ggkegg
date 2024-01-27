@@ -15,6 +15,8 @@
 #' @param adjust_manual_y adjust the position manually for y-axis
 #' Override `adjust`
 #' @param use_cache whether to use BiocFileCache()
+#' @param interpolate pass to annotation_raster
+#' @param tile if TRUE, use geom_tile
 #' @import magick
 #' @return ggplot2 object
 #' @export
@@ -32,7 +34,9 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                             adjust_manual_x=NULL,
                             adjust_manual_y=NULL,
                             clip=FALSE,
-                            use_cache=TRUE) {
+                            use_cache=TRUE,
+                            tile=TRUE,
+                            interpolate=TRUE) {
     structure(list(pid=pid,
                     transparent_colors=transparent_colors,
                     adjust=adjust,
@@ -40,7 +44,9 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                     adjust_manual_x=adjust_manual_x,
                     adjust_manual_y=adjust_manual_y,
                     directory=directory,
-                    use_cache=use_cache),
+                    use_cache=use_cache,
+                    tile=tile,
+                    interpolate=interpolate),
             class="overlay_raw_map")
 }
 
@@ -85,16 +91,27 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
   
     ## Load, transparent and rasterize
     magick_image <- image_read(path)
+
+    png_image <- png::readPNG(path)
+    w <- dim(png_image)[2]
+    h <- dim(png_image)[1]
+
     img_info <- image_info(magick_image)
     w <- img_info$width
     h <- img_info$height
   
     for (col in object$transparent_colors) {
+    	# if (object$tile & col=="#FFFFFF") {next}
         magick_image <- magick_image |> 
             image_transparent(col)
     }
-  
-    ras <- as.raster(magick_image)
+  	
+  	if (object$tile) {
+  		ras <- image_raster(magick_image)
+  	} else {
+  		## Use annotation_raster
+	    ras <- as.raster(magick_image)
+  	}
 
 
     xmin <- 0
@@ -122,8 +139,30 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         # ymin <- ymin - 0.5
         # ymax <- ymax - 0.5
     }
-    plot + 
-        annotation_raster(ras, xmin=xmin, ymin=ymin,
-            xmax=xmax, ymax=ymax, interpolate=TRUE)+
-        coord_fixed(xlim=c(xmin,xmax), ylim=c(ymin,ymax))
+    if (object$tile) {
+	    p <- plot + 
+	        geom_tile(data=ras, aes(x=x, y=-1*y), fill=ras[,3], colour=NA, linewidth=0.05)+
+	        coord_fixed(xlim=c(xmin,xmax), ylim=c(ymin,ymax))
+    } else {
+        p <- plot + 
+	        annotation_raster(ras, xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+	        	interpolate=object$interpolate)+
+	        coord_fixed(xlim=c(xmin,xmax), ylim=c(ymin,ymax))    	
+    }
+
+    attr(p, "original_width") <- w
+    attr(p, "original_height") <- h
+    return(p)
+}
+
+
+#' ggkeggsave
+#' @param filename file name of the image
+#' @param plot plot to be saved
+#' @param dpi dpi, passed to ggsave
+#' @return save the image
+#' @export
+ggkeggsave <- function(filename, plot, dpi=300) {
+	ggsave(filename, plot, dpi=dpi, width=attr(plot, "original_width"),
+		height=attr(plot, "original_height"), units="px", type="cairo")
 }

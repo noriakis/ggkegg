@@ -12,7 +12,9 @@ overlay_raw_map(
   adjust_manual_x = NULL,
   adjust_manual_y = NULL,
   clip = FALSE,
-  use_cache = TRUE
+  use_cache = TRUE,
+  tile = TRUE,
+  interpolate = TRUE
 )
 }
 \arguments{
@@ -36,6 +38,10 @@ Override `adjust`}
 \item{clip}{clip the both end of x- and y-axis by one dot}
 
 \item{use_cache}{whether to use BiocFileCache()}
+
+\item{tile}{if TRUE, use geom_tile}
+
+\item{interpolate}{pass to annotation_raster}
 }
 \value{
 ggplot2 object
