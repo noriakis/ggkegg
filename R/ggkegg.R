@@ -217,6 +217,7 @@ ggkegg <- function(pid,
 #' @param fill_color color for genes
 #' @param white_background fill background color white
 #' @param how how to match the node IDs with the queries 'any' or 'all'
+#' @param infer if TRUE, append the prefix to queried IDs based on pathway ID
 #' @export
 #' @examples
 #' if (require("clusterProfiler")) {
@@ -227,7 +228,7 @@ ggkegg <- function(pid,
 #' @return ggraph with overlaid KEGG map
 #' 
 rawMap <- function(enrich, pathway_number=1, pid=NULL,
-    fill_color="red", how="any", white_background=TRUE) {
+    fill_color="red", how="any", white_background=TRUE, infer=FALSE) {
     
     number <- length(enrich)
     if (length(fill_color) != number) {
@@ -259,7 +260,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     }
 
     if (number == 1) {
-        g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid))
+        g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid, infer=infer))
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
             geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
             overlay_raw_map()+theme_void()
@@ -267,7 +268,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         g <- pathway(pid)
         for (i in seq_len(number)) {
             g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
-                how=how, pid=pid))
+                how=how, pid=pid, infer=infer))
         }
         V(g)$space <- V(g)$width/number
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)

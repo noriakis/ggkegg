@@ -15,6 +15,7 @@
 #' @param adjust_manual_y adjust the position manually for y-axis
 #' Override `adjust`
 #' @param use_cache whether to use BiocFileCache()
+#' @param interpolate parameter in annotation_raster()
 #' @import magick
 #' @return ggplot2 object
 #' @export
@@ -32,7 +33,8 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                             adjust_manual_x=NULL,
                             adjust_manual_y=NULL,
                             clip=FALSE,
-                            use_cache=TRUE) {
+                            use_cache=TRUE,
+                            interpolate=TRUE) {
     structure(list(pid=pid,
                     transparent_colors=transparent_colors,
                     adjust=adjust,
@@ -40,7 +42,8 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                     adjust_manual_x=adjust_manual_x,
                     adjust_manual_y=adjust_manual_y,
                     directory=directory,
-                    use_cache=use_cache),
+                    use_cache=use_cache,
+                    interpolate=interpolate),
             class="overlay_raw_map")
 }
 
@@ -122,8 +125,25 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         # ymin <- ymin - 0.5
         # ymax <- ymax - 0.5
     }
-    plot + 
+    p <- plot + 
         annotation_raster(ras, xmin=xmin, ymin=ymin,
-            xmax=xmax, ymax=ymax, interpolate=TRUE)+
+            xmax=xmax, ymax=ymax, interpolate=object$interpolate)+
         coord_fixed(xlim=c(xmin,xmax), ylim=c(ymin,ymax))
+    attr(p, "original_width") <- w
+    attr(p, "original_height") <- h
+    return(p)
+}
+
+
+#' ggkeggsave
+#' @param filename file name of the image
+#' @param plot plot to be saved
+#' @param dpi dpi, passed to ggsave
+#' @param wscale width scaling factor for pixel to inches
+#' @param hscale height scaling factor fo pixel to inches
+#' @return save the image
+#' @export
+ggkeggsave <- function(filename, plot, dpi=300, wscale=90, hscale=90) {
+	ggsave(filename, plot, dpi=dpi, width=attr(plot, "original_width")/wscale,
+		height=attr(plot, "original_height")/hscale, units="in")
 }

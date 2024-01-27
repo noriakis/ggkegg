@@ -375,6 +375,7 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @param how how to determine whether the nodes is in enrichment results
 #' @param name name column to search for query
 #' @param pid pathway ID, if NULL, try to infer from graph attribute
+#' @param infer if TRUE, append the prefix to queried IDs based on pathway ID
 #' @return enrich_attribute column in node
 #' @examples
 #' graph <- create_test_pathway()
@@ -389,7 +390,7 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' }
 #' @export
 #' 
-append_cp <- function(res, how="any", name="name", pid=NULL) {
+append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE) {
     if (!attributes(res)$class %in% c("enrichResult","gseaResult")) {
         stop("Please provide enrichResult or gseaResult class object")
     }
@@ -411,8 +412,14 @@ append_cp <- function(res, how="any", name="name", pid=NULL) {
         if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
         enrich_attribute <- paste0(org, ":", unlist(strsplit(
                                                 res[pid,][[gene_col]], "/")))
-    } else {
-        enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))  
+    } else {## If UNKNOWN
+        ## Try to infer
+        if (infer) {
+            org <- gsub("[^a-zA-Z]", "", pid)
+            enrich_attribute <- paste0(org, ":", unlist(strsplit(res[pid,][[gene_col]], "/")))
+        } else {
+	        enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))
+        }
     }
     bools <- vapply(x, function(xx) {
         in_node <- strsplit(xx, " ") |> unlist() |> unique()
