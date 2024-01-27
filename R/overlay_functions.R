@@ -133,3 +133,17 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     attr(p, "original_height") <- h
     return(p)
 }
+
+
+#' ggkeggsave
+#' @param filename file name of the image
+#' @param plot plot to be saved
+#' @param dpi dpi, passed to ggsave
+#' @param wscale width scaling factor for pixel to inches
+#' @param hscale height scaling factor fo pixel to inches
+#' @return save the image
+#' @export
+ggkeggsave <- function(filename, plot, dpi=300, wscale=90, hscale=90) {
+	ggsave(filename, plot, dpi=dpi, width=attr(plot, "original_width")/wscale,
+		height=attr(plot, "original_height")/hscale, units="in")
+}
