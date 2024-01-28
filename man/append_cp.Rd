@@ -25,13 +25,13 @@ append clusterProfiler results to graph
 }
 \examples{
 graph <- create_test_pathway()
-nodes <- graph |> data.frame()
+nodes <- graph \%>\% data.frame()
 if (require("clusterProfiler")) {
-    cp <- enrichKEGG(nodes$name |>
-            strsplit(":") |>
+    cp <- enrichKEGG(nodes$name \%>\%
+            strsplit(":") \%>\%
             vapply("[", 2, FUN.VALUE="character"))
     ## This append graph node logical value whether the 
     ## enriched genes are in pathway
-    graph <- graph |> mutate(cp=append_cp(cp, pid="hsa05322"))
+    graph <- graph \%>\% mutate(cp=append_cp(cp, pid="hsa05322"))
 }
 }

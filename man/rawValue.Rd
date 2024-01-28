@@ -43,6 +43,6 @@ Colors can be changed afterwards.
 }
 \examples{
 ## Colorize by passing the named vector of numeric values
-rv <- rawValue(c(1.1) |> setNames("hsa:6737"), 
+rv <- rawValue(c(1.1) \%>\% setNames("hsa:6737"), 
         man_graph=create_test_pathway())
 }

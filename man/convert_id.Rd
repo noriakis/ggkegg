@@ -48,6 +48,6 @@ convert the identifier using retrieved information
 }
 \examples{
 graph <- create_test_pathway()
-graph <- graph |> mutate(conv=convert_id("hsa"))
+graph <- graph \%>\% mutate(conv=convert_id("hsa"))
 
 }

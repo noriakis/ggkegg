@@ -289,7 +289,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     node_name <- node_df$name
     if (gene_type!="ENTREZID") {
         convert_df <- mat %>% row.names() %>% 
-            select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+            select(x=org_db, keys=., columns="ENTREZID", keytype=gene_type)
     } else {
         convert_df <- data.frame(row.names(mat)) %>% `colnames<-`(c("ENTREZID"))
     }
@@ -351,7 +351,7 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     if (gene_type!="ENTREZID") {
         convert_df <- mat %>% 
                 row.names() %>%
-                select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+                select(x=org_db, keys=., columns="ENTREZID", keytype=gene_type)
     } else {
         convert_df <- data.frame(row.names(mat)) %>% `colnames<-`(c("ENTREZID"))
     }
@@ -470,7 +470,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
     if (gene_type!="ENTREZID") {
         convert_df <- res %>%
             row.names() %>%
-            select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+            select(x=org_db, keys=., columns="ENTREZID", keytype=gene_type)
         nums <- data.frame(row.names(res), res[[column]]) %>% 
             `colnames<-`(c(gene_type, column))
         merged <- merge(nums, convert_df, by=gene_type)

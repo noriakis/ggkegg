@@ -25,8 +25,8 @@ Adnan et al. 2020 (https://doi.org/10.1186/s12859-020-03692-2).
 }
 \examples{
 graph <- create_test_pathway()
-graph <- graph |>
-            activate("edges") |>
-            mutate(num=edge_numeric_sum(c(1.2,-1.2) |>
+graph <- graph \%>\%
+            activate("edges") \%>\%
+            mutate(num=edge_numeric_sum(c(1.2,-1.2) \%>\%
             setNames(c("TRIM21","DDX41")), name="graphics_name"))
 }

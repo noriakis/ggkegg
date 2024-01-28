@@ -49,7 +49,7 @@ Overlay the raw KEGG pathway image on ggraph
 \examples{
 ## Need `pathway_id` column in graph 
 ## if the function is to automatically infer
-graph <- create_test_pathway() |> mutate(pathway_id="hsa04110")
+graph <- create_test_pathway() \%>\% mutate(pathway_id="hsa04110")
 ggraph(graph) + overlay_raw_map()
 
 }

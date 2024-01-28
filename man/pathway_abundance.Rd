@@ -20,5 +20,5 @@ numeric value
 pathway_abundance
 }
 \examples{
-pathway_abundance("ko00270", c(1.2) |> `setNames`("K00927"))
+pathway_abundance("ko00270", c(1.2) \%>\% `setNames`("K00927"))
 }

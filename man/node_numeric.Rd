@@ -23,7 +23,7 @@ simply add numeric attribute to node of tbl_graph
 }
 \examples{
 graph <- create_test_pathway()
-graph <- graph |>
-            mutate(num=node_numeric(c(1.1) |> setNames("hsa:6737"))) 
+graph <- graph \%>\%
+            mutate(num=node_numeric(c(1.1) \%>\% setNames("hsa:6737"))) 
 
 }

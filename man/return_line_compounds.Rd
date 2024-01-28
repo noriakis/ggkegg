@@ -24,5 +24,5 @@ return the original compound node ID
 ## For those containing nodes with the graphic type of `line`
 ## This returns no IDs as no edges are present
 gm_test <- create_test_pathway(line=TRUE)
-test <- process_line(gm_test) |> return_line_compounds(1)
+test <- process_line(gm_test) \%>\% return_line_compounds(1)
 }

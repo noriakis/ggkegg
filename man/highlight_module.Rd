@@ -30,6 +30,6 @@ is not included in KGML of `ko01100`.
 ## Highlight module within the pathway
 graph <- create_test_pathway()
 mo <- create_test_module()
-graph <- graph |> highlight_module(mo)
+graph <- graph \%>\% highlight_module(mo)
 
 }
