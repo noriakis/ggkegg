@@ -13,7 +13,8 @@ overlay_raw_map(
   adjust_manual_y = NULL,
   clip = FALSE,
   use_cache = TRUE,
-  interpolate = TRUE
+  interpolate = TRUE,
+  high_res = FALSE
 )
 }
 \arguments{
@@ -39,6 +40,8 @@ Override `adjust`}
 \item{use_cache}{whether to use BiocFileCache()}
 
 \item{interpolate}{parameter in annotation_raster()}
+
+\item{high_res}{Use high resolution (2x) image for the overlay}
 }
 \value{
 ggplot2 object

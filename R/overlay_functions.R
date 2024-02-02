@@ -16,6 +16,7 @@
 #' Override `adjust`
 #' @param use_cache whether to use BiocFileCache()
 #' @param interpolate parameter in annotation_raster()
+#' @param high_res Use high resolution (2x) image for the overlay
 #' @import magick
 #' @return ggplot2 object
 #' @export
@@ -34,7 +35,8 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                             adjust_manual_y=NULL,
                             clip=FALSE,
                             use_cache=TRUE,
-                            interpolate=TRUE) {
+                            interpolate=TRUE,
+                            high_res=FALSE) {
     structure(list(pid=pid,
                     transparent_colors=transparent_colors,
                     adjust=adjust,
@@ -43,7 +45,8 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                     adjust_manual_y=adjust_manual_y,
                     directory=directory,
                     use_cache=use_cache,
-                    interpolate=interpolate),
+                    interpolate=interpolate,
+                    high_res=high_res),
             class="overlay_raw_map")
 }
 
@@ -65,16 +68,26 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
     if (is.null(object$pid)) {
         infer <- plot$data$pathway_id |> unique()
         object$pid <- infer[!is.na(infer)]
+        if (object$high_res) {
+        	## Convert to reference ID
+        	cur_id <- object$pid
+        	object$pid <- paste0("map",
+        		regmatches(cur_id, gregexpr("[[:digit:]]+", cur_id)) %>% unlist())
+        }
     }
     if (!grepl("[[:digit:]]", object$pid)) {
         warning("Looks like not KEGG ID for pathway")
         return(1)
     }
     ## Return the image URL, download and cache
-    url <- paste0(as.character(pathway(object$pid,
-                                    use_cache=object$use_cache,
-                                    directory=object$directory,
-                                    return_image=TRUE)))
+    ## From 1.1.10
+    url <- paste0("https://rest.kegg.jp/get/",object$pid,"/image")
+    if (object$high_res) {
+    	if (!startsWith(object$pid, "map")) {
+    		stop("High resolution image can be obtained for the reference pathway.")
+    	}
+    	url <- paste0(url, "2x")
+    }
     if (object$use_cache) {
         bfc <- BiocFileCache()
         path <- bfcrpath(bfc, url)    
