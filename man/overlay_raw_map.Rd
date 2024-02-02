@@ -8,12 +8,12 @@ overlay_raw_map(
   pid = NULL,
   directory = NULL,
   transparent_colors = c("#FFFFFF", "#BFBFFF", "#BFFFBF", "#7F7F7F", "#808080"),
-  adjust = TRUE,
+  adjust = FALSE,
   adjust_manual_x = NULL,
   adjust_manual_y = NULL,
   clip = FALSE,
   use_cache = TRUE,
-  interpolate = TRUE,
+  interpolate = FALSE,
   high_res = FALSE
 )
 }
@@ -27,7 +27,7 @@ Typical choice of colors would be:
 "#CCCCCC", "#FFFFFF","#BFBFFF","#BFFFBF", "#7F7F7F", "#808080",
 "#ADADAD","#838383","#B3B3B3"}
 
-\item{adjust}{adjust the x-axis location by 0.5 in data coordinates}
+\item{adjust}{adjust the x- and y-axis location by 0.5 in data coordinates}
 
 \item{adjust_manual_x}{adjust the position manually for x-axis
 Override `adjust`}
