@@ -13,8 +13,9 @@ overlay_raw_map(
   adjust_manual_y = NULL,
   clip = FALSE,
   use_cache = TRUE,
-  interpolate = FALSE,
-  high_res = FALSE
+  interpolate = TRUE,
+  high_res = FALSE,
+  fix_coordinates = TRUE
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ Override `adjust`}
 \item{interpolate}{parameter in annotation_raster()}
 
 \item{high_res}{Use high resolution (2x) image for the overlay}
+
+\item{fix_coordinates}{fix the coordinate (coord_fixed)}
 }
 \value{
 ggplot2 object

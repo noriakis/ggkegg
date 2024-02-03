@@ -17,6 +17,7 @@
 #' @param use_cache whether to use BiocFileCache()
 #' @param interpolate parameter in annotation_raster()
 #' @param high_res Use high resolution (2x) image for the overlay
+#' @param fix_coordinates fix the coordinate (coord_fixed)
 #' @import magick
 #' @return ggplot2 object
 #' @export
@@ -35,8 +36,9 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                             adjust_manual_y=NULL,
                             clip=FALSE,
                             use_cache=TRUE,
-                            interpolate=FALSE,
-                            high_res=FALSE) {
+                            interpolate=TRUE,
+                            high_res=FALSE,
+                            fix_coordinates=TRUE) {
     structure(list(pid=pid,
                     transparent_colors=transparent_colors,
                     adjust=adjust,
@@ -46,7 +48,8 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
                     directory=directory,
                     use_cache=use_cache,
                     interpolate=interpolate,
-                    high_res=high_res),
+                    high_res=high_res,
+                    fix_coordinates=fix_coordinates),
             class="overlay_raw_map")
 }
 
@@ -142,9 +145,12 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         annotation_raster(ras, xmin=xmin, ymin=ymin,
             xmax=xmax, ymax=ymax, interpolate=object$interpolate)+ 
         scale_x_continuous(expand=c(0,0), limits=c(0,w-1)) +
-        scale_y_continuous(expand=c(0,0), limits=c(-1*h+1, 0))
+        scale_y_continuous(expand=c(0,0), limits=c(-1*h+1,0))
     attr(p, "original_width") <- w
     attr(p, "original_height") <- h
+    if (object$fix_coordinates) {
+    	p <- p + coord_fixed()
+    }
     return(p)
 }
 
