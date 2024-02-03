@@ -21,5 +21,6 @@ ggkeggsave(filename, plot, dpi = 300, wscale = 90, hscale = 90)
 save the image
 }
 \description{
-ggkeggsave
+save the image respecting the original width and height of the image.
+Only applicable for the ggplot object including `overlay_raw_map` layers.
 }

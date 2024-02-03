@@ -10,7 +10,8 @@ Depends:
     R (>= 4.3.0), ggplot2, ggraph, XML, igraph, tidygraph
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
-    org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices, Cairo
+    org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices, Cairo,
+    gtable
 Suggests: 
     knitr,
     clusterProfiler,
