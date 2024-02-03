@@ -200,7 +200,7 @@ ggkeggsave <- function(filename, plot, dpi=300, wscale=90, hscale=90) {
 #' @export
 #' @importFrom grDevices dev.off png
 #' @import gtable
-#' @return output the image
+#' @return output the image and return the path
 #' @examples
 #' \dontrun{
 #'     ouput_overlay_image(ggraph(pathway("hsa04110")))
@@ -301,4 +301,36 @@ output_overlay_image <- function(gg, with_legend=TRUE,
         out <- paste0(pid, "_ggkegg.png")
     }
     image_write(flat, out)
+    return(out)
+}
+
+
+
+#' addTitle
+#' 
+#' Add the title to the image produced by output_overlay_image
+#' using magick.
+#' 
+#' @param out the image
+#' @param title the title
+#' @param size the size
+#' @param height title height
+#' @param color bg color
+#' @param titleColor title color
+#' @param gravity positioning of the title in the blank image
+#' @export
+#' @return output the image
+add_title <- function(out, title=NULL, size=20, height=30, color="white",
+	titleColor="black", gravity="west") {
+
+	img <- image_read(out)
+	info <- image_info(img)
+	w <- info$width
+	h <- info$height
+	blank <- image_blank(width=w, height=height, color=color)
+	imganno <- image_annotate(blank, title, size = size,
+		color=titleColor, gravity=gravity)
+	res <- image_append(c(imganno, img), stack=TRUE)
+	image_write(res, out)
+	return(res)
 }

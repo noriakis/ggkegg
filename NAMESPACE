@@ -3,6 +3,7 @@
 S3method(ggplot_add,geom_kegg)
 S3method(ggplot_add,geom_node_rect_kegg)
 S3method(ggplot_add,overlay_raw_map)
+export(add_title)
 export(append_cp)
 export(append_label_position)
 export(assign_deseq2)

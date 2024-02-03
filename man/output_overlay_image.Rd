@@ -45,7 +45,7 @@ output_overlay_image(
 \item{legend_space}{legend spacing specification (in pixel)}
 }
 \value{
-output the image
+output the image and return the path
 }
 \description{
 The function first exports the image, combine it with the original image.
