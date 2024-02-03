@@ -224,6 +224,7 @@ output_overlay_image <- function(gg, with_legend=TRUE,
         if (!startsWith(pid, "map")) {
             stop("High resolution image can be obtained for the reference pathway.")
         }
+        url <- paste0("https://rest.kegg.jp/get/",pid,"/image")
         url <- paste0(url, "2x")
     }
     if (use_cache) {
