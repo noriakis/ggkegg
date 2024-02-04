@@ -215,6 +215,7 @@ pathway <- function(pid,
                     "subtype_name","subtype_value"))
             if ("reaction" %in% colnames(kegg_edges)) {
                 gr_rels$reaction <- "in_group"
+                gr_rels$reaction_id <- "in_group"
             }
             kegg_edges <- rbind(kegg_edges, gr_rels)
         }
