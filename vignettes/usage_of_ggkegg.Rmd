@@ -136,7 +136,7 @@ We can use `overlay_raw_map` to overlay the raw KEGG images on the created `ggra
 The node and text can be directly customized by using various geoms, effects such as `ggfx`, and scaling functions.
 The code below creates nodes using default parsed background color and just overlay the image.
 
-```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE, dev="CairoPNG"}
+```{r example_raw, message=FALSE, warning=FALSE, eval=TRUE}
 graph |>
     mutate(degree=centrality_degree(mode="all")) |>
     ggraph(graph, layout="manual", x=x, y=y)+
