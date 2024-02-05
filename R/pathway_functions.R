@@ -192,7 +192,7 @@ pathway <- function(pid,
     gr_rels <- lapply(names(grs), function(gr_name) {
         tmp_rel <- lapply(grs[[gr_name]], function(comp_name) {
             ## Pad other values by `in_group`
-            return(c(gr_name, comp_name, "in_group", "in_group", "in_group"))         
+            return(c(gr_name, comp_name, "in_group", NA, NA))         
         })
         do.call(rbind, tmp_rel)
     })
@@ -214,13 +214,12 @@ pathway <- function(pid,
                 `colnames<-`(c("entry1","entry2","type",
                     "subtype_name","subtype_value"))
             if ("reaction" %in% colnames(kegg_edges)) {
-                gr_rels$reaction <- "in_group"
-                gr_rels$reaction_id <- "in_group"
+                gr_rels$reaction <- NA
+                gr_rels$reaction_id <- NA
             }
             kegg_edges <- rbind(kegg_edges, gr_rels)
         }
     }
-
     if (!is.null(kegg_edges)) {
         g <- graph_from_data_frame(kegg_edges, vertices=kegg_nodes)
     } else {
@@ -467,13 +466,19 @@ get_reaction <- function(xml) {
         prod <- xmlElementsByTagName(rea,"product")
         ## Looking for `alt` tag
         ## Multiple products or substrates are to be expected
-        lapply(subs, function(ss) {
-            lapply(prod, function(pp) {
-                return(c(id, name, type,
-                        xmlAttrs(ss)["id"], xmlAttrs(ss)["name"],
-                        xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))          
-            })
-        })
+        if (length(subs)==0) {
+            ## These do not have edges
+            return(list(list(c(id, name, type, NA, NA, NA, NA))))
+        } else {
+            lapply(subs, function(ss) {
+                lapply(prod, function(pp) {
+                    return(c(id, name, type,
+                            xmlAttrs(ss)["id"], xmlAttrs(ss)["name"],
+                            xmlAttrs(pp)["id"], xmlAttrs(pp)["name"]))          
+                })
+            })            
+        }
+
     })
     all_reas <- unlist(all_reas, recursive=FALSE)
     all_reas <- do.call(rbind, unlist(all_reas, recursive=FALSE)) |>
@@ -482,6 +487,10 @@ get_reaction <- function(xml) {
                     "type","substrate_id","substrate_name",
                     "product_id","product_name"))
 
+    sub_all_reas <- all_reas[is.na(all_reas$substrate_id), ]
+    all_reas <- all_reas[!is.na(all_reas$substrate_id), ]
+
+
     ## Perhaps this parsing would lead to wrong interpretation
     ## But for preserving Compound -> KO edges, this function
     ## adds edges of: 
@@ -489,7 +498,15 @@ get_reaction <- function(xml) {
     ##     ID (KO) -> product (type: type, reaction: reaction)
     ## Later used in `process_reaction()`.
     ## Changed this layout to drop duplicates by distinct()
-    
+    if (dim(all_reas)[1]==0) {
+        ## For the reaction specification with only the name, id, and type,
+        ## these will be omitted from the resulting graph.
+        ## The nodes are already specified in the node data.frame and 
+        ## Information of "type" will not be in the node table.
+        ## cbind(sub_all_reas[,"id"], sub_all_reas[,"id"],
+        ##     sub_all_reas[,"type"], NA, NA, NA, sub_all_reas[, "id"])
+        return(NULL)
+    }
     rsp_rels <- lapply(seq_len(nrow(all_reas)), function(i) {
         lapply(unlist(strsplit(all_reas[i,"id"], " ")), function(j) {
             return(
@@ -504,7 +521,6 @@ get_reaction <- function(xml) {
                 )
         })
     })
-
 
     rsp_rels <- do.call(rbind, unlist(rsp_rels, recursive=FALSE)) |>
         data.frame() |>
