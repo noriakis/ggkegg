@@ -10,7 +10,7 @@ Depends:
     R (>= 4.3.0), ggplot2, ggraph, XML, igraph, tidygraph
 Imports: BiocFileCache, GetoptLong, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
-    org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices, Cairo,
+    org.Hs.eg.db, methods, utils, stats, AnnotationDbi, grDevices,
     gtable
 Suggests: 
     knitr,
@@ -19,7 +19,7 @@ Suggests:
     rmarkdown,
     BiocStyle,
     testthat (>= 3.0.0)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.0
 biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr
 URL: https://github.com/noriakis/ggkegg

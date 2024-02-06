@@ -40,7 +40,6 @@
 #' g + geom_node_rect()
 #' @import ggraph
 #' @import ggplot2
-#' @import Cairo
 #' @importFrom tidygraph as_tbl_graph
 #' @importFrom igraph induced.subgraph delete_vertex_attr
 #' @importFrom methods new
