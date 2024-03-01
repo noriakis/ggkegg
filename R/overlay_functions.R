@@ -29,8 +29,7 @@
 #'
 overlay_raw_map <- function(pid=NULL, directory=NULL,
                             transparent_colors=c("#FFFFFF",
-                                "#BFBFFF","#BFFFBF","#7F7F7F",
-                                "#808080"),
+                                "#BFBFFF","#BFFFBF"),
                             adjust=FALSE,
                             adjust_manual_x=NULL,
                             adjust_manual_y=NULL,
