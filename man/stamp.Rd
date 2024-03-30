@@ -4,7 +4,7 @@
 \alias{stamp}
 \title{stamp}
 \usage{
-stamp(name, color = "red", which_column = "name")
+stamp(name, color = "red", which_column = "name", xval = 2, yval = 2)
 }
 \arguments{
 \item{name}{name of the nodes}
@@ -12,6 +12,10 @@ stamp(name, color = "red", which_column = "name")
 \item{color}{color of the stamp}
 
 \item{which_column}{which node column to search}
+
+\item{xval}{adjustment value for x-axis}
+
+\item{yval}{adjustment value for y-axis}
 }
 \value{
 ggplot2 object
