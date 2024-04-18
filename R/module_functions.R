@@ -290,9 +290,12 @@ module_completeness <- function(kmo, query, name="1") {
         names(present) <- kmo$definition_ko_in_block[[i]]
         bool <- gsub("\\+","&",
             gsub(" ", "&", gsub(",", "|", kmo$definition_block[i])))
+        bool <- gsub("\\-", "+0*", bool)
+
         for (j in names(present)) {
           bool <- gsub(j, present[j], bool)
         }
+
         list(length(kmo$definition_ko_in_block[[i]]),
             eval(parse(text=bool)),
             sum(present),
