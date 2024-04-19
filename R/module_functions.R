@@ -1,4 +1,9 @@
 setOldClass("tbl_graph")
+#' @slot ID ID of the module
+#' @slot name name of the module
+#' @slot definition_raw list of the raw string of module definitions
+#' @slot definitions list of blocks of module definitions and KOs in the blocks
+#' @slot definition_components all the KOs in the definition
 setClass("kegg_module",
     slots=list(
         ID="character",
@@ -31,7 +36,8 @@ setMethod("show",
 
 #' get_module_attribute
 #' 
-#' get slot from `kegg_module` class
+#' @description Get slot from `kegg_module` class object.
+#' @details Get slot from `kegg_module` class object.
 #' 
 #' @param x kegg_module class object
 #' @param attribute pass to get_module_attribute
@@ -723,13 +729,16 @@ parse_module <- function(kmo) {
             "reac"=reac)
     })
     reac <- as_tibble(do.call(rbind,
-        lapply(reac_list, function(x) x[["reac"]])))
+        lapply(reac_list, function(x) x[["reac"]])),
+        .name_repair = "minimal")
     if (dim(reac)[1] != 0) {
         each <- as_tibble(do.call(rbind,
-            lapply(reac_list, function(x) x[["each_reacs"]])))
+            lapply(reac_list, function(x) x[["each_reacs"]])),
+            .name_repair = "minimal")
         names(each) <- c("left","reaction","right")
         eachraw <- as_tibble(do.call(rbind,
-            lapply(reac_list, function(x) x[["each_reacs_raw"]])))
+            lapply(reac_list, function(x) x[["each_reacs_raw"]])),
+            .name_repair = "minimal")
         names(eachraw) <- c("left","reaction","right")
         reac <- reac |> data.frame() |> `colnames<-`(c("from","to","reaction"))
         kmo@reaction_graph <- as_tbl_graph(reac)

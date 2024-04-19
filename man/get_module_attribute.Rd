@@ -15,5 +15,8 @@ get_module_attribute(x, attribute)
 attribute of kegg_module
 }
 \description{
-get slot from `kegg_module` class
+Get slot from `kegg_module` class object.
+}
+\details{
+Get slot from `kegg_module` class object.
 }
