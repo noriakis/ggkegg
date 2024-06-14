@@ -97,6 +97,9 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         path <- paste0(object$pid, ".png")
         if (!is.null(object$directory)) {
             path <- paste0(object$directory,"/",path)
+            if (!file.exists(path)) {
+                stop("No PNG file found in the directory.")
+            }
         } else {
             download.file(url=url, destfile=path, mode='wb')
         }
