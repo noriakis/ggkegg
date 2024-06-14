@@ -97,8 +97,9 @@ ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
         path <- paste0(object$pid, ".png")
         if (!is.null(object$directory)) {
             path <- paste0(object$directory,"/",path)
+        } else {
+            download.file(url=url, destfile=path, mode='wb')
         }
-        download.file(url=url, destfile=path, mode='wb')
     }
   
     ## Load, transparent and rasterize
