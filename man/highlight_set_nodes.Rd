@@ -4,7 +4,14 @@
 \alias{highlight_set_nodes}
 \title{highlight_set_nodes}
 \usage{
-highlight_set_nodes(set, how = "all", name = "name", sep = " ", no_sep = FALSE)
+highlight_set_nodes(
+  set,
+  how = "all",
+  name = "name",
+  sep = " ",
+  no_sep = FALSE,
+  remove_dot = TRUE
+)
 }
 \arguments{
 \item{set}{set of identifiers}
@@ -19,6 +26,8 @@ is in query.}
 \item{sep}{separater for node names}
 
 \item{no_sep}{not separate node name}
+
+\item{remove_dot}{remove "..." after graphics name column}
 }
 \value{
 boolean vector
