@@ -10,10 +10,11 @@ highlight_entities(
   how = "any",
   num_combine = mean,
   name = "graphics_name",
-  sep = ",",
+  sep = ", ",
   no_sep = FALSE,
   show_type = "gene",
   fill_color = "tomato",
+  remove_dot = TRUE,
   legend_name = NULL,
   use_cache = FALSE,
   return_graph = FALSE
@@ -40,6 +41,8 @@ is in query.}
 \item{show_type}{entitie type, default to 'gene'}
 
 \item{fill_color}{highlight color, default to 'tomato'}
+
+\item{remove_dot}{remove the "..." in the graphics name column}
 
 \item{legend_name}{legend name, NULL to suppress}
 

@@ -20,14 +20,15 @@
 #' @param legend_name legend name, NULL to suppress
 #' @param use_cache use cache or not
 #' @param return_graph return tbl_graph instead of plot
+#' @param remove_dot remove the "..." in the graphics name column
 #' @return overlaid map
 #' @examples
 #' highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
 #' @export
 #'
 highlight_entities <- function(pathway, set, how="any",
-	num_combine=mean, name="graphics_name", sep=",", no_sep=FALSE,
-	show_type="gene", fill_color="tomato",
+	num_combine=mean, name="graphics_name", sep=", ", no_sep=FALSE,
+	show_type="gene", fill_color="tomato", remove_dot=TRUE,
 	legend_name=NULL, use_cache=FALSE, return_graph=FALSE) {
 	graph <- pathway(pathway, use_cache=use_cache)
 	x <- get.vertex.attribute(graph, name)
@@ -39,6 +40,9 @@ highlight_entities <- function(pathway, set, how="any",
 	        } else {
 	            nn <- unlist(strsplit(x[xn], sep)) |> unique()
 	        }
+            if (remove_dot) {
+                nn <- strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            }
 	        if (how == "all") {
 	            if (length(intersect(nn, set)) == length(nn)) {
 	                return(TRUE)
@@ -71,6 +75,9 @@ highlight_entities <- function(pathway, set, how="any",
 			} else {
 				nn <- unlist(strsplit(x[xn], sep)) |> unique()
 			}
+            if (remove_dot) {
+                nn <- strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            }
             thresh <- ifelse(how=="any", 1, length(nn))
             if (length(intersect(names(set), nn)) >= thresh) {
                 summed <- do.call(num_combine,
@@ -110,6 +117,7 @@ highlight_entities <- function(pathway, set, how="any",
 #' @param name which column to search for
 #' @param sep separater for node names
 #' @param no_sep not separate node name
+#' @param remove_dot remove "..." after graphics name column
 #' @export
 #' @return boolean vector
 #' @examples
@@ -121,7 +129,7 @@ highlight_entities <- function(pathway, set, how="any",
 #' graph <- graph |> 
 #'     mutate(hl=highlight_set_nodes(c("DDX41"), name="graphics_name"))
 highlight_set_nodes <- function(set, how="all",
-    name="name", sep=" ", no_sep=FALSE) {
+    name="name", sep=" ", no_sep=FALSE, remove_dot=TRUE) {
     graph <- .G()
     x <- get.vertex.attribute(graph, name)
     vec <- vapply(seq_along(x), function(xn) {
@@ -129,6 +137,9 @@ highlight_set_nodes <- function(set, how="all",
             nn <- x[xn]
         } else {
             nn <- unlist(strsplit(x[xn], sep))
+        }
+        if (remove_dot) {
+            nn <- strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
         }
         if (how == "all") {
             if (length(intersect(nn, set)) == length(nn)) {
