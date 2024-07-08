@@ -1,6 +1,6 @@
 Package: ggkegg
 Type: Package
-Title: KEGG pathway visualization by ggplot2
+Title: Analyzing and visualizing KEGG information using the grammar of graphics
 Version: 1.3.2
 Authors@R: person("Noriaki", "Sato", email = "nori@hgc.jp", role = c("cre", "aut"))
 Description: This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages.
