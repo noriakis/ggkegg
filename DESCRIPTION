@@ -19,7 +19,7 @@ Suggests:
     rmarkdown,
     BiocStyle,
     testthat (>= 3.0.0)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr
 URL: https://github.com/noriakis/ggkegg
