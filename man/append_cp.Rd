@@ -4,7 +4,15 @@
 \alias{append_cp}
 \title{append_cp}
 \usage{
-append_cp(res, how = "any", name = "name", pid = NULL, infer = FALSE)
+append_cp(
+  res,
+  how = "any",
+  name = "name",
+  pid = NULL,
+  infer = FALSE,
+  sep = " ",
+  remove_dot = TRUE
+)
 }
 \arguments{
 \item{res}{enrichResult class}
@@ -16,6 +24,10 @@ append_cp(res, how = "any", name = "name", pid = NULL, infer = FALSE)
 \item{pid}{pathway ID, if NULL, try to infer from graph attribute}
 
 \item{infer}{if TRUE, append the prefix to queried IDs based on pathway ID}
+
+\item{sep}{separater for name}
+
+\item{remove_dot}{remove dots in the name}
 }
 \value{
 enrich_attribute column in node

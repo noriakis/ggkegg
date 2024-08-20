@@ -4,7 +4,14 @@
 \alias{node_numeric}
 \title{node_numeric}
 \usage{
-node_numeric(num, num_combine = mean, name = "name", how = "any")
+node_numeric(
+  num,
+  num_combine = mean,
+  name = "name",
+  how = "any",
+  sep = " ",
+  remove_dot = TRUE
+)
 }
 \arguments{
 \item{num}{named vector or tibble with id and value column}
@@ -14,6 +21,10 @@ node_numeric(num, num_combine = mean, name = "name", how = "any")
 \item{name}{name of column to match for}
 
 \item{how}{how to match the node IDs with the queries 'any' or 'all'}
+
+\item{sep}{separater for name, default to " "}
+
+\item{remove_dot}{remove "..." in the name}
 }
 \value{
 numeric vector

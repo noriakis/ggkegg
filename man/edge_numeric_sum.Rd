@@ -4,7 +4,14 @@
 \alias{edge_numeric_sum}
 \title{edge_numeric_sum}
 \usage{
-edge_numeric_sum(num, num_combine = mean, how = "any", name = "name")
+edge_numeric_sum(
+  num,
+  num_combine = mean,
+  how = "any",
+  name = "name",
+  sep = " ",
+  remove_dot = TRUE
+)
 }
 \arguments{
 \item{num}{named vector or tibble with id and value column}
@@ -14,6 +21,10 @@ edge_numeric_sum(num, num_combine = mean, how = "any", name = "name")
 \item{how}{`any` or `all`}
 
 \item{name}{name of column to match for}
+
+\item{sep}{separater for name, default to " "}
+
+\item{remove_dot}{remove "..." in the name}
 }
 \value{
 numeric vector

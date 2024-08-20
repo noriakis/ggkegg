@@ -99,6 +99,8 @@ return_line_compounds <- function(g, orig) {
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
 #' @param name name of column to match for
+#' @param sep separater for name, default to " "
+#' @param remove_dot remove "..." in the name
 #' @param how `any` or `all`
 #' @export
 #' @return numeric vector
@@ -109,7 +111,8 @@ return_line_compounds <- function(g, orig) {
 #' graph <- graph |> activate("edges") |>
 #'             mutate(num=edge_numeric(c(1.1) |>
 #'             setNames("degradation"), name="subtype_name"))
-edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
+edge_numeric <- function(num, num_combine=mean, how="any", name="name",
+    sep=" ", remove_dot=TRUE) {
     graph <- .G()
     if (!is_tibble(num) & !is.vector(num)) {
         stop("Please provide tibble or named vector")
@@ -130,7 +133,12 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
     x <- get.edge.attribute(graph, name)
 
     lapply(x, function(xx) {
-        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        in_node <- strsplit(xx, sep) |> unlist() |> unique()
+        if (remove_dot) {
+            in_node <- lapply(in_node, function(nn) {
+                strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            }) %>% unlist()
+        }
         thresh <- ifelse(how == "any", 1, length(in_node))
         if (length(intersect(names(changer), in_node)) >= thresh) {
             summed <- do.call(num_combine,
@@ -152,6 +160,8 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
 #' @param name name of column to match for
+#' @param sep separater for name, default to " "
+#' @param remove_dot remove "..." in the name
 #' @param how `any` or `all`
 #' @export
 #' @return numeric vector
@@ -163,7 +173,8 @@ edge_numeric <- function(num, num_combine=mean, how="any", name="name") {
 #'             activate("edges") |>
 #'             mutate(num=edge_numeric_sum(c(1.2,-1.2) |>
 #'             setNames(c("TRIM21","DDX41")), name="graphics_name"))
-edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
+edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name",
+    sep=" ", remove_dot=TRUE) {
     graph <- .G()
   
     if (!is_tibble(num) & !is.vector(num)) {
@@ -186,8 +197,8 @@ edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
     node_name <- node_df[[name]]
     new_graph <- graph |> activate(edges) |>
         mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |>
-        mutate(summed=edge_numeric(num, num_combine, how, name="from_nd")+
-             edge_numeric(num, num_combine, how, name="to_nd")) |>
+        mutate(summed=edge_numeric(num, num_combine, how, name="from_nd", sep=sep, remove_dot=remove_dot)+
+             edge_numeric(num, num_combine, how, name="to_nd", sep=sep, remove_dot=remove_dot)) |>
         data.frame()
     new_graph$summed
 }
@@ -199,8 +210,10 @@ edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
 #' 
 #' @param num named vector or tibble with id and value column
 #' @param num_combine how to combine number when multiple hit in the same node
-#' @param name name of column to match for
 #' @param how how to match the node IDs with the queries 'any' or 'all'
+#' @param name name of column to match for
+#' @param sep separater for name, default to " "
+#' @param remove_dot remove "..." in the name
 #' @export
 #' @return numeric vector
 #' @importFrom tibble is_tibble
@@ -209,7 +222,8 @@ edge_numeric_sum <- function(num, num_combine=mean, how="any", name="name") {
 #' graph <- graph |>
 #'             mutate(num=node_numeric(c(1.1) |> setNames("hsa:6737"))) 
 #' 
-node_numeric <- function(num, num_combine=mean, name="name", how="any") {
+node_numeric <- function(num, num_combine=mean,
+    name="name", how="any", sep=" ", remove_dot=TRUE) {
     graph <- .G()
     if (!is_tibble(num) & !is.vector(num)) {
         stop("Please provide tibble or named vector")
@@ -229,7 +243,12 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
     x <- get.vertex.attribute(graph, name)
 
     lapply(x, function(xx) {
-        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        in_node <- strsplit(xx, sep) |> unlist() |> unique()
+        if (remove_dot) {
+            in_node <- lapply(in_node, function(nn) {
+                strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            }) %>% unlist()
+        }
         thresh <- ifelse(how=="any", 1, length(in_node))
         if (length(intersect(names(changer), in_node)) >= thresh) {
             summed <- do.call(num_combine,
@@ -253,6 +272,9 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' @param org organism ID to convert ID
 #' @param org_db organism database to convert ID
 #' @param num_combine function to combine multiple numeric values
+#' @param name name column in node data, default to node
+#' @param sep separater of name, default to " "
+#' @param remove_dot remove "..." in the name
 #' @export
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
@@ -267,11 +289,17 @@ node_numeric <- function(num, num_combine=mean, name="name", how="any") {
 #' graph <- graph |> node_matrix(num_df, gene_type="ENTREZID")
 #' 
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
-                        org_db=org.Hs.eg.db, num_combine=mean) {
+                        org_db=org.Hs.eg.db, num_combine=mean, name="name",
+                        sep=" ", remove_dot=TRUE) {
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
             if (x[xx]=="undefined") {return(NA)}
-            vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+            vals <- strsplit(x[xx], sep) |> unlist() |> unique()
+            if (remove_dot) {
+                vals <- lapply(vals, function(nn) {
+                    strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+                }) %>% unlist()
+            }
             subset_conv <- convert_df |>
                 filter(.data$converted %in% vals) |>
                 data.frame()
@@ -286,7 +314,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     }
 
     node_df <- graph |> activate("nodes") |> data.frame()
-    node_name <- node_df$name
+    node_name <- node_df[[name]]
     if (gene_type!="ENTREZID") {
         convert_df <- mat |> row.names() |> 
             select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
@@ -296,7 +324,7 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
   
     convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
     new_edges <- graph |> activate("edges") |> data.frame()
-    summed <- data.frame(get_value(node_df$name))
+    summed <- data.frame(get_value(node_df[[name]]))
     new_nodes <- cbind(node_df, summed)
     appended <- tbl_graph(nodes=new_nodes, edges=new_edges)
     appended
@@ -315,6 +343,9 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @param org organism ID to convert ID
 #' @param org_db organism database to convert ID
 #' @param num_combine function to combine multiple numeric values
+#' @param name name column in node data, default to node
+#' @param sep separater of name, default to " "
+#' @param remove_dot remove "..." in node name
 #' @export
 #' @importFrom AnnotationDbi select
 #' @return tbl_graph
@@ -326,12 +357,17 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #'                     check.names=FALSE)
 #' graph <- graph |> edge_matrix(num_df, gene_type="ENTREZID")
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
-                              org_db=org.Hs.eg.db,
-                              num_combine=mean) {
+    org_db=org.Hs.eg.db,
+    num_combine=mean, name="name", sep=" ", remove_dot=TRUE) {
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
             if (x[xx]=="undefined") {return(NA)}
             vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+            if (remove_dot) {
+                vals <- lapply(vals, function(nn) {
+                    strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+                }) %>% unlist()
+            }
             subset_conv <- convert_df |> filter(.data$converted %in% vals) |> 
                             data.frame()
             if (dim(subset_conv)[1]==0) {
@@ -374,6 +410,8 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @param res enrichResult class
 #' @param how how to determine whether the nodes is in enrichment results
 #' @param name name column to search for query
+#' @param sep separater for name
+#' @param remove_dot remove dots in the name
 #' @param pid pathway ID, if NULL, try to infer from graph attribute
 #' @param infer if TRUE, append the prefix to queried IDs based on pathway ID
 #' @return enrich_attribute column in node
@@ -390,7 +428,7 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' }
 #' @export
 #' 
-append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE) {
+append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE, sep=" ", remove_dot=TRUE) {
     if (!attributes(res)$class %in% c("enrichResult","gseaResult")) {
         stop("Please provide enrichResult or gseaResult class object")
     }
@@ -404,25 +442,34 @@ append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE) {
         pid <- unique(V(graph)$pathway_id)
     }
     x <- get.vertex.attribute(graph, name)
-
     org <- attributes(res)$organism
     res <- attributes(res)$result
 
-    if (org!="UNKNOWN") {
-        if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
-        enrich_attribute <- paste0(org, ":", unlist(strsplit(
-                                                res[pid,][[gene_col]], "/")))
-    } else {## If UNKNOWN
-        ## Try to infer
-        if (infer) {
-            org <- gsub("[^a-zA-Z]", "", pid)
-            enrich_attribute <- paste0(org, ":", unlist(strsplit(res[pid,][[gene_col]], "/")))
-        } else {
-	        enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))
-        }
+    if (name=="graphics_name") {
+        ## If graphics name, use as is.
+        enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))   
+    } else {
+        if (org!="UNKNOWN") {
+            if (org=="microbiome") {org <- "ko"; pid <- gsub("ko","map",pid)}
+            enrich_attribute <- paste0(org, ":", unlist(strsplit(
+                                                    res[pid,][[gene_col]], "/")))
+        } else {## If UNKNOWN
+            ## Try to infer
+            if (infer) {
+                org <- gsub("[^a-zA-Z]", "", pid)
+                enrich_attribute <- paste0(org, ":", unlist(strsplit(res[pid,][[gene_col]], "/")))
+            } else {
+                enrich_attribute <- unlist(strsplit(res[pid,][[gene_col]], "/"))
+            }
+        }        
     }
     bools <- vapply(x, function(xx) {
-        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        in_node <- strsplit(xx, sep) |> unlist() |> unique()
+        if (remove_dot) {
+            in_node <- lapply(in_node, function(nn) {
+                strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            }) %>% unlist()
+        }
         if (how=="any") {
             if (length(intersect(in_node, enrich_attribute))>=1) {
                 return(TRUE)
@@ -453,6 +500,8 @@ append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE) {
 #' @param org organism ID in KEGG
 #' @param numeric_combine how to combine multiple numeric values
 #' @param name column name for ID in tbl_graph nodes
+#' @param sep for node name
+#' @param remove_dot remove dot in the name
 #' @return numeric vector
 #' @import org.Hs.eg.db
 #' @importFrom AnnotationDbi select
@@ -465,7 +514,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
                           org_db=org.Hs.eg.db, org="hsa",
                           numeric_combine=mean,
-                          name="name") {
+                          name="name", sep=" ", remove_dot=TRUE) {
     graph <- .G()
     if (gene_type!="ENTREZID") {
         convert_df <- res |>
@@ -482,7 +531,12 @@ assign_deseq2 <- function(res, column="log2FoldChange",
     changer <- merged[[column]] |> `names<-`(merged[["converted"]])
     x <- get.vertex.attribute(graph, name)
     lapply(x, function(xx) {
-        in_node <- strsplit(xx, " ") |> unlist() |> unique()
+        in_node <- strsplit(xx, sep) |> unlist() |> unique()
+        if (remove_dot) {
+            in_node <- lapply(in_node, function(nn) {
+                strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            }) %>% unlist()
+        }
         do.call(numeric_combine,
             list(x=changer[intersect(in_node, names(changer))]))       
     }) |> unlist()
@@ -508,6 +562,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' @param divide_semicolon whether to divide string by semicolon,
 #' and take the first value
 #' @param edge if converting edges
+#' @param remove_dot remove dots in the name
 #' @importFrom data.table fread
 #' @return vector containing converted IDs
 #' @export
@@ -516,7 +571,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' graph <- graph |> mutate(conv=convert_id("hsa"))
 #' 
 convert_id <- function(org, name="name",
-    convert_column=NULL, colon=TRUE, first_arg_comma=TRUE,
+    convert_column=NULL, colon=TRUE, first_arg_comma=TRUE, remove_dot=TRUE,
     sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE, edge=FALSE) {
     
     graph <- .G()
@@ -566,6 +621,9 @@ convert_id <- function(org, name="name",
     convs <- lapply(seq_along(x), function(xn) {
         if (grepl(sep,x[xn])) {
             spaced <- lapply(unlist(strsplit(x[xn], sep)), function (qu) {
+                if (remove_dot) {
+                    qu <- strsplit(qu, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+                }
                 comma_test <- ifelse(first_arg_comma,
                     strsplit(convert_vec[qu], ",")[[1]][1],
                     paste0(convert_vec[qu]))
@@ -579,9 +637,14 @@ convert_id <- function(org, name="name",
                 paste(spaced, collapse=sep))
             return(spaced)
         } else {
+            if (remove_dot) {
+                qu <- strsplit(x[xn], "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
+            } else {
+                qu <- x[xn]
+            }
             comma_test <- ifelse(first_arg_comma,
-                strsplit(convert_vec[x[xn]], ",")[[1]][1],
-                convert_vec[x[xn]])
+                strsplit(convert_vec[qu], ",")[[1]][1],
+                convert_vec[qu])
             sc_test <- ifelse(divide_semicolon,
                 strsplit(comma_test, ";") |>
                 vapply("[",1,FUN.VALUE="character"),

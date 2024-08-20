@@ -217,6 +217,9 @@ ggkegg <- function(pid,
 #' @param white_background fill background color white
 #' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @param infer if TRUE, append the prefix to queried IDs based on pathway ID
+#' @param name name of column to match for
+#' @param sep separater for name, default to " "
+#' @param remove_dot remove "..." in the name
 #' @export
 #' @examples
 #' if (require("clusterProfiler")) {
@@ -227,7 +230,8 @@ ggkegg <- function(pid,
 #' @return ggraph with overlaid KEGG map
 #' 
 rawMap <- function(enrich, pathway_number=1, pid=NULL,
-    fill_color="red", how="any", white_background=TRUE, infer=FALSE) {
+    fill_color="red", how="any", white_background=TRUE, infer=FALSE,
+    name="name", sep=" ", remove_dot=TRUE) {
     
     number <- length(enrich)
     if (length(fill_color) != number) {
@@ -257,9 +261,9 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         qqcat("Changing prefix of pathway ID from map to ko\n")
         pid <- gsub("map","ko",pid)
     }
-
     if (number == 1) {
-        g <- pathway(pid) |> mutate(cp=append_cp(enrich, how=how, pid=pid, infer=infer))
+        g <- pathway(pid) %>% mutate(cp=append_cp(!!enrich, how=!!how, pid=!!pid, infer=!!infer,
+            name=!!name, sep=!!sep, remove_dot=!!remove_dot))
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
             geom_node_rect(fill=fill_color, aes(filter=.data$cp))+
             overlay_raw_map()+theme_void()
@@ -267,7 +271,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
         g <- pathway(pid)
         for (i in seq_len(number)) {
             g <- g  |> mutate(!!paste0("cp",i) :=append_cp(enrich[[i]],
-                how=how, pid=pid, infer=infer))
+                how=!!how, pid=!!pid, infer=!!infer, name=!!name, sep=!!sep, remove_dot=!!remove_dot))
         }
         V(g)$space <- V(g)$width/number
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)
@@ -299,12 +303,14 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' 
 #' @param values named vector, or list of them
 #' @param pid pathway id
-#' @param column column name on node table of the graph
 #' @param white_background fill background color white
 #' @param how how to match the node IDs with the queries 'any' or 'all'
 #' @param auto_add automatically add prefix based on pathway prefix
 #' @param man_graph provide manual tbl_graph
 #' @param show_type type to be shown
+#' @param column name of column to match for
+#' @param sep separater for name, default to " "
+#' @param remove_dot remove "..." in the name
 #' typically, "gene", "ortholog", or "compound"
 #' @export
 #' @examples
@@ -314,7 +320,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
 #' @return ggraph with overlaid KEGG map
 #' 
 rawValue <- function(values, pid=NULL, column="name", show_type="gene",
-    how="any", white_background=TRUE, auto_add=FALSE, man_graph=NULL) {
+    how="any", white_background=TRUE, auto_add=FALSE, man_graph=NULL,
+    sep=" ", remove_dot=TRUE) {
     if (is.list(values)) {
         number <- length(values)
         if (auto_add) {
@@ -337,7 +344,7 @@ rawValue <- function(values, pid=NULL, column="name", show_type="gene",
     }
     if (number == 1) {
         g <- pgraph |> mutate(value=node_numeric(values,
-            name=column, how=how))
+            name=column, how=how, sep=sep, remove_dot=remove_dot))
         gg <- ggraph(g, layout="manual", x=.data$x, y=.data$y)+
             geom_node_rect(aes(fill=.data$value,
                                 filter=.data$type %in% show_type))+

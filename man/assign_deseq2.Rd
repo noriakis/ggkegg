@@ -11,7 +11,9 @@ assign_deseq2(
   org_db = org.Hs.eg.db,
   org = "hsa",
   numeric_combine = mean,
-  name = "name"
+  name = "name",
+  sep = " ",
+  remove_dot = TRUE
 )
 }
 \arguments{
@@ -28,6 +30,10 @@ assign_deseq2(
 \item{numeric_combine}{how to combine multiple numeric values}
 
 \item{name}{column name for ID in tbl_graph nodes}
+
+\item{sep}{for node name}
+
+\item{remove_dot}{remove dot in the name}
 }
 \value{
 numeric vector

@@ -10,6 +10,7 @@ convert_id(
   convert_column = NULL,
   colon = TRUE,
   first_arg_comma = TRUE,
+  remove_dot = TRUE,
   sep = " ",
   first_arg_sep = TRUE,
   divide_semicolon = TRUE,
@@ -29,6 +30,8 @@ If `NULL`, automatically set according to `org`}
 
 \item{first_arg_comma}{take first argument of comma-separated
 string, otherwise fetch all strings}
+
+\item{remove_dot}{remove dots in the name}
 
 \item{sep}{separater to separate node names, defaul to space}
 
