@@ -17,7 +17,8 @@ highlight_entities(
   remove_dot = TRUE,
   legend_name = NULL,
   use_cache = FALSE,
-  return_graph = FALSE
+  return_graph = FALSE,
+  directory = NULL
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ is in query.}
 \item{use_cache}{use cache or not}
 
 \item{return_graph}{return tbl_graph instead of plot}
+
+\item{directory}{directroy with XML files. ignore caching when specified.}
 }
 \value{
 overlaid map

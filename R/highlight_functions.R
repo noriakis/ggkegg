@@ -21,6 +21,7 @@
 #' @param use_cache use cache or not
 #' @param return_graph return tbl_graph instead of plot
 #' @param remove_dot remove the "..." in the graphics name column
+#' @param directory directroy with XML files. ignore caching when specified.
 #' @return overlaid map
 #' @examples
 #' highlight_entities("hsa04110", c("CDKN2A"), legend_name="interesting")
@@ -29,8 +30,8 @@
 highlight_entities <- function(pathway, set, how="any",
 	num_combine=mean, name="graphics_name", sep=", ", no_sep=FALSE,
 	show_type="gene", fill_color="tomato", remove_dot=TRUE,
-	legend_name=NULL, use_cache=FALSE, return_graph=FALSE) {
-	graph <- pathway(pathway, use_cache=use_cache)
+	legend_name=NULL, use_cache=FALSE, return_graph=FALSE, directory=NULL) {
+	graph <- pathway(pathway, use_cache=use_cache, directory=directory)
 	x <- get.vertex.attribute(graph, name)
 	
 	if (is.null(names(set))) {## Discrete
