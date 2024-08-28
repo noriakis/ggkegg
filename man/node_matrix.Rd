@@ -10,7 +10,10 @@ node_matrix(
   gene_type = "SYMBOL",
   org = "hsa",
   org_db = org.Hs.eg.db,
-  num_combine = mean
+  num_combine = mean,
+  name = "name",
+  sep = " ",
+  remove_dot = TRUE
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ node_matrix(
 \item{org_db}{organism database to convert ID}
 
 \item{num_combine}{function to combine multiple numeric values}
+
+\item{name}{name column in node data, default to node}
+
+\item{sep}{separater of name, default to " "}
+
+\item{remove_dot}{remove "..." in the name}
 }
 \value{
 tbl_graph

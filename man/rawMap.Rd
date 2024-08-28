@@ -11,7 +11,10 @@ rawMap(
   fill_color = "red",
   how = "any",
   white_background = TRUE,
-  infer = FALSE
+  infer = FALSE,
+  name = "name",
+  sep = " ",
+  remove_dot = TRUE
 )
 }
 \arguments{
@@ -28,6 +31,12 @@ rawMap(
 \item{white_background}{fill background color white}
 
 \item{infer}{if TRUE, append the prefix to queried IDs based on pathway ID}
+
+\item{name}{name of column to match for}
+
+\item{sep}{separater for name, default to " "}
+
+\item{remove_dot}{remove "..." in the name}
 }
 \value{
 ggraph with overlaid KEGG map

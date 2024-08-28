@@ -182,10 +182,9 @@ geom_node_shadowtext <- function(mapping=NULL, data=NULL,
 #'  geom_node_rect()
 geom_node_rect <- function(mapping=NULL, data=NULL, position='identity',
                             show.legend=NA, ...) {
-    mapping <- c(mapping, aes(xmin=.data$xmin,
-                            ymin=.data$ymin,
-                            xmax=.data$xmax,
-                            ymax=.data$ymax))
+    mapping1 <- mapping
+    raw_mapping <- aes(xmin=.data$xmin, ymin=.data$ymin, xmax=.data$xmax, ymax=.data$ymax)
+    mapping <- c(as.list(mapping1), raw_mapping[!names(raw_mapping) %in% names(mapping1)])
     class(mapping) <- "uneval"
     layer(
         data=data, mapping=mapping, stat=StatFilter, geom=GeomRect,
@@ -193,6 +192,7 @@ geom_node_rect <- function(mapping=NULL, data=NULL, position='identity',
         params=list(na.rm=FALSE, ...)
   )
 }
+
 
 #' geom_node_rect_kegg
 #' 
@@ -285,6 +285,58 @@ plot_kegg_network <- function(g, layout="nicely") {
             filter=!startsWith(.data$name,"manual_")),
             repel=TRUE, size=4, bg.colour="white") +
         theme_void()
+}
+
+
+#' geom_node_rect_multi
+#' 
+#' Wrapper function for plotting multiple rects
+#' with background color with geom_node_rect().
+#' All columns should belong to the same scale when
+#' using `asIs=FALSE`. If you need multiple scales for 
+#' each element, please use `ggh4x::scale_fill_multi`
+#' for each.
+#' 
+#' @param ... color columns
+#' @param asIs treat the color as is or not
+#' @export
+#' @return ggplot2 object
+#' @examples
+#' plt <- create_test_pathway() %>% ggraph() + geom_node_rect_multi(bgcolor)
+geom_node_rect_multi <- function(..., asIs=TRUE) {
+  color_cols <- as.character(ensyms(...))
+  structure(list(cols=color_cols, asIs=asIs),
+            class="geom_node_rect_multi")}
+  
+#' ggplot_add.geom_node_rect_multi
+#' @param object An object to add to the plot
+#' @param plot The ggplot object to add object to
+#' @param object_name The name of the object to add
+#' @export ggplot_add.geom_node_rect_multi
+#' @export
+#' @return ggplot2 object
+#' @examples
+#' plt <- create_test_pathway() %>% ggraph() + geom_node_rect_multi(bgcolor)
+ggplot_add.geom_node_rect_multi <- function(object, plot, object_name) {
+  colnum <- length(object$cols)
+  if (length(colnum)==0) {stop("Please specify at least one color column")}
+  plot$data$space <- plot$data$width / colnum
+  for (i in seq_len(colnum)) {
+    if (object$asIs) {
+      plot <- plot + 
+        geom_node_rect(
+          aes(xmin= .data$xmin + .data$space*!!(i-1),
+              xmax= .data$xmin + .data$space*!!(i),
+              fill= I(.data[[object$cols[i]]])))
+    } else {
+      plot <- plot + 
+        geom_node_rect(
+          aes(xmin= .data$xmin + .data$space*!!(i-1),
+              xmax= .data$xmin + .data$space*!!(i),
+              fill= .data[[object$cols[i]]]))
+    }
+  }
+  plot
 }
 
 

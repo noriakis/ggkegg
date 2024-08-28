@@ -1,7 +1,7 @@
 Package: ggkegg
 Type: Package
-Title: KEGG pathway visualization by ggplot2
-Version: 1.2.2
+Title: Analyzing and visualizing KEGG information using the grammar of graphics
+Version: 1.2.3
 Authors@R: person("Noriaki", "Sato", email = "nori@hgc.jp", role = c("cre", "aut"))
 Description: This package aims to import, parse, and analyze KEGG data such as KEGG PATHWAY and KEGG MODULE. The package supports visualizing KEGG information using ggplot2 and ggraph through using the grammar of graphics. The package enables the direct visualization of the results from various omics analysis packages.
 License: MIT + file LICENSE
@@ -19,7 +19,7 @@ Suggests:
     rmarkdown,
     BiocStyle,
     testthat (>= 3.0.0)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 biocViews: Pathways, DataImport, KEGG
 VignetteBuilder: knitr
 URL: https://github.com/noriakis/ggkegg

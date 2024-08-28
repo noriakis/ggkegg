@@ -12,7 +12,9 @@ rawValue(
   how = "any",
   white_background = TRUE,
   auto_add = FALSE,
-  man_graph = NULL
+  man_graph = NULL,
+  sep = " ",
+  remove_dot = TRUE
 )
 }
 \arguments{
@@ -20,10 +22,9 @@ rawValue(
 
 \item{pid}{pathway id}
 
-\item{column}{column name on node table of the graph}
+\item{column}{name of column to match for}
 
-\item{show_type}{type to be shown
-typically, "gene", "ortholog", or "compound"}
+\item{show_type}{type to be shown}
 
 \item{how}{how to match the node IDs with the queries 'any' or 'all'}
 
@@ -32,6 +33,11 @@ typically, "gene", "ortholog", or "compound"}
 \item{auto_add}{automatically add prefix based on pathway prefix}
 
 \item{man_graph}{provide manual tbl_graph}
+
+\item{sep}{separater for name, default to " "}
+
+\item{remove_dot}{remove "..." in the name
+typically, "gene", "ortholog", or "compound"}
 }
 \value{
 ggraph with overlaid KEGG map
