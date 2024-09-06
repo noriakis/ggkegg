@@ -5,12 +5,15 @@
 \title{convert_id}
 \usage{
 convert_id(
-  org,
+  org = NULL,
   name = "name",
+  file = NULL,
+  query_column = 1,
   convert_column = NULL,
   colon = TRUE,
   first_arg_comma = TRUE,
   remove_dot = TRUE,
+  pref = NULL,
   sep = " ",
   first_arg_sep = TRUE,
   divide_semicolon = TRUE,
@@ -22,8 +25,13 @@ convert_id(
 
 \item{name}{which column to convert in edge or node table}
 
+\item{file}{specify the file for conversion.
+The column in `query_column` will be used for querying the ID in the graph.}
+
+\item{query_column}{default to 1.}
+
 \item{convert_column}{which column is parsed in 
-obtained data frame from KEGG REST API}
+obtained data frame from KEGG REST API or local file}
 
 \item{colon}{whether the original ids include colon (e.g. `ko:`)
 If `NULL`, automatically set according to `org`}
@@ -32,6 +40,8 @@ If `NULL`, automatically set according to `org`}
 string, otherwise fetch all strings}
 
 \item{remove_dot}{remove dots in the name}
+
+\item{pref}{prefix for the query identifiers}
 
 \item{sep}{separater to separate node names, defaul to space}
 
@@ -50,7 +60,8 @@ vector containing converted IDs
 convert the identifier using retrieved information
 }
 \examples{
+library(tidygraph)
 graph <- create_test_pathway()
-graph <- graph |> mutate(conv=convert_id("hsa"))
+graph <- graph \%>\% mutate(conv=convert_id("hsa"))
 
 }

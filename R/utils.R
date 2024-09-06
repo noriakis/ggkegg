@@ -551,7 +551,7 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' @param org which identifier to convert
 #' @param name which column to convert in edge or node table
 #' @param convert_column which column is parsed in 
-#' obtained data frame from KEGG REST API
+#' obtained data frame from KEGG REST API or local file
 #' @param colon whether the original ids include colon (e.g. `ko:`)
 #' If `NULL`, automatically set according to `org`
 #' @param first_arg_comma take first argument of comma-separated
@@ -563,17 +563,24 @@ assign_deseq2 <- function(res, column="log2FoldChange",
 #' and take the first value
 #' @param edge if converting edges
 #' @param remove_dot remove dots in the name
+#' @param file specify the file for conversion.
+#' The column in `query_column` will be used for querying the ID in the graph.
+#' @param query_column default to 1.
+#' @param pref prefix for the query identifiers
 #' @importFrom data.table fread
 #' @return vector containing converted IDs
 #' @export
 #' @examples
+#' library(tidygraph)
 #' graph <- create_test_pathway()
-#' graph <- graph |> mutate(conv=convert_id("hsa"))
+#' graph <- graph %>% mutate(conv=convert_id("hsa"))
 #' 
-convert_id <- function(org, name="name",
+convert_id <- function(org=NULL, name="name", file=NULL, query_column=1,
     convert_column=NULL, colon=TRUE, first_arg_comma=TRUE, remove_dot=TRUE,
-    sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE, edge=FALSE) {
-    
+    pref=NULL, sep=" ", first_arg_sep=TRUE, divide_semicolon=TRUE, edge=FALSE) {
+    if (is.null(org) & is.null(file)) {
+        stop("Please specify org or file")
+    }
     graph <- .G()
     pid <- unique(V(graph)$pathway_id)
     if (edge) {
@@ -581,12 +588,25 @@ convert_id <- function(org, name="name",
     } else {
         x <- get.vertex.attribute(graph, name)
     }
-    url <- paste0("https://rest.kegg.jp/list/",org)
-    bfc <- BiocFileCache()
-    path <- bfcrpath(bfc, url)
-    convert <- fread(path,
-                header=FALSE,
-                sep="\t") |> data.frame()
+    if (is.null(file)) {
+        url <- paste0("https://rest.kegg.jp/list/",org)
+        bfc <- BiocFileCache()
+        path <- bfcrpath(bfc, url)
+        convert <- fread(path,
+                    header=FALSE,
+                    sep="\t") %>% data.frame()        
+    } else {
+        convert <- fread(file,
+                    header=FALSE,
+                    sep="\t") %>% data.frame()
+        if (is.null(convert_column)) {
+            stop("Please specify the column number for the file")
+        }
+        if (is.null(pref)) {
+            pref <- ""
+        }
+    }
+
 
     if (is.null(convert_column)) {
         if (org=="ko") {pref <- "ko:";convert_column <- 2}
@@ -605,13 +625,17 @@ convert_id <- function(org, name="name",
         }
     }
     convert_vec <- convert[,convert_column]
-
-    if (org=="pathway") {
+    if (is.null(org)) {
         names(convert_vec) <- 
-            paste0(pref,str_extract(convert$V1, "[[:digit:]]+"))
+            paste0(pref,convert[, query_column])        
     } else {
-        names(convert_vec) <- 
-            paste0(pref,convert$V1)
+        if (org=="pathway") {
+            names(convert_vec) <- 
+                paste0(pref,str_extract(convert[, query_column], "[[:digit:]]+"))
+        } else {
+            names(convert_vec) <- 
+                paste0(pref,convert[, query_column])
+        }            
     }
     if (!colon) {
         names(convert_vec) <- unlist(
