@@ -1,3 +1,5 @@
+if(getRversion() >= "2.15.1")  utils::globalVariables(c("."))
+
 #' find_parenthesis_pairs
 #' find pairs of parenthesis
 #' @noRd
@@ -276,7 +278,6 @@ node_numeric <- function(num, num_combine=mean,
 #' @param sep separater of name, default to " "
 #' @param remove_dot remove "..." in the name
 #' @export
-#' @importFrom AnnotationDbi select
 #' @return tbl_graph
 #' @examples
 #' 
@@ -289,7 +290,7 @@ node_numeric <- function(num, num_combine=mean,
 #' graph <- graph |> node_matrix(num_df, gene_type="ENTREZID")
 #' 
 node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
-                        org_db=org.Hs.eg.db, num_combine=mean, name="name",
+                        org_db=NULL, num_combine=mean, name="name",
                         sep=" ", remove_dot=TRUE) {
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
@@ -316,10 +317,18 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
     node_df <- graph |> activate("nodes") |> data.frame()
     node_name <- node_df[[name]]
     if (gene_type!="ENTREZID") {
-        convert_df <- mat |> row.names() |> 
-            select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+        if (!requireNamespace("AnnotationDbi")) {
+            stop("This conversion requires AnnotationDbi.")
+        }
+        if (is.null(org_db)) {
+            stop("Please specify Annotation DB to org_db.")
+        }
+        convert_df <- mat %>% 
+                row.names() %>%
+                AnnotationDbi::mapIds(x=org_db, keys=.,
+                    columns="ENTREZID", keytype=gene_type)
     } else {
-        convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
+        convert_df <- data.frame(row.names(mat)) %>% `colnames<-`(c("ENTREZID"))
     }
   
     convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
@@ -347,7 +356,6 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #' @param sep separater of name, default to " "
 #' @param remove_dot remove "..." in node name
 #' @export
-#' @importFrom AnnotationDbi select
 #' @return tbl_graph
 #' @examples
 #' graph <- create_test_pathway()
@@ -355,20 +363,19 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
 #'                     "sample1"=c(1.1,1.2),
 #'                     "sample2"=c(1.1,1.2),
 #'                     check.names=FALSE)
-#' graph <- graph |> edge_matrix(num_df, gene_type="ENTREZID")
+#' graph <- graph %>% edge_matrix(num_df, gene_type="ENTREZID")
 edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
-    org_db=org.Hs.eg.db,
-    num_combine=mean, name="name", sep=" ", remove_dot=TRUE) {
+    org_db=NULL, num_combine=mean, name="name", sep=" ", remove_dot=TRUE) {
     get_value <- function(x) {
         val <- lapply(seq_along(x), function(xx) {
             if (x[xx]=="undefined") {return(NA)}
-            vals <- strsplit(x[xx], " ") |> unlist() |> unique()
+            vals <- strsplit(x[xx], " ") %>% unlist() %>% unique()
             if (remove_dot) {
                 vals <- lapply(vals, function(nn) {
                     strsplit(nn, "\\.\\.\\.") %>% vapply("[", 1, FUN.VALUE="a")
                 }) %>% unlist()
             }
-            subset_conv <- convert_df |> filter(.data$converted %in% vals) |> 
+            subset_conv <- convert_df %>% filter(.data$converted %in% vals) %>% 
                             data.frame()
             if (dim(subset_conv)[1]==0) {
                 return(NA)
@@ -382,19 +389,26 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
         binded
     }
   
-    node_df <- graph |> activate("nodes") |> data.frame()
+    node_df <- graph %>% activate("nodes") %>% data.frame()
     node_name <- node_df$name
     if (gene_type!="ENTREZID") {
-        convert_df <- mat |> 
-                row.names() |>
-                select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+        if (!requireNamespace("AnnotationDbi")) {
+            stop("This conversion requires AnnotationDbi.")
+        }
+        if (is.null(org_db)) {
+            stop("Please specify Annotation DB to org_db.")
+        }
+        convert_df <- mat %>% 
+                row.names() %>%
+                AnnotationDbi::mapIds(x=org_db, keys=.,
+                    columns="ENTREZID", keytype=gene_type)
     } else {
-        convert_df <- data.frame(row.names(mat)) |> `colnames<-`(c("ENTREZID"))
+        convert_df <- data.frame(row.names(mat)) %>% `colnames<-`(c("ENTREZID"))
     }
   
     convert_df$converted <- paste0(org, ":", convert_df[["ENTREZID"]])
-    new_graph <- graph |> activate(edges) |>
-        mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) |> 
+    new_graph <- graph %>% activate(edges) %>%
+        mutate(from_nd=node_name[.data$from], to_nd=node_name[.data$to]) %>% 
         data.frame()
     summed <- data.frame(
         get_value(new_graph$from_nd) + get_value(new_graph$to_nd))
@@ -503,8 +517,6 @@ append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE, sep=" 
 #' @param sep for node name
 #' @param remove_dot remove dot in the name
 #' @return numeric vector
-#' @import org.Hs.eg.db
-#' @importFrom AnnotationDbi select
 #' @export
 #' @examples
 #' graph <- create_test_pathway()
@@ -512,14 +524,21 @@ append_cp <- function(res, how="any", name="name", pid=NULL, infer=FALSE, sep=" 
 #' graph <- graph |> mutate(num=assign_deseq2(res, gene_type="ENTREZID"))
 assign_deseq2 <- function(res, column="log2FoldChange",
                           gene_type="SYMBOL",
-                          org_db=org.Hs.eg.db, org="hsa",
+                          org_db=NULL, org="hsa",
                           numeric_combine=mean,
                           name="name", sep=" ", remove_dot=TRUE) {
     graph <- .G()
     if (gene_type!="ENTREZID") {
-        convert_df <- res |>
-            row.names() |>
-            select(x=org_db, keys=_, columns="ENTREZID", keytype=gene_type)
+        if (!requireNamespace("AnnotationDbi")) {
+            stop("This conversion requires AnnotationDbi.")
+        }
+        if (is.null(org_db)) {
+            stop("Please specify Annotation DB to org_db.")
+        }
+        convert_df <- res %>%
+            row.names() %>%
+            AnnotationDbi::mapIds(x=org_db, keys=.,
+                columns="ENTREZID", keytype=gene_type)
         nums <- data.frame(row.names(res), res[[column]]) |> 
             `colnames<-`(c(gene_type, column))
         merged <- merge(nums, convert_df, by=gene_type)

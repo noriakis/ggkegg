@@ -9,7 +9,7 @@ node_matrix(
   mat,
   gene_type = "SYMBOL",
   org = "hsa",
-  org_db = org.Hs.eg.db,
+  org_db = NULL,
   num_combine = mean,
   name = "name",
   sep = " ",

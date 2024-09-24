@@ -8,7 +8,7 @@ assign_deseq2(
   res,
   column = "log2FoldChange",
   gene_type = "SYMBOL",
-  org_db = org.Hs.eg.db,
+  org_db = NULL,
   org = "hsa",
   numeric_combine = mean,
   name = "name",
