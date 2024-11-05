@@ -13,12 +13,11 @@ setClass("kegg_network",
     )
 )
 
-#' @importFrom GetoptLong qqcat
 setMethod("show",
     signature(object="kegg_network"),
     function(object) {
-        qqcat("@{object@ID}\n")
-        qqcat("@{object@name}\n")
+        cat(object@ID,"\n")
+        cat(object@name,"\n")
     }
 )
 

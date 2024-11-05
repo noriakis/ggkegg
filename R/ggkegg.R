@@ -235,8 +235,8 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     
     number <- length(enrich)
     if (length(fill_color) != number) {
-        qqcat("Length of fill_color and enrich mismatches,",
-            " taking first color\n")
+        cat("Length of fill_color and enrich mismatches,",
+            "taking first color\n")
         fill_color <- rep(fill_color[1], number)
     }
     if (is.list(enrich)) {
@@ -258,7 +258,7 @@ rawMap <- function(enrich, pathway_number=1, pid=NULL,
     }
     ## For MicrobiomeProfiler
     if (startsWith(pid, "map")) {
-        qqcat("Changing prefix of pathway ID from map to ko\n")
+        cat("Changing prefix of pathway ID from map to ko\n")
         pid <- gsub("map","ko",pid)
     }
     if (number == 1) {

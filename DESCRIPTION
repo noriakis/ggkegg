@@ -8,7 +8,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Depends:
     R (>= 4.3.0), ggplot2, ggraph, XML, igraph, tidygraph
-Imports: BiocFileCache, GetoptLong, data.table, dplyr,
+Imports: BiocFileCache, data.table, dplyr,
     magick, patchwork, shadowtext,  stringr, tibble,
     methods, utils, stats, grDevices, gtable
 Suggests: 

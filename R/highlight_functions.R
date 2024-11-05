@@ -262,7 +262,7 @@ highlight_module <- function(graph, kmo,
         reac_list <- kmo@reaction_each[i,][2] |> unlist() |> as.character()
         right <- kmo@reaction_each[i,][3] |> 
           unlist() |> as.character() |> paste0("cpd:", ...=_)
-        if (verbose) {qqcat("Checking reaction: @{raw_reac_string}\n")}
+        if (verbose) {cat("Checking reaction:", raw_reac_string, "\n")}
 
         x <- get.edge.attribute(graph, "reaction")
         ## Store edge index that meet reaction
