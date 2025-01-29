@@ -326,7 +326,9 @@ node_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
         convert_df <- mat %>% 
                 row.names() %>%
                 AnnotationDbi::mapIds(x=org_db, keys=.,
-                    columns="ENTREZID", keytype=gene_type)
+                    column="ENTREZID", keytype=gene_type) %>% 
+                tibble::enframe() %>% 
+                `colnames<-`(c(gene_type, "ENTREZID"))
     } else {
         convert_df <- data.frame(row.names(mat)) %>% `colnames<-`(c("ENTREZID"))
     }
@@ -401,7 +403,9 @@ edge_matrix <- function(graph, mat, gene_type="SYMBOL", org="hsa",
         convert_df <- mat %>% 
                 row.names() %>%
                 AnnotationDbi::mapIds(x=org_db, keys=.,
-                    columns="ENTREZID", keytype=gene_type)
+                    column="ENTREZID", keytype=gene_type) %>% 
+                tibble::enframe() %>% 
+                `colnames<-`(c(gene_type, "ENTREZID"))
     } else {
         convert_df <- data.frame(row.names(mat)) %>% `colnames<-`(c("ENTREZID"))
     }
@@ -538,7 +542,9 @@ assign_deseq2 <- function(res, column="log2FoldChange",
         convert_df <- res %>%
             row.names() %>%
             AnnotationDbi::mapIds(x=org_db, keys=.,
-                columns="ENTREZID", keytype=gene_type)
+                column="ENTREZID", keytype=gene_type) %>%
+            tibble::enframe() %>% 
+            `colnames<-`(c(gene_type, "ENTREZID"))
         nums <- data.frame(row.names(res), res[[column]]) |> 
             `colnames<-`(c(gene_type, column))
         merged <- merge(nums, convert_df, by=gene_type)
