@@ -864,3 +864,82 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
         joined    
     }
 }
+
+#' add_readable_edge_label
+#' 
+#' Add readable edge label by shadowtext.
+#' Should be just under the geom_edge_* with the filtered labels.
+#' 
+#' @param color color mapping name in the previous layer
+#' @param angle_calc only `along` or `none`
+#' @param size size of the label
+#' @export
+#' @return ggplot2 object
+#' @examples
+#' test_pathway <- create_test_pathway()
+#' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
+#'  geom_edge_link(aes(label=subtype_name))+
+#'  add_readable_edge_label()
+add_readable_edge_label <- function(color="label_colour", angle_calc="along", size=3) {
+    structure(list(color=color, angle_calc=angle_calc, size=size),
+              class="add_readable_edge_label")
+}
+
+#' ggplot_add.geom_node_rect_kegg
+#' @param object An object to add to the plot
+#' @param plot The ggplot object to add object to
+#' @param object_name The name of the object to add
+#' @export ggplot_add.add_readable_edge_label
+#' @export
+#' @return ggplot2 object
+#' @examples
+#' test_pathway <- create_test_pathway()
+#' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
+#'  geom_edge_link(aes(label=subtype_name))+
+#'  add_readable_edge_label()
+ggplot_add.add_readable_edge_label <- function(object, plot, object_name) {
+    built <- ggplot_build(plot)
+    datlen <- length(built$data)
+    candidate <- built$data[[datlen]]
+    if (!("label" %in% colnames(candidate))) {stop("There is no label specified in the previous layer.")}
+    
+    if ("xend" %in% colnames(candidate)) {
+        if (object$angle_calc=="along") {
+            readable <- candidate %>%
+                mutate(angle2=edge_angle(x, y, xend, yend)) %>%
+                group_by(group, label, .data[[object$color]]) %>%
+                summarise(mx=mean(x), my=mean(y), ma=mean(angle2)) %>%
+                ungroup()        
+        } else {
+            readable <- candidate %>%
+                group_by(group, label, .data[[object$color]]) %>%
+                summarise(mx=mean(x), my=mean(y), ma=mean(angle)) %>%
+                ungroup()  
+        }
+        
+        plot$layers[[datlen]]$mapping$label <- NULL
+
+    } else {## If no xend
+        if (object$angle_calc=="along") {
+            readable <- candidate %>%
+                group_by(group, label, .data[[object$color]]) %>%
+                summarise(mx=mean(x), my=mean(y),
+                          x1=dplyr::first(x),
+                          x2=dplyr::last(x),
+                          y1=dplyr::first(y),
+                          y2=dplyr::last(y)) %>%
+                mutate(ma=edge_angle(x1, y1, x2, y2)) %>%
+                ungroup()        
+        } else {
+            readable <- candidate %>%
+                group_by(group, label, .data[[object$color]]) %>%
+                summarise(mx=mean(x), my=mean(y), ma=mean(angle)) %>%
+                ungroup()  
+        }
+        plot$layers[[datlen]]$mapping$label <- NULL
+    }
+    return(plot + shadowtext::geom_shadowtext(data=readable,
+                  aes(x=mx, y=my, label=label, angle=ma, color=.data[[object$color]]),
+                  size=object$size,
+                  bg.colour="white"))
+}
