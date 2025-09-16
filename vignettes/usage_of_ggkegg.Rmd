@@ -61,7 +61,7 @@ graph <- graph |> mutate(showname=strsplit(graphics_name, ",") |>
                     vapply("[", 1, FUN.VALUE="a"))
 
 ggraph(graph, layout="manual", x=x, y=y)+
-    geom_edge_parallel(aes(linetype=subtype_name),
+    geom_edge_parallel(aes(color=subtype_name),
         arrow=arrow(length=unit(1,"mm"), type="closed"),
         end_cap=circle(1,"cm"),
         start_cap=circle(1,"cm"))+
@@ -121,7 +121,7 @@ graph |>
     geom_node_rect(aes(fill="tomato", filter=highlight), color="black")+
     geom_node_text(aes(label=showname,
                       filter=type == "gene"), size=2)+
-    geom_edge_parallel(aes(linetype=subtype_name),
+    geom_edge_parallel(aes(color=subtype_name),
                    arrow=arrow(length=unit(1,"mm"),
                                type="closed"),
                    end_cap=circle(1,"cm"),

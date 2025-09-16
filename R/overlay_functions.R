@@ -55,7 +55,7 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
 #' ggplot_add.overlay_raw_map
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
-#' @param object_name The name of the object to add
+#' @param ... The other arguments
 #' @export ggplot_add.overlay_raw_map
 #' @return ggplot2 object
 #' @importFrom grDevices as.raster
@@ -66,7 +66,7 @@ overlay_raw_map <- function(pid=NULL, directory=NULL,
 #' graph <- create_test_pathway() |> mutate(pathway_id="hsa04110")
 #' ggraph(graph) + overlay_raw_map()
 #'
-ggplot_add.overlay_raw_map <- function(object, plot, object_name) {
+ggplot_add.overlay_raw_map <- function(object, plot, ...) {
     if (is.null(object$pid)) {
         infer <- plot$data$pathway_id |> unique()
         object$pid <- infer[!is.na(infer)]
