@@ -215,7 +215,7 @@ geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
 #' ggplot_add.geom_node_rect_kegg
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
-#' @param object_name The name of the object to add
+#' @param ... The other arguments
 #' @export ggplot_add.geom_node_rect_kegg
 #' @export
 #' @return ggplot2 object
@@ -223,7 +223,7 @@ geom_node_rect_kegg <- function(type=NULL, rect_fill="grey") {
 #' test_pathway <- create_test_pathway()
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  geom_node_rect_kegg(type="gene")
-ggplot_add.geom_node_rect_kegg <- function(object, plot, object_name) {
+ggplot_add.geom_node_rect_kegg <- function(object, plot, ...) {
     if (is.null(object$type)){
         type <- unique(plot$data$type)
         type <- type[type!="group"]
@@ -311,13 +311,13 @@ geom_node_rect_multi <- function(..., asIs=TRUE) {
 #' ggplot_add.geom_node_rect_multi
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
-#' @param object_name The name of the object to add
+#' @param ... The other arguments
 #' @export ggplot_add.geom_node_rect_multi
 #' @export
 #' @return ggplot2 object
 #' @examples
 #' plt <- create_test_pathway() %>% ggraph() + geom_node_rect_multi(bgcolor)
-ggplot_add.geom_node_rect_multi <- function(object, plot, object_name) {
+ggplot_add.geom_node_rect_multi <- function(object, plot, ...) {
   colnum <- length(object$cols)
   if (length(colnum)==0) {stop("Please specify at least one color column")}
   plot$data$space <- plot$data$width / colnum
@@ -369,7 +369,7 @@ geom_kegg <- function(edge_color=NULL,
 #' ggplot_add.geom_kegg
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
-#' @param object_name The name of the object to add
+#' @param ... The other arguments
 #' @export ggplot_add.geom_kegg
 #' @return ggplot2 object
 #' @export
@@ -377,7 +377,7 @@ geom_kegg <- function(edge_color=NULL,
 #' test_pathway <- create_test_pathway()
 #' p <- ggraph(test_pathway, layout="manual", x=x, y=y)+
 #' geom_kegg()
-ggplot_add.geom_kegg <- function(object, plot, object_name) {
+ggplot_add.geom_kegg <- function(object, plot, ...) {
   if (object$parallel) {
         plot <- plot + 
             geom_edge_parallel(width=0.5,

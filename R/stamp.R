@@ -21,7 +21,7 @@ stamp <- function(name, color="red", which_column="name", xval=2, yval=2) {
 #' ggplot_add.stamp
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
-#' @param object_name The name of the object to add
+#' @param ... The other arguments
 #' @export ggplot_add.geom_node_rect_kegg
 #' @export
 #' @return ggplot2 object
@@ -29,7 +29,7 @@ stamp <- function(name, color="red", which_column="name", xval=2, yval=2) {
 #' test_pathway <- create_test_pathway()
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  stamp("hsa:6737")
-ggplot_add.stamp <- function(object, plot, object_name) {
+ggplot_add.stamp <- function(object, plot, ...) {
     plot <- plot + geom_node_rect(aes(xmin=.data$xmin-object$xval, xmax=.data$xmax+object$xval, 
                                       ymin=.data$ymin-object$yval, ymax=.data$ymax+object$yval, 
                                       filter=.data[[object$which_column]] %in% object$name),

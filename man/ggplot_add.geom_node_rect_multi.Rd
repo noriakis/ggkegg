@@ -4,14 +4,14 @@
 \alias{ggplot_add.geom_node_rect_multi}
 \title{ggplot_add.geom_node_rect_multi}
 \usage{
-\method{ggplot_add}{geom_node_rect_multi}(object, plot, object_name)
+\method{ggplot_add}{geom_node_rect_multi}(object, plot, ...)
 }
 \arguments{
 \item{object}{An object to add to the plot}
 
 \item{plot}{The ggplot object to add object to}
 
-\item{object_name}{The name of the object to add}
+\item{...}{The other arguments}
 }
 \value{
 ggplot2 object
