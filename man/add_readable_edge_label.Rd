@@ -23,6 +23,6 @@ Should be just under the geom_edge_* with the filtered labels.
 \examples{
 test_pathway <- create_test_pathway()
 plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
- geom_edge_link(aes(label=subtype_name))+
+ geom_edge_link(aes(label=subtype_name, label_colour=subtype_name))+
  add_readable_edge_label()
 }

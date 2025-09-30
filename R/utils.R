@@ -878,7 +878,7 @@ combine_with_bnlearn <- function(pg, str, av, prefix="ko:", how="any") {
 #' @examples
 #' test_pathway <- create_test_pathway()
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
-#'  geom_edge_link(aes(label=subtype_name))+
+#'  geom_edge_link(aes(label=subtype_name, label_colour=subtype_name))+
 #'  add_readable_edge_label()
 add_readable_edge_label <- function(color="label_colour", angle_calc="along", size=3) {
     structure(list(color=color, angle_calc=angle_calc, size=size),
