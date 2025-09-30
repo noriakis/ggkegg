@@ -895,7 +895,7 @@ add_readable_edge_label <- function(color="label_colour", angle_calc="along", si
 #' @examples
 #' test_pathway <- create_test_pathway()
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
-#'  geom_edge_link(aes(label=subtype_name))+
+#'  geom_edge_link(aes(label=subtype_name, label_colour=subtype_name))+
 #'  add_readable_edge_label()
 ggplot_add.add_readable_edge_label <- function(object, plot, object_name) {
     built <- ggplot_build(plot)
@@ -909,7 +909,7 @@ ggplot_add.add_readable_edge_label <- function(object, plot, object_name) {
                 mutate(angle2=edge_angle(x, y, xend, yend)) %>%
                 group_by(group, label, .data[[object$color]]) %>%
                 summarise(mx=mean(x), my=mean(y), ma=mean(angle2)) %>%
-                ungroup()        
+                ungroup()
         } else {
             readable <- candidate %>%
                 group_by(group, label, .data[[object$color]]) %>%
