@@ -888,7 +888,7 @@ add_readable_edge_label <- function(color="label_colour", angle_calc="along", si
 #' ggplot_add.geom_node_rect_kegg
 #' @param object An object to add to the plot
 #' @param plot The ggplot object to add object to
-#' @param object_name The name of the object to add
+#' @param ... The other arguments
 #' @export ggplot_add.add_readable_edge_label
 #' @export
 #' @return ggplot2 object
@@ -897,7 +897,7 @@ add_readable_edge_label <- function(color="label_colour", angle_calc="along", si
 #' plt <- ggraph(test_pathway, layout="manual", x=x, y=y) +
 #'  geom_edge_link(aes(label=subtype_name, label_colour=subtype_name))+
 #'  add_readable_edge_label()
-ggplot_add.add_readable_edge_label <- function(object, plot, object_name) {
+ggplot_add.add_readable_edge_label <- function(object, plot, ...) {
     built <- ggplot_build(plot)
     datlen <- length(built$data)
     candidate <- built$data[[datlen]]

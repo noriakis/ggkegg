@@ -4,14 +4,14 @@
 \alias{ggplot_add.add_readable_edge_label}
 \title{ggplot_add.geom_node_rect_kegg}
 \usage{
-\method{ggplot_add}{add_readable_edge_label}(object, plot, object_name)
+\method{ggplot_add}{add_readable_edge_label}(object, plot, ...)
 }
 \arguments{
 \item{object}{An object to add to the plot}
 
 \item{plot}{The ggplot object to add object to}
 
-\item{object_name}{The name of the object to add}
+\item{...}{The other arguments}
 }
 \value{
 ggplot2 object
