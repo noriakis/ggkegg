@@ -118,7 +118,22 @@ ggplot_add.overlay_raw_map <- function(object, plot, ...) {
   
     ras <- as.raster(magick_image)
 
+    ## --- BEGIN: scale for high_res ---
+    ## 当使用 high_res(2x) 底图时，把 ggraph 数据里的坐标/尺寸同步放大 2 倍
+    if (isTRUE(object$high_res) && !is.null(plot$data)) {
+        sf <- 2
+        if ("x" %in% names(plot$data))
+            plot$data$x      <- plot$data$x * sf
+        if ("y" %in% names(plot$data))
+            plot$data$y      <- plot$data$y * sf
+        if ("width" %in% names(plot$data))
+            plot$data$width  <- plot$data$width  * sf
+        if ("height" %in% names(plot$data))
+            plot$data$height <- plot$data$height * sf
+    }
+    ## --- END: scale for high_res ---
 
+    
     xmin <- 0
     xmax <- w-1
     ymin <- -1*h
@@ -253,6 +268,21 @@ output_overlay_image <- function(gg, with_legend=TRUE,
             image_transparent(col)
     }
 
+    ## --- BEGIN: scale for high_res ---
+    ## 与 2x 底图对齐：把 gg$data 的坐标/尺寸放大 2 倍
+    if (isTRUE(high_res) && !is.null(gg$data)) {
+        sf <- 2
+        if ("x" %in% names(gg$data))
+            gg$data$x      <- gg$data$x * sf
+        if ("y" %in% names(gg$data))
+            gg$data$y      <- gg$data$y * sf
+        if ("width" %in% names(gg$data))
+            gg$data$width  <- gg$data$width  * sf
+        if ("height" %in% names(gg$data))
+            gg$data$height <- gg$data$height * sf
+    }
+    ## --- END: scale for high_res ---
+    
     ## Modify original gg to align with the image
     gg <- gg + scale_x_continuous(expand=c(0,0), limits=c(0,info$width-1)) +
         scale_y_continuous(expand=c(0,0), limits=c(-1*info$height+1, 0))
@@ -341,5 +371,5 @@ add_title <- function(out, title=NULL, size=20, height=30, color="white",
 		color=titleColor, gravity=gravity)
 	res <- image_append(c(imganno, img), stack=TRUE)
 	image_write(res, out)
-	return(res)
+    return(res)
 }
