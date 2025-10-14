@@ -265,6 +265,9 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
     name_col_node <- c("name","x","y","type","original_name","node.orig.id")
     name_col_edge <- c("from","to","type","name",
         "bgcolor","fgcolor","reaction","orig.id")
+    if (!("line" %in% unique(V(g)$graphics_type))) {
+        stop("The pathway does not contain line type graphics.")
+    }
     results <- lapply(seq_along(V(g)$name), function(i) {
         if (V(g)$graphics_type[i]=="line") {
             raw_name <- V(g)$name[i]
@@ -302,7 +305,6 @@ process_line <- function(g, invert_y=TRUE, verbose=FALSE) {
             })
         }
     })
-    
     results <- results |> unlist(recursive=FALSE)
     results <- results |> unlist(recursive=FALSE)
     results[vapply(results, is.null, TRUE)] <- NULL
